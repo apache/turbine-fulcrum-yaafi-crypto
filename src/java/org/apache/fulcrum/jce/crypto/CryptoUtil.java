@@ -19,11 +19,8 @@ package org.apache.fulcrum.jce.crypto;
  * under the License.
  */
 
-import java.io.ByteArrayInputStream;
+
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,9 +38,6 @@ import java.security.GeneralSecurityException;
 
 public final class CryptoUtil
 {
-    /** the size of the internal buffer to copy streams */
-    private static final int BUFFER_SIZE = 1024;
-
     /**
      * Copies from a source to a target object using encryption
      *
@@ -80,10 +74,10 @@ public final class CryptoUtil
         CryptoStreamFactory factory, Object source, Object target, char[] password )
         throws GeneralSecurityException, IOException
     {
-        InputStream is = CryptoUtil.createInputStream( source );
-        OutputStream os = CryptoUtil.createOutputStream( target );
+        InputStream is = StreamUtil.createInputStream( source );
+        OutputStream os = StreamUtil.createOutputStream( target );
         OutputStream eos = factory.getOutputStream( os, password );
-        CryptoUtil.copy( is, eos );
+        StreamUtil.copy( is, eos );
     }
 
     /**
@@ -121,10 +115,10 @@ public final class CryptoUtil
         CryptoStreamFactory factory, Object source, Object target, char[] password )
         throws GeneralSecurityException, IOException
     {
-        InputStream is = CryptoUtil.createInputStream( source );
-        OutputStream os = CryptoUtil.createOutputStream( target );
+        InputStream is = StreamUtil.createInputStream( source );
+        OutputStream os = StreamUtil.createOutputStream( target );
         InputStream dis = factory.getInputStream( is, password );
-        CryptoUtil.copy( dis, os );
+        StreamUtil.copy( dis, os );
     }
 
     /**
@@ -206,93 +200,6 @@ public final class CryptoUtil
         return new String( bais.toByteArray(), "utf-8" );
     }
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Private Implementation
-    ///////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Create an input stream supporting the following types
-     *
-     * <ul>
-     *  <li>String</li>
-     *  <li>File</li>
-     *  <li>byte[]</li>
-     *  <li>char[]</li>
-     *  <li>ByteArrayOutputStream</li>
-     *  <li>InputStream</li>
-     * </ul>
-     *
-     * @param source the source object
-     * @return the created input stream
-     * @throws IOException creating the input stream failed
-     */
-    private static InputStream createInputStream( Object source )
-        throws IOException
-    {
-        InputStream is;
-
-        // create an InputStream
-
-        if( source instanceof String )
-        {
-            byte[] content = ((String) source).getBytes("utf-8");
-            is = new ByteArrayInputStream( content );
-        }
-        else if( source instanceof File )
-        {
-            is = new FileInputStream( (File) source );
-        }
-        else if( source instanceof byte[] )
-        {
-            is = new ByteArrayInputStream( (byte[]) source );
-        }
-        else if( source instanceof char[] )
-        {
-            byte[] content = new String((char[])source).getBytes("utf-8");
-            is = new ByteArrayInputStream( content );
-        }
-        else if( source instanceof ByteArrayOutputStream )
-        {
-            byte[] content = ((ByteArrayOutputStream) source).toByteArray();
-            is = new ByteArrayInputStream( content );
-        }
-        else
-        {
-            is = (InputStream) source;
-        }
-
-        return is;
-    }
-
-    /**
-     * Create an output stream supporting the following types
-     *
-     * <ul>
-     *  <li>File</li>
-     *  <li>OutputStream</li>
-     * </ul>
-     *
-     * @param target the target object
-     * @return the output stream
-     * @throws IOException creating the output stream failed
-     */
-    private static OutputStream createOutputStream( Object target )
-        throws IOException
-    {
-        OutputStream os;
-
-        if( target instanceof File )
-        {
-            os = new FileOutputStream( (File) target );
-        }
-        else
-        {
-            os = (OutputStream) target;
-        }
-
-        return os;
-    }
-
     /**
      * Pumps the input stream to the output stream.
      *
@@ -300,26 +207,12 @@ public final class CryptoUtil
      * @param os the target output stream
      * @return the number of bytes copied
      * @throws IOException the copying failed
+     * @deprecated use StreamUtil instead
      */
     public static long copy( InputStream is, OutputStream os )
         throws IOException
     {
-        byte[] buf = new byte[BUFFER_SIZE];
-        int n = 0;
-        long total = 0;
-
-        while ((n = is.read(buf)) > 0)
-        {
-            os.write(buf, 0, n);
-            total += n;
-        }
-
-        is.close();
-
-        os.flush();
-        os.close();
-
-        return total;
+        return StreamUtil.copy(is, os);
     }
 
     /**

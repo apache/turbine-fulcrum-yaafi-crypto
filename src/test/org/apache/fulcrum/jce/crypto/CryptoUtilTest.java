@@ -112,7 +112,7 @@ public class CryptoUtilTest extends TestCase
         testTextEncryption();
         File sourceFile = new File( this.getTempDataDirectory(), "plain.enc.txt" );
         File targetFile = new File( this.getTempDataDirectory(), "plain.dec.txt" );
-        CryptoUtil.decrypt( sourceFile, targetFile, this.getPassword() );
+        CryptoUtil.decrypt( sourceFile, targetFile.getAbsolutePath(), this.getPassword() );
     }
 
     /** Encrypt an empty text file */
