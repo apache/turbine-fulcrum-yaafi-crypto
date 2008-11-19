@@ -24,9 +24,12 @@
   </properties>
 
   <body>
-    <release version="1.0.0" date="as in SVN">
+    <release version="1.0.6-SNAPSHOT" date="as in SVN">
+      <action dev="sgoeschl" type="update">
+        Using the official fulcrum-parent-1 pom.	
+      </action>
       <action dev="sgoeschl" type="add">
-        Moving the code out of YAAFI and make a standalone library
+        Moving the code out of YAAFI and make a standalone library.
       </action>
     </release>
   </body>
