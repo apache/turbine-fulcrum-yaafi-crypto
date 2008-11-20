@@ -37,7 +37,7 @@
     <section name="Cryptography Support">
 
       <p>
-        The YAAFI container supports decryption of configuration files using
+        This library supports decryption of configuration files using
         Sun's JCA (Java Crypto Architecture). The encryption/decryption is 
         based on DES using 56 bit key length.
       </p>

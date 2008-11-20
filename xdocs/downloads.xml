@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
  Licensed to the Apache Software Foundation (ASF) under one
  or more contributor license agreements.  See the NOTICE file
@@ -19,19 +19,25 @@
 -->
 <document>
   <properties>
-    <title>Fulcrum YAAFI Crytpo Library</title>
-    <author email="siegfried.goeschl@it20one.at">Siegfried Goeschl</author>
+    <title>Fulcrum YAAFI Avalon Container</title>
   </properties>
-
   <body>
-    <release version="1.0.6" date="as in SVN">
-      <action dev="sgoeschl" type="update">
-        Using the official fulcrum-parent-1 pom.	
-      </action>
-      <action dev="sgoeschl" type="add">
-        Moving the code out of YAAFI and make a standalone library.
-      </action>
-    </release>
+    <section name="Downloads">
+      <p>List of available downloads.</p>
+      <table>
+        <tr>
+          <th>Download Links</th>
+          <th>Release Notes</th>
+        </tr>
+        <tr>
+          <td>
+            <a href="http://www.apache.org/dyn/closer.cgi/turbine/fulcrum/fulcrum-yaafi-crypto/binaries/fulcrum-yaafi-crypto-1.0.6.zip">Fulcrum's YAAFI Crypto v1.0.6</a>
+          </td>
+          <td>
+            <a href="announcements/announcement-1.0.6.txt">1.0.6</a>
+          </td>
+        </tr>
+      </table>
+    </section>
   </body>
 </document>
-
