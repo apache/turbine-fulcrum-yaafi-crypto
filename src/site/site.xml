@@ -21,6 +21,7 @@
   <body>
     <menu name="Overview">
       <item name="Overview"            href="/index.html"/>
+      <item name="Downloads"           href="/downloads.html"/>
     </menu>  
     ${reports}
   </body>
