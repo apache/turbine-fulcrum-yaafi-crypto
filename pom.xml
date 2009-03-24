@@ -71,7 +71,7 @@
   <properties>
     <!-- This bits are used for the staging directory -->
     <fulcrum.release.version>1.0.6</fulcrum.release.version>
-    <fulcrum.rc.version>RC2</fulcrum.rc.version>  
+    <fulcrum.rc.version>RC3</fulcrum.rc.version>  
   </properties>  
 	
 </project>
