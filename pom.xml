@@ -54,10 +54,24 @@
     <testSourceDirectory>${basedir}/src/test</testSourceDirectory>
   </build>
   
+  <profiles>
+    <profile>
+      <id>rc</id>
+      <distributionManagement>
+        <!-- Cannot define in parent ATM, see COMMONSSITE-26 -->
+        <site>
+          <id>apache.website</id>
+          <name>Apache Fulcrum Release Candidate Staging Site</name>
+          <url>${fulcrum.deployment.protocol}://people.apache.org/www/turbine.apache.org/builds/fulcrum/${fulcrum.componentid}/${fulcrum.release.version}/${fulcrum.rc.version}/site</url>
+        </site>
+      </distributionManagement>
+    </profile>
+  </profiles>
+
   <properties>
     <!-- This bits are used for the staging directory -->
     <fulcrum.release.version>1.0.6</fulcrum.release.version>
-    <fulcrum.rc.version>RC2</fulcrum.rc.version>  
+    <fulcrum.rc.version>RC3</fulcrum.rc.version>  
   </properties>  
 	
 </project>
