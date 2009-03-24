@@ -7,16 +7,16 @@
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>fulcrum-yaafi-crypto</artifactId>
-  <version>1.0.6</version>
+  <version>1.0.7-SNAPSHOT</version>
   <name>Fulcrum YAAFI Crypto</name>
   <inceptionYear>2008</inceptionYear>
   <description>Fulcrum YAAFI Crypto Library</description>
   <url>http://turbine.apache.org/fulcrum/fulcrum-yaafi-crytpo</url>
 		
   <scm>
-    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/tags/FULCRUM_YAAFI_CRYPTO_1_0_6</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/tags/FULCRUM_YAAFI_CRYPTO_1_0_6</developerConnection>
-    <url>http://svn.apache.org/viewcvs/turbine/fulcrum/tags/FULCRUM_YAAFI_CRYPTO_1_0_6</url>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/trunk/yaafi-crypto/</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/trunk/yaafi-crypto/</developerConnection>
+    <url>http://svn.apache.org/viewcvs/turbine/fulcrum/trunk/yaafi-crypto/</url>
   </scm>
 
   <distributionManagement>
