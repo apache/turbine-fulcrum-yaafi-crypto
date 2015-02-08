@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/trunk/yaafi-crypto/</connection>
     <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/trunk/yaafi-crypto/</developerConnection>
-    <url>http://svn.apache.org/viewcvs/turbine/fulcrum/trunk/yaafi-crypto/</url>
+    <url>http://svn.apache.org/viewvc/turbine/fulcrum/trunk/yaafi-crypto/</url>
   </scm>
 
   <distributionManagement>
