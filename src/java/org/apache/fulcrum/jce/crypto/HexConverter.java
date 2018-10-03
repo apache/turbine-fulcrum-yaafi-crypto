@@ -78,9 +78,9 @@ public final class HexConverter
         int nOfs,
         int nLen)
     {
-        StringBuffer sbuf;
+        StringBuilder sbuf;
 
-        sbuf = new StringBuffer();
+        sbuf = new StringBuilder();
         sbuf.setLength(nLen << 1);
 
         int nPos = 0;

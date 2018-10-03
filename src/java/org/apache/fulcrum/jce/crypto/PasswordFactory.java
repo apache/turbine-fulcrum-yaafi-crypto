@@ -97,7 +97,7 @@ public class PasswordFactory implements PasswordParameters
         byte [] temp = new byte[salt.length + passwordMask.length];
         byte [] digest = null;
 
-        StringBuffer stringBuffer = new StringBuffer();
+        StringBuilder stringBuffer = new StringBuilder();
 
         // combine the password with the salt string into a byte[9
 
@@ -139,7 +139,7 @@ public class PasswordFactory implements PasswordParameters
             result[i] = stringBuffer.charAt( i );
         }
 
-        // wipe out the StringBuffer
+        // wipe out the StringBuilder
 
         for (int i = 0; i < stringBuffer.length(); i++)
         {
