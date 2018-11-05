@@ -40,7 +40,12 @@ public class PasswordFactory implements PasswordParameters
 {
 
     /**
+     * Create a new password
+     * 
      * @return a default password using "xxxx-xxxx-xxxx-xxxxx"
+     * 
+     * @throws NoSuchAlgorithmException the encryption algorithm is not supported
+     * @throws UnsupportedEncodingException the requested encoding is not supported
      */
     public static char[] create()
         throws NoSuchAlgorithmException, UnsupportedEncodingException
@@ -53,8 +58,13 @@ public class PasswordFactory implements PasswordParameters
     }
 
     /**
+     * Create a new password using a seed
+     * 
      * @param seed the default password supplied by the caller
      * @return a password using "xxxx-xxxx-xxxx-xxxxx"
+     * 
+     * @throws NoSuchAlgorithmException the encryption algorithm is not supported
+     * @throws UnsupportedEncodingException the requested encoding is not supported
      */
     public static char[] create( String seed )
         throws NoSuchAlgorithmException, UnsupportedEncodingException
@@ -67,6 +77,8 @@ public class PasswordFactory implements PasswordParameters
     /**
      * @param seed the default password supplied by the caller
      * @return a password using "xxxx-xxxx-xxxx-xxxxx"
+     * @throws NoSuchAlgorithmException the encryption algorithm is not supported
+     * @throws UnsupportedEncodingException the requested encoding is not supported
      */
     public static final char[] create( char[] seed )
         throws NoSuchAlgorithmException, UnsupportedEncodingException
@@ -131,7 +143,6 @@ public class PasswordFactory implements PasswordParameters
         stringBuffer.append( Long.toHexString( long4 ).substring( 0, 5 ) );
 
         // copy the password
-
         result = new char[stringBuffer.length()];
 
         for (int i = 0; i < stringBuffer.length(); i++)
@@ -140,7 +151,6 @@ public class PasswordFactory implements PasswordParameters
         }
 
         // wipe out the StringBuilder
-
         for (int i = 0; i < stringBuffer.length(); i++)
         {
             stringBuffer.setCharAt( i, ' ' );

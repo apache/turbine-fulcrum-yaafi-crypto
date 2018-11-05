@@ -44,6 +44,8 @@ public class SmartDecryptingInputStream extends ByteArrayInputStream
      *
      * @param cryptoStreamFactory the CryptoStreamFactory for creating a cipher stream
      * @param is the input stream to be decrypted
+     * @throws IOException if file not found
+     * @throws GeneralSecurityException if security check fails
      */
     public SmartDecryptingInputStream(
         CryptoStreamFactory cryptoStreamFactory,
@@ -59,6 +61,9 @@ public class SmartDecryptingInputStream extends ByteArrayInputStream
      * @param cryptoStreamFactory the CryptoStreamFactory for creating a cipher stream
      * @param is the input stream to be decrypted
      * @param password the password for decryption
+     * 
+     * @throws IOException if file not found
+     * @throws GeneralSecurityException if security check fails 
      */
     public SmartDecryptingInputStream(
         CryptoStreamFactory cryptoStreamFactory,
@@ -116,7 +121,7 @@ public class SmartDecryptingInputStream extends ByteArrayInputStream
      *
      * @param content the data to be examined
      * @return true if this is an encrypted file
-     * @exception IOException unable to read the content
+     * @throws IOException unable to read the content
      */
     private boolean isEncrypted( byte[] content )
         throws IOException
