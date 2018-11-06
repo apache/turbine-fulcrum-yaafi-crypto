@@ -24,6 +24,14 @@
   </properties>
 
   <body>
+    <release version="1.0.7" date="as in SVN">
+      <action dev="painter" type="update">
+        Update parent pom to Turbine 5
+        Remove references to StringBuffer
+        Fix missing license from rat report
+      </action>
+    </release>
+
     <release version="1.0.6" date="as in SVN">
       <action dev="sgoeschl" type="update">
         Using the official fulcrum-parent-1 pom.	
