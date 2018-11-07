@@ -26,12 +26,18 @@
   <body>
     <release version="1.0.7" date="as in SVN">
       <action dev="painter" type="update">
+        Simplify the HexConverter code, more Java 8 friendly
+      </action>
+      <action dev="painter" type="update">
         Update parent pom to Turbine 5
+      </action>
+      <action dev="painter" type="update">
         Remove references to StringBuffer
+      </action>
+      <action dev="painter" type="update">
         Fix missing license from rat report
       </action>
     </release>
-
     <release version="1.0.6" date="as in SVN">
       <action dev="sgoeschl" type="update">
         Using the official fulcrum-parent-1 pom.	
