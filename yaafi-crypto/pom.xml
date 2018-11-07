@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <artifactId>turbine-parent</artifactId>
+       <groupId>org.apache.turbine</groupId>
+       <version>5</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>fulcrum-yaafi-crypto</artifactId>
+  <groupId>org.apache.fulcrum</groupId>
+  <version>1.0.7</version>
+  <name>Fulcrum YAAFI Crypto</name>
+  <inceptionYear>2008</inceptionYear>
+  <description>Fulcrum YAAFI Crypto Library</description>
+  <url>http://turbine.apache.org/fulcrum/fulcrum-yaafi-crytpo</url>
+		
+  <scm>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7</developerConnection>
+    <url>http://svn.apache.org/viewvc/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7</url>
+  </scm>
+	
+  <developers>
+    <developer>
+      <name>Siegfried Goeschl</name>
+      <id>sgoeschl</id>
+      <email>sgoeschl@apache.org</email>
+      <organization />
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <dependencies>
+    <!-- testing dependencies -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <sourceDirectory>${basedir}/src/java</sourceDirectory>
+    <testSourceDirectory>${basedir}/src/test</testSourceDirectory>
+  </build>
+  
+  <properties>
+    <turbine.site.path>fulcrum/fulcrum-yaafi-crypto</turbine.site.path>
+  </properties>  
+	
+</project>

@@ -1,0 +1,254 @@
+# -------------------------------------------------------------------
+# Copyright 2001-2004 The Apache Software Foundation.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+#  
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# -------------------------------------------------------------------
+
+# -------------------------------------------------------------------
+# D E F A U L T  M A V E N  P R O P E R T I E S
+# -------------------------------------------------------------------
+# These are the properties that we believe are immutable so we
+# keep them apart from the project specific properties.
+# -------------------------------------------------------------------
+
+# Properties for the dashboard reactor
+# ------------------------------------
+
+maven.dashboard.basedir=${basedir}
+maven.dashboard.includes=*/project.xml
+maven.dashboard.excludes=**/target/**/project.xml
+maven.dashboard.ignoreFailures=false
+
+# Generated dashboard xml data file
+maven.dashboard.report.xml = ${maven.build.dir}/dashboard-data.xml
+
+# Generated dashboard main report xdoc file name (without the extension). 
+# Note: The value must not include any path as the xdoc will be 
+# generated in ${maven.gen.docs}.
+maven.dashboard.report.xdoc = dashboard-report
+
+# Generated dashboard legend xdoc file name (without the extension). 
+# Note: The value must not include any path as the xdoc will be 
+# generated in ${maven.gen.docs}.
+maven.dashboard.report.legend.xdoc = dashboard-report-legend
+
+# Location of JSL template to generate the main report xdoc file
+maven.dashboard.template = ${plugin.resources}/templates/dashboard.jsl
+
+# Location of JSL template to generate the legend report xdoc file
+maven.dashboard.template.legend = ${plugin.resources}/templates/legend.jsl
+
+# Decide whether a call to dashboard:report will call the reactor
+# on the child projects to generate individual dashboard data. If you
+# already using the multiproject project or the reactor, a better option
+# is to add dashboard:report-single to the list of goals you're running.
+# In which case, you'll need to set the following property to false
+# (otherwise the reactor will be run again on your child projects).
+maven.dashboard.runreactor = true
+
+# If false, do not show projects for which gathered data is empty for all
+# aggregators.
+maven.dashboard.report.showempty = true
+
+# Images used when generating the progress bar for the dashboard HTML color
+# for left bar
+maven.dashboard.report.bar.left = green
+
+# HTML color for right bar
+maven.dashboard.report.bar.right = red
+
+# Image to set cells with (should be transparent)
+maven.dashboard.report.bar.image = images/trans.gif
+maven.dashboard.report.bar.height = 10
+maven.dashboard.report.bar.border = 0
+maven.dashboard.report.bar.displayLabel = true
+
+# Properties for gathering dashboard data for a single project
+# ------------------------------------------------------------
+
+# Location of default dashboard aggregators
+maven.dashboard.aggregators.dir = ${plugin.resources}/aggregators
+
+# Comma-separated list of aggregators to use
+maven.dashboard.aggregators = cserrors,cswarnings,clovertpc,cloverloc,cloverncloc
+
+# Generated dashboard data for a single project
+maven.dashboard.report.single = ${maven.build.dir}/dashboard-single.xml
+
+# Decide whether to call goals associated with report types or not
+maven.dashboard.rungoals = true
+
+# Default aggregators
+# -------------------
+
+# Properties for the Checkstyle files aggregator
+maven.dashboard.aggregator.csfiles.script = ${maven.dashboard.aggregators.dir}/csfiles.jelly
+maven.dashboard.aggregator.csfiles.artifact = ${maven.build.dir}/checkstyle-raw-report.xml
+maven.dashboard.aggregator.csfiles.label = CS Files
+maven.dashboard.aggregator.csfiles.goal = checkstyle
+maven.dashboard.aggregator.csfiles.description = Number of files checked with Checkstyle
+
+# Properties for the Checkstyle error/warning aggregator (all errors/warnings)
+maven.dashboard.aggregator.csall.script = ${maven.dashboard.aggregators.dir}/csall.jelly
+maven.dashboard.aggregator.csall.artifact = ${maven.build.dir}/checkstyle-raw-report.xml
+maven.dashboard.aggregator.csall.label = CS err/warn
+maven.dashboard.aggregator.csall.goal = checkstyle
+maven.dashboard.aggregator.csall.description = Number of Checkstyle errors and warnings
+
+# Properties for the Checkstyle error aggregator (only errors)
+maven.dashboard.aggregator.cserrors.script = ${maven.dashboard.aggregators.dir}/cserrors.jelly
+maven.dashboard.aggregator.cserrors.artifact = ${maven.build.dir}/checkstyle-raw-report.xml
+maven.dashboard.aggregator.cserrors.label = CS errors
+maven.dashboard.aggregator.cserrors.goal = checkstyle
+maven.dashboard.aggregator.cserrors.description = Number of Checkstyle errors
+
+# Properties for the Checkstyle warning aggregator (only warnings)
+maven.dashboard.aggregator.cswarnings.script = ${maven.dashboard.aggregators.dir}/cswarnings.jelly
+maven.dashboard.aggregator.cswarnings.artifact = ${maven.build.dir}/checkstyle-raw-report.xml
+maven.dashboard.aggregator.cswarnings.label = CS warnings
+maven.dashboard.aggregator.cswarnings.goal = checkstyle
+maven.dashboard.aggregator.cswarnings.description = Number of Checkstyle warnings
+
+# Properties for the Clover TPC aggregator (TPC = Total Percent Coverage)
+maven.dashboard.aggregator.clovertpc.script = ${maven.dashboard.aggregators.dir}/clovertpc.jelly
+maven.dashboard.aggregator.clovertpc.artifact = ${maven.build.dir}/clover.xml
+maven.dashboard.aggregator.clovertpc.label = Clover TPC
+maven.dashboard.aggregator.clovertpc.goal = clover
+maven.dashboard.aggregator.clovertpc.description = Number of test coverage percentage
+
+# Properties for the Clover LOC aggregator (LOC = Line Of Code)
+maven.dashboard.aggregator.cloverloc.script = ${maven.dashboard.aggregators.dir}/cloverloc.jelly
+maven.dashboard.aggregator.cloverloc.artifact = ${maven.build.dir}/clover.xml
+maven.dashboard.aggregator.cloverloc.label = Clover LOC
+maven.dashboard.aggregator.cloverloc.goal = clover
+maven.dashboard.aggregator.cloverloc.description = Number of line of code (including comments)
+
+# Properties for the Clover NCLOC aggregator (NCLOC = Non Comment Line Of Code)
+maven.dashboard.aggregator.cloverncloc.script = ${maven.dashboard.aggregators.dir}/cloverncloc.jelly
+maven.dashboard.aggregator.cloverncloc.artifact = ${maven.build.dir}/clover.xml
+maven.dashboard.aggregator.cloverncloc.label = Clover NCLOC
+maven.dashboard.aggregator.cloverncloc.goal = clover
+maven.dashboard.aggregator.cloverncloc.description = Number of non-commented lines of code
+
+# Properties for the JUnit Test aggregator 
+maven.dashboard.aggregator.junittests.script = ${maven.dashboard.aggregators.dir}/junittests.jelly
+maven.dashboard.aggregator.junittests.artifact = ${maven.build.dir}/TESTS-TestSuites.xml
+maven.dashboard.aggregator.junittests.label = JUnit Tests
+maven.dashboard.aggregator.junittests.goal = junit-report:report
+maven.dashboard.aggregator.junittests.description = Number of JUnit tests
+
+# Properties for the JUnit Failures aggregator 
+maven.dashboard.aggregator.junitfailures.script = ${maven.dashboard.aggregators.dir}/junitfailures.jelly
+maven.dashboard.aggregator.junitfailures.artifact = ${maven.build.dir}/TESTS-TestSuites.xml
+maven.dashboard.aggregator.junitfailures.label = JUnit Failures
+maven.dashboard.aggregator.junitfailures.goal = junit-report:report
+maven.dashboard.aggregator.junitfailures.description = Number of JUnit test failures
+
+# Properties for the JUnit Errors aggregator 
+maven.dashboard.aggregator.juniterrors.script = ${maven.dashboard.aggregators.dir}/juniterrors.jelly
+maven.dashboard.aggregator.juniterrors.artifact = ${maven.build.dir}/TESTS-TestSuites.xml
+maven.dashboard.aggregator.juniterrors.label = JUnit Errors
+maven.dashboard.aggregator.juniterrors.goal = junit-report:report
+maven.dashboard.aggregator.juniterrors.description = Number of JUnit test errors
+
+# Properties for the JUnit Pass Rate aggregator 
+maven.dashboard.aggregator.junitpassrate.script = ${maven.dashboard.aggregators.dir}/junitpassrate.jelly
+maven.dashboard.aggregator.junitpassrate.artifact = ${maven.build.dir}/TESTS-TestSuites.xml
+maven.dashboard.aggregator.junitpassrate.label = JUnit Pass Rate
+maven.dashboard.aggregator.junitpassrate.goal = junit-report:report
+maven.dashboard.aggregator.junitpassrate.description = Percentage of JUnit tests that have passed vs tests in error or failed
+
+# Properties for the PMD violations aggregator 
+maven.dashboard.aggregator.pmdfiles.script = ${maven.dashboard.aggregators.dir}/pmdfiles.jelly
+maven.dashboard.aggregator.pmdfiles.artifact = ${maven.build.dir}/pmd-raw-report.xml
+maven.dashboard.aggregator.pmdfiles.label = PMD Files with Violations
+maven.dashboard.aggregator.pmdfiles.goal = pmd:report
+maven.dashboard.aggregator.pmdfiles.description = Number of files with PMD violations
+
+# Properties for the PMD violations aggregator 
+maven.dashboard.aggregator.pmdviolations.script = ${maven.dashboard.aggregators.dir}/pmdviolations.jelly
+maven.dashboard.aggregator.pmdviolations.artifact = ${maven.build.dir}/pmd-raw-report.xml
+maven.dashboard.aggregator.pmdviolations.label = PMD Violations
+maven.dashboard.aggregator.pmdviolations.goal = pmd:report
+maven.dashboard.aggregator.pmdviolations.description = Number of PMD violations
+
+# Properties for the Simian duplicate lines aggregator 
+maven.dashboard.aggregator.simiantdl.script = ${maven.dashboard.aggregators.dir}/simiantdl.jelly
+maven.dashboard.aggregator.simiantdl.artifact = ${maven.build.dir}/generated-xdocs/simian-report.xml
+maven.dashboard.aggregator.simiantdl.label = Simian TDL
+maven.dashboard.aggregator.simiantdl.goal = maven-simian-plugin:report
+maven.dashboard.aggregator.simiantdl.description = Simian Total Duplicate Lines
+
+# Properties for the JCoverage covered lines percent aggregator 
+maven.dashboard.aggregator.jcoveragelipc.script = ${maven.dashboard.aggregators.dir}/jcoveragelipc.jelly
+maven.dashboard.aggregator.jcoveragelipc.artifact = ${maven.build.dir}/jcoverage/coverage.xml
+maven.dashboard.aggregator.jcoveragelipc.label = JCoverage %lines
+maven.dashboard.aggregator.jcoveragelipc.goal = maven-jcoverage-plugin:report
+maven.dashboard.aggregator.jcoveragelipc.description = JCoverage covered lines percentile
+
+# Properties for the JCoverage total lines aggregator 
+maven.dashboard.aggregator.jcoverageloc.script = ${maven.dashboard.aggregators.dir}/jcoverageloc.jelly
+maven.dashboard.aggregator.jcoverageloc.artifact = ${maven.build.dir}/jcoverage/coverage.xml
+maven.dashboard.aggregator.jcoverageloc.label = JCoverage LOC
+maven.dashboard.aggregator.jcoverageloc.goal = maven-jcoverage-plugin:report
+maven.dashboard.aggregator.jcoverageloc.description = JCoverage total lines of code
+
+# Properties for the FindBugs file violations aggregator 
+maven.dashboard.aggregator.fbfiles.script = ${maven.dashboard.aggregators.dir}/fbfiles.jelly
+maven.dashboard.aggregator.fbfiles.artifact = ${maven.build.dir}/findbugs-raw-report.xml
+maven.dashboard.aggregator.fbfiles.label = FindBugs Files with Violations
+maven.dashboard.aggregator.fbfiles.goal = maven-findbugs-plugin:report
+maven.dashboard.aggregator.fbfiles.description = Number of files with FindBugs violations
+
+# Properties for the FindBugs violations aggregator 
+maven.dashboard.aggregator.fbviolations.script = ${maven.dashboard.aggregators.dir}/fbviolations.jelly
+maven.dashboard.aggregator.fbviolations.artifact = ${maven.build.dir}/findbugs-raw-report.xml
+maven.dashboard.aggregator.fbviolations.label = FindBugs Violations
+maven.dashboard.aggregator.fbviolations.goal = maven-findbugs-plugin:report
+maven.dashboard.aggregator.fbviolations.description = Number of FindBugs violations
+
+# Classes Tasks aggregator
+maven.dashboard.aggregator.tasklistclass.script = ${maven.dashboard.aggregators.dir}/task-list-classes.jelly
+maven.dashboard.aggregator.tasklistclass.artifact = ${maven.build.dir}/generated-xdocs/task-list.xml
+maven.dashboard.aggregator.tasklistclass.label = Classes Tasks 
+maven.dashboard.aggregator.tasklistclass.goal = maven-tasklist-plugin:report
+maven.dashboard.aggregator.tasklistclass.description = Total number of classes with task definition (@todo tag).
+
+# Methods Tasks aggregator
+maven.dashboard.aggregator.tasklistmethod.script = ${maven.dashboard.aggregators.dir}/task-list-methods.jelly
+maven.dashboard.aggregator.tasklistmethod.artifact = ${maven.build.dir}/generated-xdocs/task-list.xml
+maven.dashboard.aggregator.tasklistmethod.label = Methods Tasks 
+maven.dashboard.aggregator.tasklistmethod.goal = maven-tasklist-plugin:report
+maven.dashboard.aggregator.tasklistmethod.description = Total number of methods with task definition (@todo tag).
+
+# All Tasks aggregator
+maven.dashboard.aggregator.tasklist.script = ${maven.dashboard.aggregators.dir}/task-list-all.jelly
+maven.dashboard.aggregator.tasklist.artifact = ${maven.build.dir}/generated-xdocs/task-list.xml
+maven.dashboard.aggregator.tasklist.label = All Tasks 
+maven.dashboard.aggregator.tasklist.goal = maven-tasklist-plugin:report
+maven.dashboard.aggregator.tasklist.description = Total number of task definition (@todo tag).
+
+# Changed log: total number of scm changed files aggregator
+maven.dashboard.aggregator.scmchangedfiles.script = ${maven.dashboard.aggregators.dir}/scmchangedfiles.jelly
+maven.dashboard.aggregator.scmchangedfiles.artifact = ${maven.build.dir}/changelog.xml
+maven.dashboard.aggregator.scmchangedfiles.label = SCM Changed Files
+maven.dashboard.aggregator.scmchangedfiles.goal = maven-changelog-plugin:report
+maven.dashboard.aggregator.scmchangedfiles.description = Total number of changed files in scm.
+
+# Changed log: total number of scm commit aggregator
+maven.dashboard.aggregator.scmchangedcommit.script = ${maven.dashboard.aggregators.dir}/scmchangedcommit.jelly
+maven.dashboard.aggregator.scmchangedcommit.artifact = ${maven.build.dir}/changelog.xml
+maven.dashboard.aggregator.scmchangedcommit.label = SCM commits
+maven.dashboard.aggregator.scmchangedcommit.goal = maven-changelog-plugin:report
+maven.dashboard.aggregator.scmchangedcommit.description = Total number of scm commit.
+
