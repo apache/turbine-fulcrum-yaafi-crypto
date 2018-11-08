@@ -1,1 +1,0 @@
-The fulcrum-yaafi-crypto-team is pleased to announce the fulcrum-yaafi-crypto-1.0.6.jar release!Fulcrum YAAFI Crypto LibraryChanges in this version include:New features:o Moving the code out of YAAFI and make a standalone library. Changes:o Using the official fulcrum-parent-1 pom. Have fun!-fulcrum-yaafi-crypto-team
