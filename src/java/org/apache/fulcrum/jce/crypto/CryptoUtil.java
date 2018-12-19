@@ -19,7 +19,6 @@ package org.apache.fulcrum.jce.crypto;
  * under the License.
  */
 
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,168 +35,150 @@ import java.security.GeneralSecurityException;
  * @author <a href="mailto:maakus@earthlink.net">Markus Hahn</a>
  */
 
-public final class CryptoUtil
-{
+public class CryptoUtil {
+
+    /** the default instance */
+    private static CryptoUtil instance;
+
     /**
-     * Copies from a source to a target object using encryption
-     *
-     * @param source the source object
-     * @param target the target object
-     * @param password the password to use for encryption
-     * @throws GeneralSecurityException accessing JCE failed
-     * @throws IOException accessing the souce failed
-     *
+     * Factory method to get a default instance
+     * 
+     * @return an instance of the CryptoStreamFactory
      */
-    public static void encrypt( Object source, Object target, char[] password )
-        throws GeneralSecurityException, IOException
-    {
-        CryptoUtil.encrypt(
-            CryptoUtil.getCryptoStreamFactory(),
-            source,
-            target,
-            password
-            );
+    public synchronized static CryptoUtil getInstance() {
+        if (CryptoUtil.instance == null) {
+            CryptoUtil.instance = new CryptoUtil();
+        }
+
+        return CryptoUtil.instance;
     }
 
     /**
-     * Copies from a source to a target object using encryption and a
-     * caller supplied CryptoStreamFactory.
+     * Copies from a source to a target object using encryption
      *
-     * @param factory the factory to create the crypto streams
-     * @param source the source object
-     * @param target the target object
+     * @param source   the source object
+     * @param target   the target object
      * @param password the password to use for encryption
      * @throws GeneralSecurityException accessing JCE failed
-     * @throws IOException accessing the souce failed
+     * @throws IOException              accessing the souce failed
+     *
      */
-    public static void encrypt(
-        CryptoStreamFactory factory, Object source, Object target, char[] password )
-        throws GeneralSecurityException, IOException
-    {
-        InputStream is = StreamUtil.createInputStream( source );
-        OutputStream os = StreamUtil.createOutputStream( target );
-        OutputStream eos = factory.getOutputStream( os, password );
-        StreamUtil.copy( is, eos );
+    public void encrypt(Object source, Object target, char[] password) throws GeneralSecurityException, IOException {
+        encrypt(getCryptoStreamFactory(), source, target, password);
+    }
+
+    /**
+     * Copies from a source to a target object using encryption and a caller
+     * supplied CryptoStreamFactory.
+     *
+     * @param factory  the factory to create the crypto streams
+     * @param source   the source object
+     * @param target   the target object
+     * @param password the password to use for encryption
+     * @throws GeneralSecurityException accessing JCE failed
+     * @throws IOException              accessing the souce failed
+     */
+    public void encrypt(CryptoStreamFactory factory, Object source, Object target, char[] password)
+            throws GeneralSecurityException, IOException {
+        InputStream is = StreamUtil.createInputStream(source);
+        OutputStream os = StreamUtil.createOutputStream(target);
+        OutputStream eos = factory.getOutputStream(os, password);
+        StreamUtil.copy(is, eos);
     }
 
     /**
      * Copies from a source to a target object using decryption.
      *
-     * @param source the source object
-     * @param target the target object
+     * @param source   the source object
+     * @param target   the target object
      * @param password the password to use for decryption
      * @throws GeneralSecurityException accessing JCE failed
-     * @throws IOException accessing the souce failed
+     * @throws IOException              accessing the souce failed
      */
-    public static void decrypt( Object source, Object target, char[] password )
-        throws GeneralSecurityException, IOException
-    {
-        CryptoUtil.decrypt(
-            CryptoUtil.getCryptoStreamFactory(),
-            source,
-            target,
-            password
-            );
+    public void decrypt(Object source, Object target, char[] password) throws GeneralSecurityException, IOException {
+        decrypt(getCryptoStreamFactory(), source, target, password);
     }
 
     /**
-     * Copies from a source to a target object using decryption and a
-     * caller-suppier CryptoStreamFactory.
+     * Copies from a source to a target object using decryption and a caller-suppier
+     * CryptoStreamFactory.
      *
-     * @param factory the factory to create the crypto streams
-     * @param source the source object
-     * @param target the target object
+     * @param factory  the factory to create the crypto streams
+     * @param source   the source object
+     * @param target   the target object
      * @param password the password to use for decryption
      * @throws GeneralSecurityException accessing JCE failed
-     * @throws IOException accessing the souce failed
+     * @throws IOException              accessing the souce failed
      */
-    public static void decrypt(
-        CryptoStreamFactory factory, Object source, Object target, char[] password )
-        throws GeneralSecurityException, IOException
-    {
-        InputStream is = StreamUtil.createInputStream( source );
-        OutputStream os = StreamUtil.createOutputStream( target );
-        InputStream dis = factory.getInputStream( is, password );
-        StreamUtil.copy( dis, os );
+    public void decrypt(CryptoStreamFactory factory, Object source, Object target, char[] password)
+            throws GeneralSecurityException, IOException {
+        InputStream is = StreamUtil.createInputStream(source);
+        OutputStream os = StreamUtil.createOutputStream(target);
+        InputStream dis = factory.getInputStream(is, password);
+        StreamUtil.copy(dis, os);
     }
 
     /**
      * Encrypts a string into a hex string.
      *
      * @param plainText the plain text to be encrypted
-     * @param password the password for encryption
+     * @param password  the password for encryption
      * @return the encrypted string
      * @throws GeneralSecurityException accessing JCE failed
-     * @throws IOException accessing the souce failed
+     * @throws IOException              accessing the souce failed
      */
-    public static String encryptString( String plainText, char[] password )
-        throws GeneralSecurityException, IOException
-    {
-        return CryptoUtil.encryptString(
-            CryptoUtil.getCryptoStreamFactory(),
-            plainText,
-            password
-            );
+    public String encryptString(String plainText, char[] password) throws GeneralSecurityException, IOException {
+        return encryptString(getCryptoStreamFactory(), plainText, password);
     }
 
     /**
      * Encrypts a string into a hex string.
      *
-     * @param factory the factory to create the crypto streams
+     * @param factory   the factory to create the crypto streams
      * @param plainText the plain text to be encrypted
-     * @param password the password for encryption
+     * @param password  the password for encryption
      * @return the encrypted string
      * @throws GeneralSecurityException accessing JCE failed
-     * @throws IOException accessing the souce failed
+     * @throws IOException              accessing the souce failed
      */
-    public static String encryptString(
-        CryptoStreamFactory factory, String plainText, char[] password )
-        throws GeneralSecurityException, IOException
-    {
+    public String encryptString(CryptoStreamFactory factory, String plainText, char[] password)
+            throws GeneralSecurityException, IOException {
         ByteArrayOutputStream bais = new ByteArrayOutputStream();
-        CryptoUtil.encrypt( factory, plainText, bais, password );
-        return HexConverter.toString( bais.toByteArray() );
+        encrypt(factory, plainText, bais, password);
+        return HexConverter.toString(bais.toByteArray());
     }
 
     /**
-     * Decrypts an encrypted string into the plain text. The encrypted
-     * string must be a hex string created by encryptString.
+     * Decrypts an encrypted string into the plain text. The encrypted string must
+     * be a hex string created by encryptString.
      *
      * @param cipherText the encrypted text to be decrypted
-     * @param password the password for decryption
+     * @param password   the password for decryption
      * @return the decrypted string
      * @throws GeneralSecurityException accessing JCE failed
-     * @throws IOException accessing the souce failed
+     * @throws IOException              accessing the souce failed
      */
-    public static String decryptString( String cipherText, char[] password )
-        throws GeneralSecurityException, IOException
-    {
-        return CryptoUtil.decryptString(
-            CryptoUtil.getCryptoStreamFactory(),
-            cipherText,
-            password
-            );
+    public String decryptString(String cipherText, char[] password) throws GeneralSecurityException, IOException {
+        return decryptString(getCryptoStreamFactory(), cipherText, password);
     }
 
     /**
-     * Decrypts an encrypted string into the plain text. The encrypted
-     * string must be a hex string created by encryptString.
+     * Decrypts an encrypted string into the plain text. The encrypted string must
+     * be a hex string created by encryptString.
      *
-     * @param factory the factory to create the crypto streams
+     * @param factory    the factory to create the crypto streams
      * @param cipherText the encrypted text to be decrypted
-     * @param password the password for decryption
+     * @param password   the password for decryption
      * @return the decrypted string
      * @throws GeneralSecurityException accessing JCE failed
-     * @throws IOException accessing the souce failed
+     * @throws IOException              accessing the souce failed
      */
-    public static String decryptString(
-        CryptoStreamFactory factory, String cipherText, char[] password )
-        throws GeneralSecurityException, IOException
-    {
-        byte[] buffer = HexConverter.toBytes( cipherText );
+    public String decryptString(CryptoStreamFactory factory, String cipherText, char[] password)
+            throws GeneralSecurityException, IOException {
+        byte[] buffer = HexConverter.toBytes(cipherText);
         ByteArrayOutputStream bais = new ByteArrayOutputStream();
-        CryptoUtil.decrypt( factory, buffer, bais, password );
-        return new String( bais.toByteArray(), "utf-8" );
+        decrypt(factory, buffer, bais, password);
+        return new String(bais.toByteArray(), "utf-8");
     }
 
     /**
@@ -209,17 +190,14 @@ public final class CryptoUtil
      * @throws IOException the copying failed
      * @deprecated use StreamUtil instead
      */
-    public static long copy( InputStream is, OutputStream os )
-        throws IOException
-    {
+    public static long copy(InputStream is, OutputStream os) throws IOException {
         return StreamUtil.copy(is, os);
     }
 
     /**
      * @return the CryptoStreamFactory to be used
      */
-    public static CryptoStreamFactory getCryptoStreamFactory()
-    {
+    public CryptoStreamFactory getCryptoStreamFactory() {
         return CryptoStreamFactoryImpl.getInstance();
     }
 }

@@ -27,8 +27,8 @@ package org.apache.fulcrum.jce.crypto;
 
 public interface PasswordParameters
 {
-    /** Parameter for the number of SHA1 invocation */
-    int COUNT = 20;
+    /** Parameter for the number of SHA256 invocation */
+    int COUNT = 1000;
 
     /** The default password used for creating the internal password */
     char[] DEFAULTPASSWORD = {

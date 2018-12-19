@@ -125,7 +125,7 @@ public class Main
         if( cipherMode.equals("dec") )
         {
             System.out.println("Decrypting " + sourceFile.getAbsolutePath() );
-            CryptoUtil.decrypt( fis, baos, password );
+            CryptoUtil.getInstance().decrypt( fis, baos, password );
             fis.close();
 
             ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
@@ -137,7 +137,7 @@ public class Main
         else if( cipherMode.equals("enc") )
         {
             System.out.println("Enrypting " + sourceFile.getAbsolutePath() );
-            CryptoUtil.encrypt( fis, baos, password );
+            CryptoUtil.getInstance().encrypt( fis, baos, password );
             fis.close();
 
             ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
@@ -169,11 +169,11 @@ public class Main
 
         if( cipherMode.equals("dec") )
         {
-            result = CryptoUtil.decryptString(value,password);
+            result = CryptoUtil.getInstance().decryptString(value,password);
         }
         else
         {
-            result = CryptoUtil.encryptString(value,password);
+            result = CryptoUtil.getInstance().encryptString(value,password);
         }
 
         System.out.println( result );

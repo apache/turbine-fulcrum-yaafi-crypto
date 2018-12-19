@@ -24,7 +24,12 @@
   </properties>
 
   <body>
-    <release version="1.0.7" date="as in SVN">
+    <release version="1.0.8" date="as in SVN">
+      <action dev="jk" type="update">
+        Add Java 8 PBEWithHmacSHA256AndAES_128 based encryption
+      </action>
+    </release>
+    <release version="1.0.7" date="2018-11-08">
       <action dev="painter" type="update">
         Simplify the HexConverter code, more Java 8 friendly
       </action>
@@ -38,7 +43,7 @@
         Fix missing license from rat report
       </action>
     </release>
-    <release version="1.0.6" date="as in SVN">
+    <release version="1.0.6" date="2009-03-25">
       <action dev="sgoeschl" type="update">
         Using the official fulcrum-parent-1 pom.	
       </action>

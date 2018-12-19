@@ -173,7 +173,7 @@ public class SmartDecryptingInputStreamTest extends TestCase
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         FileInputStream fis = new FileInputStream( file );
 
-        CryptoUtil.encrypt(
+        CryptoUtil.getInstance().encrypt(
             CryptoStreamFactoryImpl.getInstance(),
             fis,
             baos,

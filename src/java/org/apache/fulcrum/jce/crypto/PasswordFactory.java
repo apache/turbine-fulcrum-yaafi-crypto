@@ -20,6 +20,7 @@ package org.apache.fulcrum.jce.crypto;
  */
 
 import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -39,6 +40,63 @@ import java.security.NoSuchAlgorithmException;
 public class PasswordFactory implements PasswordParameters
 {
 
+    private static PasswordFactory instance;
+    
+    String algo;
+    
+    int count = PasswordParameters.COUNT;
+    
+    public PasswordFactory(String algo) {
+       this.algo = algo;
+    }
+    
+    public PasswordFactory(String algo, int count) {
+        this.algo = algo;
+        this.count = count;
+     }
+      
+    /**
+     * Factory method to get a default instance
+     * @return an instance of the CryptoStreamFactory
+     */
+    public synchronized static PasswordFactory getInstance() 
+    {
+        if( PasswordFactory.instance == null )
+        {
+           PasswordFactory.instance = new PasswordFactory("SHA1");
+        }
+
+        return PasswordFactory.instance;
+    }
+    
+    /**
+     * Factory method to get a default instance
+     * @return an instance of the CryptoStreamFactory
+     */
+    public synchronized static PasswordFactory getInstance(String algo) 
+    {
+        if( PasswordFactory.instance == null )
+        {
+           PasswordFactory.instance = new PasswordFactory(algo);
+        }
+
+        return PasswordFactory.instance;
+    }
+    
+    /**
+     * Factory method to get a default instance
+     * @return an instance of the CryptoStreamFactory
+     */
+    public synchronized static PasswordFactory getInstance(String algo, int count) 
+    {
+        if( PasswordFactory.instance == null )
+        {
+           PasswordFactory.instance = new PasswordFactory(algo, count);
+        }
+
+        return PasswordFactory.instance;
+    }
+    
     /**
      * Create a new password
      * 
@@ -47,13 +105,13 @@ public class PasswordFactory implements PasswordParameters
      * @throws NoSuchAlgorithmException the encryption algorithm is not supported
      * @throws UnsupportedEncodingException the requested encoding is not supported
      */
-    public static char[] create()
+    public char[] create()
         throws NoSuchAlgorithmException, UnsupportedEncodingException
     {
         return create(
             PasswordParameters.DEFAULTPASSWORD,
             PasswordParameters.SALT,
-            PasswordParameters.COUNT
+            count
             );
     }
 
@@ -66,7 +124,7 @@ public class PasswordFactory implements PasswordParameters
      * @throws NoSuchAlgorithmException the encryption algorithm is not supported
      * @throws UnsupportedEncodingException the requested encoding is not supported
      */
-    public static char[] create( String seed )
+    public char[] create( String seed )
         throws NoSuchAlgorithmException, UnsupportedEncodingException
     {
         return create(
@@ -80,13 +138,13 @@ public class PasswordFactory implements PasswordParameters
      * @throws NoSuchAlgorithmException the encryption algorithm is not supported
      * @throws UnsupportedEncodingException the requested encoding is not supported
      */
-    public static final char[] create( char[] seed )
+    public final char[] create( char[] seed )
         throws NoSuchAlgorithmException, UnsupportedEncodingException
     {
         return create(
             seed,
             PasswordFactory.SALT,
-            PasswordFactory.COUNT
+            count
             );
     }
 
@@ -100,11 +158,11 @@ public class PasswordFactory implements PasswordParameters
      * @throws NoSuchAlgorithmException the encryption algorithm is not supported
      * @throws UnsupportedEncodingException the requested encoding is not supported
      */
-    public static char [] create( char[] password, byte[] salt, int count )
+    public char [] create( char[] password, byte[] salt, int count )
         throws NoSuchAlgorithmException, UnsupportedEncodingException
     {
         char [] result = null;
-        MessageDigest sha1 = MessageDigest.getInstance( "SHA1" );
+        MessageDigest sha1 = MessageDigest.getInstance( algo );
         byte [] passwordMask = new String( password ).getBytes( "UTF-8" );
         byte [] temp = new byte[salt.length + passwordMask.length];
         byte [] digest = null;

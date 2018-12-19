@@ -30,6 +30,8 @@ public interface CryptoParameters
 {
     /** Parameter for PBEParameterSpec */
     int COUNT = 20;
+    
+    int COUNT_J8 = 10_000; //200_000;
 
     /** The password salt */
     byte[] SALT = {
@@ -39,4 +41,7 @@ public interface CryptoParameters
 
     /** The crypto algorithm being used */
     String ALGORITHM = "PBEWithMD5AndDES";
+    
+    // https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJCEProvider
+    String ALGORITHM_J8 = "PBEWithHmacSHA256AndAES_128"; //"PBEWithHmacSHA256AndAES_256";
 }

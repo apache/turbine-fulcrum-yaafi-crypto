@@ -96,7 +96,22 @@
           <tr>
             <td>JDK 1.6.x</td>
             <td> The current JDK's have the JCA built-in therefore no extra configuration is
-              required. </td>
+              required. 
+              <a href="https://docs.oracle.com/javase/6/docs/technotes/guides/security/SunProviders.html">
+            Java Cryptography Architecture Sun Providers Documentation for JavaTM Platform Standard Edition 6</a>
+               </td>
+          </tr>
+          <tr>
+            <td>JDK 1.7.x</td>
+            <td> <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html">
+            Java Cryptography Architecture Oracle Providers Documentation for Java Platform Standard Edition 7</a>
+            </td>
+          </tr>
+           <tr>
+            <td>JDK 1.8.x</td>
+            <td> <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html">
+            Java Cryptography Architecture Oracle Providers Documentation for JDK 8</a>
+            </td>
           </tr>
         </table>
       </subsection>
@@ -112,7 +127,11 @@
           </tr>
           <tr>
             <td>SunJCE 1.42</td>
-            <td> PBEWithMD5AndDES </td>
+            <td>PBEWithMD5AndDES</td>
+          </tr>
+           <tr>
+            <td>SunJCE (Java 8)</td>
+            <td>PBEWithHmacSHA256AndAES_128</td>
           </tr>
         </table>
       </subsection>

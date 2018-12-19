@@ -52,19 +52,19 @@ import javax.crypto.spec.PBEParameterSpec;
  * @author <a href="mailto:maakus@earthlink.net">Markus Hahn</a>
  */
 
-public final class CryptoStreamFactoryImpl implements CryptoStreamFactory
+public class CryptoStreamFactoryImpl implements CryptoStreamFactory
 {
     /** the salt for the PBE algorithm */
-    private byte[] salt;
+    protected byte[] salt;
 
     /** the count paramter for the PBE algorithm */
-    private int count;
+    protected int count;
 
     /** the name of the JCE provider */
-    private String providerName;
+    protected String providerName;
 
     /** the algorithm to use */
-    private String algorithm;
+    protected String algorithm;
 
     /** the default instance */
     private static CryptoStreamFactory instance;
@@ -74,7 +74,7 @@ public final class CryptoStreamFactoryImpl implements CryptoStreamFactory
      * is set to null an appropriate provider will be
      * used.
      */
-    private static final String PROVIDERNAME = null;
+    protected static final String PROVIDERNAME = null;
 
     /**
      * Factory method to get a default instance
@@ -124,7 +124,6 @@ public final class CryptoStreamFactoryImpl implements CryptoStreamFactory
         this.algorithm = CryptoParameters.ALGORITHM;
     }
 
-
     /**
      * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream, String)
      */
@@ -134,11 +133,11 @@ public final class CryptoStreamFactoryImpl implements CryptoStreamFactory
 
         if( "auto".equalsIgnoreCase(decryptionMode) )
         {
-            result = CryptoStreamFactoryImpl.getInstance().getSmartInputStream(is);
+            result = getSmartInputStream(is);
         }
         else if( "true".equalsIgnoreCase(decryptionMode) )
         {
-            result = CryptoStreamFactoryImpl.getInstance().getInputStream(is);
+            result = getInputStream(is);
         }
         else
         {
@@ -156,11 +155,11 @@ public final class CryptoStreamFactoryImpl implements CryptoStreamFactory
 
         if( "auto".equalsIgnoreCase(decryptionMode) )
         {
-            result = CryptoStreamFactoryImpl.getInstance().getSmartInputStream(is, password);
+            result = getSmartInputStream(is, password);
         }
         else if( "true".equalsIgnoreCase(decryptionMode) )
         {
-            result = CryptoStreamFactoryImpl.getInstance().getInputStream(is, password);
+            result = getInputStream(is, password);
         }
         else
         {
@@ -175,7 +174,7 @@ public final class CryptoStreamFactoryImpl implements CryptoStreamFactory
     public InputStream getInputStream( InputStream is )
         throws GeneralSecurityException, IOException
     {
-        Cipher cipher = this.createCipher( Cipher.DECRYPT_MODE, PasswordFactory.create() );
+        Cipher cipher = this.createCipher( Cipher.DECRYPT_MODE, PasswordFactory.getInstance().create() );
         return new CipherInputStream( is, cipher );
     }
 
@@ -197,7 +196,7 @@ public final class CryptoStreamFactoryImpl implements CryptoStreamFactory
     {
         return this.getSmartInputStream(
             is,
-            PasswordFactory.create()
+            PasswordFactory.getInstance().create()
             );
     }
 
@@ -224,7 +223,7 @@ public final class CryptoStreamFactoryImpl implements CryptoStreamFactory
     public OutputStream getOutputStream( OutputStream os )
         throws GeneralSecurityException, IOException
     {
-        Cipher cipher = this.createCipher( Cipher.ENCRYPT_MODE, PasswordFactory.create() );
+        Cipher cipher = this.createCipher( Cipher.ENCRYPT_MODE, PasswordFactory.getInstance().create() );
         return new CipherOutputStream( os, cipher );    }
 
     /**
@@ -240,7 +239,7 @@ public final class CryptoStreamFactoryImpl implements CryptoStreamFactory
     /**
      * @return Returns the algorithm.
      */
-    private String getAlgorithm()
+    protected String getAlgorithm()
     {
         return algorithm;
     }
@@ -248,7 +247,7 @@ public final class CryptoStreamFactoryImpl implements CryptoStreamFactory
     /**
      * @return Returns the count.
      */
-    private int getCount()
+    protected int getCount()
     {
         return count;
     }
@@ -256,7 +255,7 @@ public final class CryptoStreamFactoryImpl implements CryptoStreamFactory
     /**
      * @return Returns the providerName.
      */
-    private String getProviderName()
+    protected String getProviderName()
     {
         return providerName;
     }
@@ -264,7 +263,7 @@ public final class CryptoStreamFactoryImpl implements CryptoStreamFactory
     /**
      * @return Returns the salt.
      */
-    private byte [] getSalt()
+    protected byte [] getSalt()
     {
         return salt;
     }
