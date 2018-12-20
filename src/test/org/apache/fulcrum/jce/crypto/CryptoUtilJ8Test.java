@@ -2,7 +2,9 @@ package org.apache.fulcrum.jce.crypto;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 import org.junit.Before;
@@ -24,6 +26,8 @@ public class CryptoUtilJ8Test {
 
     /** the temp data director */
     private File tempDataDirectory;
+    
+    private CryptoUtilJ8 cryptoUtilJ8;
 
     /**
      * Constructor
@@ -44,9 +48,7 @@ public class CryptoUtilJ8Test {
      */
     @Before
     public void setUp() throws Exception {
-//        CryptoStreamFactoryImpl factory = new CryptoStreamFactoryJ8Impl(CryptoParameters.SALT, CryptoParameters.COUNT_J8);
-//
-//        CryptoStreamFactoryImpl.setInstance(factory);
+        cryptoUtilJ8 = CryptoUtilJ8.getInstance();
     }
 
     /**
@@ -77,7 +79,7 @@ public class CryptoUtilJ8Test {
     public void testTextEncryption() throws Exception {
         File sourceFile = new File(this.getTestDataDirectory(), "plain.txt");
         File targetFile = new File(this.getTempDataDirectory(), "plain.j8.enc.txt");
-        CryptoUtilJ8.getInstance().encrypt(sourceFile, targetFile, this.getPassword());
+        cryptoUtilJ8.encrypt(sourceFile, targetFile, this.getPassword());
     }
 
     /** Decrypt a text file 
@@ -88,7 +90,7 @@ public class CryptoUtilJ8Test {
         testTextEncryption();
         File sourceFile = new File(this.getTempDataDirectory(), "plain.j8.enc.txt");
         File targetFile = new File(this.getTempDataDirectory(), "plain.j8.dec.txt");
-        CryptoUtilJ8.getInstance().decrypt(sourceFile, targetFile.getAbsolutePath(), this.getPassword());
+        cryptoUtilJ8.decrypt(sourceFile, targetFile.getAbsolutePath(), this.getPassword());
     }
     
     /** Encrypt a PDF file 
@@ -99,7 +101,7 @@ public class CryptoUtilJ8Test {
     public void testPdfEncryption() throws Exception {
         File sourceFile = new File(this.getTestDataDirectory(), "plain.pdf");
         File targetFile = new File(this.getTempDataDirectory(), "plain.j8.enc.pdf");
-        CryptoUtil.getInstance().encrypt(sourceFile, targetFile, this.getPassword());
+        cryptoUtilJ8.encrypt(sourceFile, targetFile, this.getPassword());
     }
 
     /** Decrypt a PDF file 
@@ -111,9 +113,37 @@ public class CryptoUtilJ8Test {
         testPdfEncryption();
         File sourceFile = new File(this.getTempDataDirectory(), "plain.j8.enc.pdf");
         File targetFile = new File(this.getTempDataDirectory(), "plain.j8.dec.pdf");
-        CryptoUtil.getInstance().decrypt(sourceFile, targetFile, this.getPassword());
+        cryptoUtilJ8.decrypt(sourceFile, targetFile, this.getPassword());
     }
 
+    /** Test encryption and decryption of Strings
+     * 
+     *  @throws Exception Generic exception
+     */
+    @Test
+    public void testStringEncryption() throws Exception {
+        char[] testVector = new char[513];
+
+        for (int i = 0; i < testVector.length; i++) {
+            testVector[i] = (char) i;
+        }
+
+        String source = new String(testVector);
+        String cipherText = cryptoUtilJ8.encryptString(source, this.getPassword());
+        String plainText = cryptoUtilJ8.decryptString(cipherText, this.getPassword());
+        assertEquals(source, plainText);
+    }
+
+    /** Test encryption and decryption of Strings
+     * @throws Exception Generic exception
+     */
+    @Test
+    public void testStringHandling() throws Exception {
+        String source = "Nobody knows the toubles I have seen ...";
+        String cipherText = cryptoUtilJ8.encryptString(source, this.getPassword());
+        String plainText = cryptoUtilJ8.decryptString(cipherText, this.getPassword());
+        assertEquals(source, plainText);
+    }
 
     /** Test creating a password
      * @throws Exception Generic exception
@@ -128,7 +158,34 @@ public class CryptoUtilJ8Test {
         assertNotNull(result);
         return;
     }
+    
+    /** Test encryption and decryption of binary data
+     * @throws Exception Generic exception
+     */
+    @Test
+    public void testBinaryHandling() throws Exception {
+        byte[] source = new byte[256];
+        byte[] result = null;
 
+        for (int i = 0; i < source.length; i++) {
+            source[i] = (byte) i;
+        }
+
+        ByteArrayOutputStream cipherText = new ByteArrayOutputStream();
+        ByteArrayOutputStream plainText = new ByteArrayOutputStream();
+
+        cryptoUtilJ8.encrypt(source, cipherText, this.getPassword());
+        cryptoUtilJ8.decrypt(cipherText, plainText, this.getPassword());
+
+        result = plainText.toByteArray();
+
+        for (int i = 0; i < source.length; i++) {
+            if (source[i] != result[i]) {
+                fail("Binary data are different at position " + i);
+            }
+        }
+    }
+    
     /** Test encryption and decryption of Strings 
      * @throws Exception Generic exception
      */
@@ -136,11 +193,11 @@ public class CryptoUtilJ8Test {
     public void testStringWithPasswordEncryption() throws Exception {
         char[] password = "57cb-4a23-d838-45222".toCharArray();
         String source = "e02c-3b76-ff1e-5d9a1";
-        String cipherText = CryptoUtilJ8.getInstance().encryptString(source, password);
+        String cipherText = cryptoUtilJ8.encryptString(source, password);
         System.out.println(cipherText);// 128bit
         assertEquals(128, cipherText.length());
-        //CryptoStreamFactoryJ8Impl.setInstance(null);
-        String plainText = CryptoUtilJ8.getInstance().decryptString(cipherText, password);
+        CryptoStreamFactoryJ8Impl.setInstance(null);
+        String plainText = cryptoUtilJ8.decryptString(cipherText, password);
         assertEquals(source, plainText);
     }
 

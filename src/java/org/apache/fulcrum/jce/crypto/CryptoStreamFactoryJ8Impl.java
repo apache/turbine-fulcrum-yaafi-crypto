@@ -62,6 +62,9 @@ import javax.crypto.spec.PBEParameterSpec;
 public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl implements CryptoStreamFactoryJ8
 {
 
+    private static final int salt_size = 128;
+    private static final int key_size = 128;
+
     /** the default instance */
     private static CryptoStreamFactoryJ8 instance;
     
@@ -103,6 +106,17 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         this.count = CryptoParameters.COUNT_J8;
         this.providerName = PROVIDERNAME;
         this.algorithm = CryptoParameters.ALGORITHM_J8;
+    }
+    
+    /**
+     * Constructor
+     */
+    public CryptoStreamFactoryJ8Impl(String algo) throws GeneralSecurityException
+    {
+        this.salt =  generateSalt();
+        this.count = CryptoParameters.COUNT_J8;
+        this.providerName = PROVIDERNAME;
+        this.algorithm = algo;
     }
 
     /**
@@ -169,7 +183,7 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         SecretKeyFactory keyFactory;
         String algorithm = this.getAlgorithm();
         
-        PBEKeySpec keySpec = new PBEKeySpec(password, (salt == null)? this.getSalt(): salt, this.getCount(), 128 );
+        PBEKeySpec keySpec = new PBEKeySpec(password, (salt == null)? this.getSalt(): salt, this.getCount(), key_size );
         byte[] encodedTmp = null;
         try {
             if( this.getProviderName() == null )
@@ -218,7 +232,7 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         byte[] salt = null;
         byte[] iv = null;
         if (mode == Cipher.DECRYPT_MODE) {
-            salt = Arrays.copyOfRange(input, 0, 128 / 8);
+            salt = Arrays.copyOfRange(input, 0, salt_size / 8);
             iv = Arrays.copyOfRange(input, salt.length, salt.length + 128 / 8);
             ciphertext = Arrays.copyOfRange(input, salt.length + iv.length, input.length);// cut out salt and iv
         }
@@ -265,7 +279,7 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         SecureRandom random;
         try {
             random = SecureRandom.getInstance("SHA1PRNG");
-            byte[] salt = new byte[128 / 8];
+            byte[] salt = new byte[salt_size / 8];
             random.nextBytes(salt);
             return salt;
         } catch (NoSuchAlgorithmException e) {

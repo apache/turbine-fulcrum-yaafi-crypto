@@ -54,24 +54,6 @@ public final class CryptoUtilJ8 extends CryptoUtil {
 
         return CryptoUtilJ8.instance;
     }
-
-    /**
-     * Encrypts a string into a hex string.
-     *
-     * @param factory   the factory to create the crypto streams
-     * @param plainText the plain text to be encrypted
-     * @param password  the password for encryption
-     * @return the encrypted string
-     * @throws GeneralSecurityException accessing JCE failed
-     * @throws IOException              accessing the souce failed
-     */
-    @Override
-    public String encryptString(CryptoStreamFactory factory, String plainText, char[] password)
-            throws GeneralSecurityException, IOException {
-        ByteArrayOutputStream bais = new ByteArrayOutputStream();
-        encrypt(factory, plainText, bais, password);
-        return HexConverter.toString(bais.toByteArray());
-    }
     
     /**
      * Copies from a source to a target object using encryption and a caller
@@ -114,6 +96,7 @@ public final class CryptoUtilJ8 extends CryptoUtil {
     }
 
     /**
+     * 
      * @return the CryptoStreamFactory to be used
      */
     public CryptoStreamFactory getCryptoStreamFactory() {
