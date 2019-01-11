@@ -131,7 +131,7 @@ public class CryptoUtilJ8Test {
         String source = new String(testVector);
         String cipherText = cryptoUtilJ8.encryptString(source, this.getPassword());
         String plainText = cryptoUtilJ8.decryptString(cipherText, this.getPassword());
-        assertEquals(source, plainText);
+        assertEquals(source +" is not equal with " + plainText, source, plainText);
     }
 
     /** Test encryption and decryption of Strings
@@ -194,8 +194,8 @@ public class CryptoUtilJ8Test {
         char[] password = "57cb-4a23-d838-45222".toCharArray();
         String source = "e02c-3b76-ff1e-5d9a1";
         String cipherText = cryptoUtilJ8.encryptString(source, password);
-        System.out.println(cipherText);// 128bit
-        assertEquals(128, cipherText.length());
+        System.out.println(cipherText);// about 128
+        assertEquals(138, cipherText.length()); // 128bytes + 10 bytes for cleartext
         CryptoStreamFactoryJ8Impl.setInstance(null);
         String plainText = cryptoUtilJ8.decryptString(cipherText, password);
         assertEquals(source, plainText);

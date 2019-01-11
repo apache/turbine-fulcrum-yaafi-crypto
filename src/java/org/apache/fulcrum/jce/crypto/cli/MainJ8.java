@@ -33,6 +33,13 @@ import org.apache.fulcrum.jce.crypto.CryptoUtilJ8;
  *
  * file [enc|dec] passwd [file]*
  * string [enc|dec] passwd plaintext
+ * 
+ * Example :
+ * 
+ * java -classpath target/classes org.apache.fulcrum.jce.crypto.cli.Main string enc changeit mysecretgeheim
+ * ...
+ * 
+ * java -classpath target/classes org.apache.fulcrum.jce.crypto.cli.Main string dec changeit J8_AES256;<hashcode>
  *
  * @author <a href="mailto:siegfried.goeschl@it20one.at">Siegfried Goeschl</a>
  */

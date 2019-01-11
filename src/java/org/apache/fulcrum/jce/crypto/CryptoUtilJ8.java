@@ -41,6 +41,7 @@ public final class CryptoUtilJ8 extends CryptoUtil {
     /** the default instance */
     private static CryptoUtilJ8 instance;
     
+    
     /**
      * Factory method to get a default instance
      * @return an instance of the CryptoStreamFactory
@@ -55,6 +56,10 @@ public final class CryptoUtilJ8 extends CryptoUtil {
         return CryptoUtilJ8.instance;
     }
     
+    public CryptoUtilJ8() {
+        useClearTextHeader = true;
+    }
+    
     /**
      * Copies from a source to a target object using encryption and a caller
      * supplied CryptoStreamFactory.
@@ -64,7 +69,7 @@ public final class CryptoUtilJ8 extends CryptoUtil {
      * @param target   the target object
      * @param password the password to use for encryption
      * @throws GeneralSecurityException accessing JCE failed
-     * @throws IOException              accessing the souce failed
+     * @throws IOException              accessing the source failed
      */
     @Override
     public void encrypt(CryptoStreamFactory factory, Object source, Object target, char[] password)
@@ -84,7 +89,7 @@ public final class CryptoUtilJ8 extends CryptoUtil {
      * @param target   the target object
      * @param password the password to use for decryption
      * @throws GeneralSecurityException accessing JCE failed
-     * @throws IOException              accessing the souce failed
+     * @throws IOException              accessing the source failed
      */
     @Override
     public void decrypt(CryptoStreamFactory factory, Object source, Object target, char[] password)

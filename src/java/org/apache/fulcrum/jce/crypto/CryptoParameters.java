@@ -42,6 +42,20 @@ public interface CryptoParameters
     /** The crypto algorithm being used */
     String ALGORITHM = "PBEWithMD5AndDES";
     
-    // https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJCEProvider
-    String ALGORITHM_J8 = "PBEWithHmacSHA256AndAES_128"; //"PBEWithHmacSHA256AndAES_256";
+    /**
+     *  @see https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJCEProvider
+     *  
+     *  Algo/mode/padding for cipher transformation: 
+     *  @see https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html
+     *  
+     *  PBEWithHmacSHA256AndAES_256/CBC/PKCS5Padding, PBEWithHmacSHA256AndAES_128/CBC/PKCS5Padding
+     */
+    String ALGORITHM_J8 = "PBEWithHmacSHA256AndAES_256"; //"PBEWithHmacSHA256AndAES_128 ";
+    
+    /**
+     * Prefix to decrypted hex hash to get a clue, what to use and what it is.
+     * 
+     * This should be always 10 bytes
+     */
+    String CLEAR_CODE_J8 = "J8_AES256;"; //
 }

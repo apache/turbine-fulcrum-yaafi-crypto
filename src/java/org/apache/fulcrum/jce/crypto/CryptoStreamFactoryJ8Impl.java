@@ -43,7 +43,7 @@ import javax.crypto.spec.PBEParameterSpec;
  * implementation uses the JCA (Java Crypto Extension) supplied
  * by SUN (using SunJCE 1.42).
  *
- * The implementation uses as PBEWithHmacSHA256AndAES_128 for encryption which
+ * The implementation uses as PBEWithHmacSHA256AndAES_256, see {@link CryptoParameters#ALGORITHM_J8} for encryption which
  * should be sufficent for most applications.
  *
  * The implementation also supplies a default password in the case that
@@ -62,14 +62,15 @@ import javax.crypto.spec.PBEParameterSpec;
 public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl implements CryptoStreamFactoryJ8
 {
 
-    private static final int salt_size = 128;
-    private static final int key_size = 128;
+    private static final int SALT_SIZE = 128;//might increase cipher length
+    private static final int KEY_SIZE = 256;
 
     /** the default instance */
     private static CryptoStreamFactoryJ8 instance;
     
-    private AlgorithmParameters algorithmParameters;// used only for debugging 
-    
+    private AlgorithmParameters algorithmParameters;// used only for debugging
+   
+
     /**
      * Factory method to get a default instance
      * @return an instance of the CryptoStreamFactory
@@ -183,7 +184,7 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         SecretKeyFactory keyFactory;
         String algorithm = this.getAlgorithm();
         
-        PBEKeySpec keySpec = new PBEKeySpec(password, (salt == null)? this.getSalt(): salt, this.getCount(), key_size );
+        PBEKeySpec keySpec = new PBEKeySpec(password, (salt == null)? this.getSalt(): salt, this.getCount(), KEY_SIZE );
         byte[] encodedTmp = null;
         try {
             if( this.getProviderName() == null )
@@ -231,8 +232,8 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         
         byte[] salt = null;
         byte[] iv = null;
-        if (mode == Cipher.DECRYPT_MODE) {
-            salt = Arrays.copyOfRange(input, 0, salt_size / 8);
+        if (mode == Cipher.DECRYPT_MODE) {     
+            salt = Arrays.copyOfRange(input, 0, SALT_SIZE / 8);
             iv = Arrays.copyOfRange(input, salt.length, salt.length + 128 / 8);
             ciphertext = Arrays.copyOfRange(input, salt.length + iv.length, input.length);// cut out salt and iv
         }
@@ -249,11 +250,11 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         }
         
         // save
-        if (mode == Cipher.DECRYPT_MODE) {             
+        if (mode == Cipher.DECRYPT_MODE) {
             paramSpec = new PBEParameterSpec( salt, this.getCount(), new IvParameterSpec(iv) );
             cipher.init( mode, key, paramSpec );
             //cipher.init( mode, key, algorithmParameters );
-            ciphertext = cipher.doFinal(ciphertext);
+            ciphertext = cipher.doFinal(ciphertext); // actually the unencrypted bytes
         }
         
         // save
@@ -264,10 +265,11 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
             //algorithmParameters = cipher.getParameters();
             
             byte[] result = cipher.doFinal(input);
-            iv = cipher.getIV(); 
+            iv = cipher.getIV(); // AES has 128bit block size 
             
             // Salt and IV need to be stored with the result, otherwise we can't decrypt the message later.
             ciphertext = new byte[salt.length + iv.length + result.length];
+            
             System.arraycopy(salt, 0, ciphertext, 0, salt.length);
             System.arraycopy(iv, 0, ciphertext, salt.length, iv.length);
             System.arraycopy(result, 0, ciphertext, salt.length + iv.length, result.length);// push after salt and iv  
@@ -279,13 +281,12 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         SecureRandom random;
         try {
             random = SecureRandom.getInstance("SHA1PRNG");
-            byte[] salt = new byte[salt_size / 8];
+            byte[] salt = new byte[SALT_SIZE / 8];
             random.nextBytes(salt);
             return salt;
         } catch (NoSuchAlgorithmException e) {
             throw new GeneralSecurityException(e);  
         }
-
     }
 
 }

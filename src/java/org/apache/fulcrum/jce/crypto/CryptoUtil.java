@@ -39,7 +39,9 @@ public class CryptoUtil {
 
     /** the default instance */
     private static CryptoUtil instance;
-
+    
+    protected boolean useClearTextHeader = false; // backward compatible
+    
     /**
      * Factory method to get a default instance
      * 
@@ -145,7 +147,8 @@ public class CryptoUtil {
             throws GeneralSecurityException, IOException {
         ByteArrayOutputStream bais = new ByteArrayOutputStream();
         encrypt(factory, plainText, bais, password);
-        return HexConverter.toString(bais.toByteArray());
+        return (useClearTextHeader)? CryptoParameters.CLEAR_CODE_J8 + HexConverter.toString(bais.toByteArray()):
+            HexConverter.toString(bais.toByteArray());
     }
 
     /**
@@ -159,7 +162,9 @@ public class CryptoUtil {
      * @throws IOException              accessing the souce failed
      */
     public String decryptString(String cipherText, char[] password) throws GeneralSecurityException, IOException {
-        return decryptString(getCryptoStreamFactory(), cipherText, password);
+        return decryptString(getCryptoStreamFactory(), (useClearTextHeader)?
+                cipherText.substring(CryptoParameters.CLEAR_CODE_J8.length()):
+                cipherText, password);
     }
 
     /**
