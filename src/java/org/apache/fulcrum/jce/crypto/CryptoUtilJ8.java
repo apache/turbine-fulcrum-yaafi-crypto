@@ -19,11 +19,14 @@ package org.apache.fulcrum.jce.crypto;
  * under the License.
  */
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.fulcrum.jce.crypto.CryptoParameters.TYPES;
 
 /**
  * Helper class to provde generic functions to work with CryptoStreams.
@@ -38,28 +41,59 @@ import java.security.GeneralSecurityException;
 public final class CryptoUtilJ8 extends CryptoUtil {
 
     
-    /** the default instance */
-    private static CryptoUtilJ8 instance;
+    protected TYPES type;// default see instance
+   
+    
+    public TYPES getType() {
+        return type;
+    }
+
+    /** the typed default instances */    
+    private static Map<TYPES,CryptoUtilJ8> cryptoUtilJ8s = new ConcurrentHashMap();
     
     
     /**
      * Factory method to get a default instance
+     * @param type 
      * @return an instance of the CryptoStreamFactory
      */
-    public synchronized static CryptoUtilJ8 getInstance()
+    public static CryptoUtilJ8 getInstance(TYPES type)
     {
-        if( CryptoUtilJ8.instance == null )
-        {
-            CryptoUtilJ8.instance = new CryptoUtilJ8();
+        synchronized (CryptoUtilJ8.class) {
+            if( !cryptoUtilJ8s.containsKey(type) )
+            {
+                cryptoUtilJ8s.put(type, new CryptoUtilJ8(type) );
+            }
+    
+            return cryptoUtilJ8s.get(type);
         }
-
-        return CryptoUtilJ8.instance;
+    }
+    
+    /**
+     * Factory method to get a default instance
+     * 
+     * default type PDC
+     * @return an instance of the CryptoStreamFactory
+     */
+    public static CryptoUtilJ8 getInstance()
+    {
+        synchronized (CryptoUtilJ8.class) {
+            if( cryptoUtilJ8s.isEmpty() && !cryptoUtilJ8s.containsKey(TYPES.PBE) )
+            {
+                cryptoUtilJ8s.put(TYPES.PBE, new CryptoUtilJ8(TYPES.PBE) );
+            }
+    
+            return cryptoUtilJ8s.get(TYPES.PBE);
+        }
+    }
+    
+    public CryptoUtilJ8(TYPES type) {
+        this.type = type;
     }
     
     public CryptoUtilJ8() {
-        useClearTextHeader = true;
     }
-    
+
     /**
      * Copies from a source to a target object using encryption and a caller
      * supplied CryptoStreamFactory.
@@ -105,6 +139,6 @@ public final class CryptoUtilJ8 extends CryptoUtil {
      * @return the CryptoStreamFactory to be used
      */
     public CryptoStreamFactory getCryptoStreamFactory() {
-        return CryptoStreamFactoryJ8Impl.getInstance();
+            return CryptoStreamFactoryJ8Template.getInstance(type);
     }
 }

@@ -1,6 +1,5 @@
-package org.apache.fulcrum.jce.crypto;
+package org.apache.fulcrum.jce.crypto.algo;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 /*
@@ -24,12 +23,10 @@ import java.io.ByteArrayOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.AlgorithmParameters;
+import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Arrays;
 
 import javax.crypto.Cipher;
@@ -38,12 +35,16 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
+import org.apache.fulcrum.jce.crypto.CryptoParameters;
+import org.apache.fulcrum.jce.crypto.CryptoStreamFactoryJ8Template;
+import org.apache.fulcrum.jce.crypto.StreamUtil;
+
 /**
- * Concrete factory for creating encrypting/decrypting streams. The
+ * Concrete implementation for creating encrypting/decrypting streams. The
  * implementation uses the JCA (Java Crypto Extension) supplied
  * by SUN (using SunJCE 1.42).
  *
- * The implementation uses as PBEWithHmacSHA256AndAES_256, see {@link CryptoParameters#ALGORITHM_J8} for encryption which
+ * The implementation uses as @see {@link CryptoParameters#ALGORITHM_J8_PBE} for encryption which
  * should be sufficent for most applications.
  *
  * The implementation also supplies a default password in the case that
@@ -58,50 +59,15 @@ import javax.crypto.spec.PBEParameterSpec;
  * @author <a href="mailto:siegfried.goeschl@it20one.at">Siegfried Goeschl </a>
  * @author <a href="mailto:maakus@earthlink.net">Markus Hahn</a>
  */
-@Deprecated
-public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl implements CryptoStreamFactoryJ8
+
+public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
 {
 
-    private static final int SALT_SIZE = 128;//might increase cipher length
-    private static final int KEY_SIZE = 256;
-
-    /** the default instance */
-    private static CryptoStreamFactoryJ8 instance;
-    
-    private AlgorithmParameters algorithmParameters;// used only for debugging
-   
-
-    /**
-     * Factory method to get a default instance
-     * @return an instance of the CryptoStreamFactory
-     */
-    public synchronized static CryptoStreamFactoryJ8 getInstance() 
-    {
-        if( CryptoStreamFactoryJ8Impl.instance == null )
-        {
-            try {
-                CryptoStreamFactoryJ8Impl.instance = new CryptoStreamFactoryJ8Impl();
-            } catch (GeneralSecurityException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        return CryptoStreamFactoryJ8Impl.instance;
-    }
-
-    /**
-     * Set the default instance from an external application.
-     * @param instance the new default instance
-     */
-    public static void setInstance( CryptoStreamFactoryJ8 instance )
-    {
-        CryptoStreamFactoryJ8Impl.instance = instance;
-    }
-
+    protected static final int IV_SIZE = 16;
     /**
      * Constructor
      */
-    public CryptoStreamFactoryJ8Impl() throws GeneralSecurityException
+    public CryptoStreamPBEImpl() throws GeneralSecurityException
     {
         this.salt =  generateSalt();
         this.count = CryptoParameters.COUNT_J8;
@@ -109,65 +75,18 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         this.algorithm = CryptoParameters.ALGORITHM_J8_PBE;
     }
     
-    /**
-     * Constructor
-     */
-    public CryptoStreamFactoryJ8Impl(String algo) throws GeneralSecurityException
-    {
-        this.salt =  generateSalt();
-        this.count = CryptoParameters.COUNT_J8;
-        this.providerName = PROVIDERNAME;
-        this.algorithm = algo;
-    }
-
     /**
      * Constructor
      *
      * @param salt the salt for the PBE algorithm
      * @param count the iteration for PBEParameterSpec
      */
-    public CryptoStreamFactoryJ8Impl( byte[] salt, int count)
+    public CryptoStreamPBEImpl( byte[] salt, int count) throws GeneralSecurityException
     {
         this.salt = salt;
         this.count = count;
         this.providerName = PROVIDERNAME;
         this.algorithm = CryptoParameters.ALGORITHM_J8_PBE;
-    }
-
-
-    /**
-     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getSmartInputStream(java.io.InputStream)
-     */
-    @Override
-    public InputStream getSmartInputStream(InputStream is)
-        throws GeneralSecurityException, IOException
-    {
-        return this.getSmartInputStream(
-            is,
-            PasswordFactory.getInstance("SHA-256").create()
-            );
-    }
-
-    /**
-     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream,char[])
-     */
-    @Override
-    public InputStream getInputStream( InputStream is, char[] password )
-        throws GeneralSecurityException, IOException
-    {
-        byte[] encrypted =  this.createCipher( is, Cipher.DECRYPT_MODE, password );
-        InputStream eis = new ByteArrayInputStream(encrypted);
-        return eis;
-    }
-
-    
-    @Override
-    public OutputStream getOutputStream(InputStream is, OutputStream os, char[] password)
-            throws GeneralSecurityException, IOException {
-        byte[] encrypted =  this.createCipher( is, Cipher.ENCRYPT_MODE, password );
-        InputStream eis = new ByteArrayInputStream(encrypted);
-        StreamUtil.copy(eis, os);
-        return os;
     }
 
     /**
@@ -178,16 +97,18 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
      * @return the key
      * @throws GeneralSecurityException creating the key failed
      */
-    private Key createKey( char[] password, byte[] salt ) 
+    @Override
+    protected Key createKey( char[] password, byte[] salt ) 
             throws GeneralSecurityException
     {
         SecretKeyFactory keyFactory;
         String algorithm = this.getAlgorithm();
         
         PBEKeySpec keySpec = new PBEKeySpec(password, (salt == null)? this.getSalt(): salt, this.getCount(), KEY_SIZE );
+
         byte[] encodedTmp = null;
         try {
-            if( this.getProviderName() == null )
+            if( getProviderName() == null )
             {
                 keyFactory = SecretKeyFactory.getInstance( algorithm );
             }
@@ -218,7 +139,8 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
      * @throws GeneralSecurityException creating a cipher failed
      * @throws IOException creating a cipher failed
      */
-    private byte[] createCipher(InputStream is, int mode, char[] password )
+    @Override
+    protected byte[] createCipher(InputStream is, int mode, char[] password )
         throws GeneralSecurityException, IOException
     {
         Cipher cipher;
@@ -232,10 +154,19 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         
         byte[] salt = null;
         byte[] iv = null;
-        if (mode == Cipher.DECRYPT_MODE) {     
-            salt = Arrays.copyOfRange(input, 0, SALT_SIZE / 8);
-            iv = Arrays.copyOfRange(input, salt.length, salt.length + 128 / 8);
-            ciphertext = Arrays.copyOfRange(input, salt.length + iv.length, input.length);// cut out salt and iv
+        if (mode == Cipher.DECRYPT_MODE) {   
+            
+            ByteBuffer byteBuffer = ByteBuffer.wrap(input);
+            salt = new byte[SALT_SIZE ];
+            byteBuffer.get(salt);
+            iv = new byte[ IV_SIZE ];
+            byteBuffer.get(iv);
+            ciphertext = new byte[byteBuffer.remaining()];
+            byteBuffer.get(ciphertext);
+            
+//            salt = Arrays.copyOfRange(input, 0, SALT_SIZE );
+//            iv = Arrays.copyOfRange(input, salt.length, salt.length + 16 );
+//            ciphertext = Arrays.copyOfRange(input, salt.length + iv.length, input.length);// cut out salt and iv
         }
         
         Key key = this.createKey( password, salt );
@@ -251,7 +182,9 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         
         // save
         if (mode == Cipher.DECRYPT_MODE) {
+           
             paramSpec = new PBEParameterSpec( salt, this.getCount(), new IvParameterSpec(iv) );
+     
             cipher.init( mode, key, paramSpec );
             //cipher.init( mode, key, algorithmParameters );
             ciphertext = cipher.doFinal(ciphertext); // actually the unencrypted bytes
@@ -263,30 +196,26 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
             salt = paramSpec.getSalt();
             cipher.init( mode, key, paramSpec );   
             //algorithmParameters = cipher.getParameters();
-            
+ 
             byte[] result = cipher.doFinal(input);
-            iv = cipher.getIV(); // AES has 128bit block size 
-            
+            iv = cipher.getIV(); // AES has 128bit block size, but iv is 16bit 
+           
             // Salt and IV need to be stored with the result, otherwise we can't decrypt the message later.
-            ciphertext = new byte[salt.length + iv.length + result.length];
+            ByteBuffer byteBuffer = ByteBuffer.allocate(salt.length + iv.length + result.length);
+            ciphertext = byteBuffer.put(salt).put(iv).put(result).array();
             
-            System.arraycopy(salt, 0, ciphertext, 0, salt.length);
-            System.arraycopy(iv, 0, ciphertext, salt.length, iv.length);
-            System.arraycopy(result, 0, ciphertext, salt.length + iv.length, result.length);// push after salt and iv  
+//            ciphertext = new byte[salt.length + iv.length + result.length];         
+//            System.arraycopy(salt, 0, ciphertext, 0, salt.length);
+//            System.arraycopy(iv, 0, ciphertext, salt.length, iv.length);
+//            System.arraycopy(result, 0, ciphertext, salt.length + iv.length, result.length);// push after salt and iv  
         }
         return ciphertext;
     }
-    
-    private byte[] generateSalt() throws GeneralSecurityException {
-        SecureRandom random;
-        try {
-            random = SecureRandom.getInstance("SHA1PRNG");
-            byte[] salt = new byte[SALT_SIZE / 8];
-            random.nextBytes(salt);
-            return salt;
-        } catch (NoSuchAlgorithmException e) {
-            throw new GeneralSecurityException(e);  
-        }
+
+
+    @Override
+    protected Cipher createCipher(int encryptMode, char[] password) throws GeneralSecurityException, IOException {
+        throw new RuntimeException("not provided for this implementation");
     }
 
 }

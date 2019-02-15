@@ -136,7 +136,7 @@ public class Main
         }
         else if( cipherMode.equals("enc") )
         {
-            System.out.println("Enrypting " + sourceFile.getAbsolutePath() );
+            System.out.println("Encrypting " + sourceFile.getAbsolutePath() );
             CryptoUtil.getInstance().encrypt( fis, baos, password );
             fis.close();
 

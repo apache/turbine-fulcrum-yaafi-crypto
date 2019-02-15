@@ -15,9 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.fulcrum.jce.crypto.CryptoParameters.TYPES;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 
 /**
@@ -25,7 +26,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author <a href="mailto:siegfried.goeschl@it20one.at">Siegfried Goeschl</a>
  */
-public class CryptoUtilJ8Test {
+public class CryptoUtilJ8ParameterizedTest {
     /** the password to be used */
     private String password;
 
@@ -35,13 +36,13 @@ public class CryptoUtilJ8Test {
     /** the temp data director */
     private File tempDataDirectory;
     
-    private static List<CryptoUtilJ8> cryptoUtilJ8s = new ArrayList<>();
+    private List<CryptoUtilJ8> cryptoUtilJ8s = new ArrayList<>();
     
 
     /**
      * Constructor
      */
-    public CryptoUtilJ8Test() {
+    public CryptoUtilJ8ParameterizedTest() {
 
         this.password = "mysecret";
         this.testDataDirectory = new File("./src/test/data");
@@ -49,28 +50,6 @@ public class CryptoUtilJ8Test {
         this.tempDataDirectory.mkdirs();
     }
 
-    /**
-     * @see junit.framework.TestCase#setUp() byte[] salt, int count, String
-     *      algorithm, String providerName )
-     * 
-     * @throws Exception Generic exception
-     */
-    @BeforeAll
-    public static void setUp() throws Exception {
-        cryptoUtilJ8s.clear();
-        for (TYPES type : CryptoParameters.TYPES.values()) {
-            cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
-        }
-        for (CryptoUtilJ8 cryptoUtilJ8 : cryptoUtilJ8s) {
-            System.out.println("registered cryptoUtilsJ8: "+ cryptoUtilJ8.getType() );
-            System.out.println( ((CryptoStreamFactoryJ8Template)cryptoUtilJ8.getCryptoStreamFactory()).getAlgorithm());
-        }
-
-    }
-    @AfterAll
-    public static void destroy() {
-        cryptoUtilJ8s.clear();
-    }
     
 //    @ParameterizedTest
 //    @EnumSource( TYPES.class )
@@ -99,17 +78,25 @@ public class CryptoUtilJ8Test {
         return testDataDirectory;
     }
     
+    @AfterEach
+    public void setup() {
+        cryptoUtilJ8s.clear(); 
+    }
+    
     /** Encrypt a text file 
      * @throws Exception Generic exception
      */
-    @Test
-    public void testTextEncryption()  {
+    @ParameterizedTest
+    @EnumSource( TYPES.class )
+    public void testTextEncryption(TYPES type)  {
         
+        cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
         File sourceFile = new File(this.getTestDataDirectory(), "plain.txt");
         File targetFile = new File(this.getTempDataDirectory(), "plain.j8.enc.txt");
         
         cryptoUtilJ8s.forEach(cuj8 -> {
             try {
+                System.out.println("checking "+ cuj8.getType());
                 cuj8.encrypt(sourceFile, targetFile, this.getPassword());
             } catch (GeneralSecurityException e) {
                 e.printStackTrace();
@@ -124,15 +111,18 @@ public class CryptoUtilJ8Test {
     /** Decrypt a text file 
      * @throws Exception Generic exception
      */
-    @Test
-    public void testTextDecryption() {           
-            cryptoUtilJ8s.forEach(cuj8 -> { 
+    @ParameterizedTest
+    @EnumSource( TYPES.class )
+    public void testTextDecryption(TYPES type) {
+        cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
+            cryptoUtilJ8s.forEach(cuj8 -> {
+                System.out.println("checking "+ cuj8.getType());
                 try {
                     File sourceFile = new File(this.getTestDataDirectory(), "plain.txt");
                     File targetFile = new File(this.getTempDataDirectory(), "plain.j8.enc.txt");
                     cuj8.encrypt(sourceFile, targetFile, this.getPassword());
                     
-                    File sourceFile2 = new File(this.getTempDataDirectory(), "plain.j8.enc.txt");;
+                    File sourceFile2 = targetFile;
                     File targetFile2 = new File(this.getTempDataDirectory(), "plain.j8.dec.txt");
                     cuj8.decrypt(sourceFile2, targetFile2.getAbsolutePath(), this.getPassword());
                     assertEquals(
@@ -150,8 +140,10 @@ public class CryptoUtilJ8Test {
      * 
      * @throws Exception Generic exception
      */
-    @Test
-    public void testPdfEncryption() {
+    @ParameterizedTest
+    @EnumSource( TYPES.class )
+    public void testPdfEncryption(TYPES type) {
+        cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
         File sourceFile = new File(this.getTestDataDirectory(), "plain.pdf");
         File targetFile = new File(this.getTempDataDirectory(), "plain.j8.enc.pdf");
         cryptoUtilJ8s.forEach(cuj8 -> { 
@@ -168,8 +160,10 @@ public class CryptoUtilJ8Test {
      * 
      * @throws Exception Generic exception
      */
-    @Test
-    public void testPdfDecryption()  {
+    @ParameterizedTest
+    @EnumSource( TYPES.class )
+    public void testPdfDecryption(TYPES type)  {
+        cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
         //testPdfEncryption();
         cryptoUtilJ8s.forEach(cuj8 -> { 
             try {
@@ -177,7 +171,7 @@ public class CryptoUtilJ8Test {
                 File targetFile = new File(this.getTempDataDirectory(), "plain.j8.enc.pdf");
                 cuj8.encrypt(sourceFile, targetFile, this.getPassword());
                 
-                File sourceFile2 = new File(this.getTempDataDirectory(), "plain.j8.enc.pdf");
+                File sourceFile2 = targetFile;
                 File targetFile2 = new File(this.getTempDataDirectory(), "plain.j8.dec.pdf");
                 cuj8.decrypt(sourceFile2, targetFile2, this.getPassword());
                 
@@ -197,8 +191,10 @@ public class CryptoUtilJ8Test {
      * 
      *  @throws Exception Generic exception
      */
-    @Test
-    public void testStringEncryption() {
+    @ParameterizedTest
+    @EnumSource( TYPES.class )
+    public void testStringEncryption(TYPES type) {
+        cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
         char[] testVector = new char[513];
 
         for (int i = 0; i < testVector.length; i++) {
@@ -226,8 +222,10 @@ public class CryptoUtilJ8Test {
     /** Test encryption and decryption of Strings
      * @throws Exception Generic exception
      */
-    @Test
-    public void testStringHandling()  {
+    @ParameterizedTest
+    @EnumSource( TYPES.class )
+    public void testStringHandling(TYPES type)  {
+        cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
         String source = "Nobody knows the toubles I have seen ...";
         cryptoUtilJ8s.forEach(cuj8 -> { 
             String cipherText;
@@ -261,9 +259,10 @@ public class CryptoUtilJ8Test {
     /** Test encryption and decryption of binary data
      * @throws Exception Generic exception
      */
-    @Test
-    public void testBinaryHandling() throws Exception {
-        
+    @ParameterizedTest
+    @EnumSource( TYPES.class )
+    public void testBinaryHandling(TYPES type) throws Exception {
+        cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
         cryptoUtilJ8s.forEach(cuj8 -> { 
             byte[] source = new byte[256];
             byte[] result = null;
@@ -297,12 +296,14 @@ public class CryptoUtilJ8Test {
     /** Test encryption and decryption of Strings 
      * @throws Exception Generic exception
      */
-    @Test
-    public void testStringWithPasswordEncryption() {
+    @ParameterizedTest
+    @EnumSource( TYPES.class )
+    public void testStringWithPasswordEncryption(TYPES type) {
         char[] password = "57cb-4a23-d838-45222".toCharArray();
         String source = "e02c-3b76-ff1e-5d9a1";
-        
+        cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
         cryptoUtilJ8s.forEach(cuj8 -> { 
+            System.out.println("checking "+ cuj8.getType());
             String cipherText = null;
             try {
                 cipherText = cuj8.encryptString(source, password);

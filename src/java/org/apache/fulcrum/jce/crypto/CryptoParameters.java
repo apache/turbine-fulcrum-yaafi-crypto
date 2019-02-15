@@ -49,8 +49,15 @@ public interface CryptoParameters
      *  @see https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html
      *  
      *  PBEWithHmacSHA256AndAES_256/CBC/PKCS5Padding, PBEWithHmacSHA256AndAES_128/CBC/PKCS5Padding
+     *  or
+     *  GCM
      */
-    String ALGORITHM_J8 = "PBEWithHmacSHA256AndAES_256"; //"PBEWithHmacSHA256AndAES_128 ";
+    String ALGORITHM_J8_PBE = "PBEWithHmacSHA256AndAES_256"; //"PBEWithHmacSHA256AndAES_128 ";
+    String ALGORITHM_J8_GCM = "AES/GCM/NoPadding";
+    
+    public enum TYPES {
+        PBE, GCM
+    }
     
     /**
      * Prefix to decrypted hex hash to get a clue, what to use and what it is.

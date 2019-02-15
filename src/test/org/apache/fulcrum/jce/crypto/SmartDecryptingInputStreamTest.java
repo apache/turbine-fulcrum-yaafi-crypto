@@ -174,7 +174,7 @@ public class SmartDecryptingInputStreamTest extends TestCase
         FileInputStream fis = new FileInputStream( file );
 
         CryptoUtil.getInstance().encrypt(
-            CryptoStreamFactoryImpl.getInstance(),
+                CryptoStreamFactoryImpl.getInstance(),
             fis,
             baos,
             this.getPassword()
@@ -197,7 +197,7 @@ public class SmartDecryptingInputStreamTest extends TestCase
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         SmartDecryptingInputStream sdis = new SmartDecryptingInputStream(
-            CryptoStreamFactoryImpl.getInstance(),
+                CryptoStreamFactoryImpl.getInstance(),
             bais,
             this.getPassword()
             );
@@ -219,7 +219,7 @@ public class SmartDecryptingInputStreamTest extends TestCase
         FileInputStream fis = new FileInputStream( file );
 
         SmartDecryptingInputStream sdis = new SmartDecryptingInputStream(
-            CryptoStreamFactoryImpl.getInstance(),
+                CryptoStreamFactoryImpl.getInstance(),
             fis,
             this.getPassword()
             );

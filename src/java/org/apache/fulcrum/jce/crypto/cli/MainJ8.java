@@ -84,7 +84,7 @@ public class MainJ8
      */
     public static void printHelp()
     {
-        System.out.println("\r\n*** Command line tool for encrypting/decrypting strings/files ***\r\n*** algorithm based on "+ CryptoParameters.ALGORITHM_J8+ "***\r\n");
+        System.out.println("\r\n*** Command line tool for encrypting/decrypting strings/files ***\r\n*** algorithm based on "+ CryptoParameters.ALGORITHM_J8_PBE+ "***\r\n");
         System.out.println( "*** Usage: ***\r\n");
         System.out.println("java -cp target\\classes; "+ MainJ8.class.getName()+ " <operation mode:file:string> <coding mode:enc|dec> <password> <path|string> [target]\r\ne.g.\r\n");
         System.out.println( MainJ8.class.getSimpleName()+ " file [enc|dec] passwd source [target]");
@@ -152,7 +152,7 @@ public class MainJ8
         }
         else if( cipherMode.equals("enc") )
         {
-            System.out.println("Enrypting " + sourceFile.getAbsolutePath() );
+            System.out.println("Encrypting " + sourceFile.getAbsolutePath() );
             cryptoUtilJ8.encrypt( fis, baos, password );
             fis.close();
 

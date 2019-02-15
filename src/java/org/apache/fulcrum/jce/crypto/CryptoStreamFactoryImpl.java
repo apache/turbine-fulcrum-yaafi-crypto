@@ -21,13 +21,10 @@ package org.apache.fulcrum.jce.crypto;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 
 import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
@@ -52,7 +49,7 @@ import javax.crypto.spec.PBEParameterSpec;
  * @author <a href="mailto:maakus@earthlink.net">Markus Hahn</a>
  */
 
-public class CryptoStreamFactoryImpl implements CryptoStreamFactory
+public class CryptoStreamFactoryImpl extends CryptoStreamFactoryTemplate implements CryptoStreamFactory
 {
     /** the salt for the PBE algorithm */
     protected byte[] salt;
@@ -80,14 +77,16 @@ public class CryptoStreamFactoryImpl implements CryptoStreamFactory
      * Factory method to get a default instance
      * @return an instance of the CryptoStreamFactory
      */
-    public synchronized static CryptoStreamFactory getInstance()
+    public static CryptoStreamFactory getInstance()
     {
-        if( CryptoStreamFactoryImpl.instance == null )
-        {
-            CryptoStreamFactoryImpl.instance = new CryptoStreamFactoryImpl();
+        synchronized(CryptoStreamFactoryImpl.class ) {
+            if( CryptoStreamFactoryImpl.instance == null )
+            {
+                CryptoStreamFactoryImpl.instance = new CryptoStreamFactoryImpl();
+            }
+    
+            return CryptoStreamFactoryImpl.instance;
         }
-
-        return CryptoStreamFactoryImpl.instance;
     }
 
     /**
@@ -125,82 +124,6 @@ public class CryptoStreamFactoryImpl implements CryptoStreamFactory
     }
 
     /**
-     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream, String)
-     */
-    public InputStream getInputStream(InputStream is, String decryptionMode) throws GeneralSecurityException, IOException {
-
-        InputStream result = null;
-
-        if( "auto".equalsIgnoreCase(decryptionMode) )
-        {
-            result = getSmartInputStream(is);
-        }
-        else if( "true".equalsIgnoreCase(decryptionMode) )
-        {
-            result = getInputStream(is);
-        }
-        else
-        {
-            result = is;
-        }
-        return result;
-    }
-
-    /**
-     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream, String, char[])
-     */
-    public InputStream getInputStream(InputStream is, String decryptionMode, char[] password) throws GeneralSecurityException, IOException {
-
-        InputStream result = null;
-
-        if( "auto".equalsIgnoreCase(decryptionMode) )
-        {
-            result = getSmartInputStream(is, password);
-        }
-        else if( "true".equalsIgnoreCase(decryptionMode) )
-        {
-            result = getInputStream(is, password);
-        }
-        else
-        {
-            result = is;
-        }
-        return result;
-    }
-
-    /**
-     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream)
-     */
-    public InputStream getInputStream( InputStream is )
-        throws GeneralSecurityException, IOException
-    {
-        Cipher cipher = this.createCipher( Cipher.DECRYPT_MODE, PasswordFactory.getInstance().create() );
-        return new CipherInputStream( is, cipher );
-    }
-
-    /**
-     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream,char[])
-     */
-    public InputStream getInputStream( InputStream is, char[] password )
-        throws GeneralSecurityException, IOException
-    {
-        Cipher cipher = this.createCipher( Cipher.DECRYPT_MODE, password );
-        return new CipherInputStream( is, cipher );
-    }
-
-    /**
-     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getSmartInputStream(java.io.InputStream)
-     */
-    public InputStream getSmartInputStream(InputStream is)
-        throws GeneralSecurityException, IOException
-    {
-        return this.getSmartInputStream(
-            is,
-            PasswordFactory.getInstance().create()
-            );
-    }
-
-    /**
      * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getSmartInputStream(java.io.InputStream,char[])
      */
     public InputStream getSmartInputStream(InputStream is, char[] password )
@@ -215,25 +138,6 @@ public class CryptoStreamFactoryImpl implements CryptoStreamFactory
             );
 
         return result;
-    }
-
-    /**
-     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getOutputStream(java.io.OutputStream)
-     */
-    public OutputStream getOutputStream( OutputStream os )
-        throws GeneralSecurityException, IOException
-    {
-        Cipher cipher = this.createCipher( Cipher.ENCRYPT_MODE, PasswordFactory.getInstance().create() );
-        return new CipherOutputStream( os, cipher );    }
-
-    /**
-     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getOutputStream(java.io.OutputStream, char[])
-     */
-    public OutputStream getOutputStream( OutputStream os, char[] password )
-        throws GeneralSecurityException, IOException
-    {
-        Cipher cipher = this.createCipher( Cipher.ENCRYPT_MODE, password );
-        return new CipherOutputStream( os, cipher );
     }
 
     /**
@@ -275,7 +179,7 @@ public class CryptoStreamFactoryImpl implements CryptoStreamFactory
      * @return the key
      * @throws GeneralSecurityException creating the key failed
      */
-    private Key createKey( char[] password )
+    protected Key createKey( char[] password )
         throws GeneralSecurityException
     {
         SecretKeyFactory keyFactory;
@@ -303,7 +207,7 @@ public class CryptoStreamFactoryImpl implements CryptoStreamFactory
      * @throws GeneralSecurityException creating a cipher failed
      * @throws IOException creating a cipher failed
      */
-    private Cipher createCipher( int mode, char[] password )
+    protected Cipher createCipher( int mode, char[] password )
         throws GeneralSecurityException, IOException
     {
         Cipher cipher;
