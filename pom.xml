@@ -32,10 +32,18 @@
   <inceptionYear>2008</inceptionYear>
   <description>Fulcrum YAAFI Crypto Library</description>
   <url>http://turbine.apache.org/fulcrum/fulcrum-yaafi-crytpo</url>
+
+  <!-- Required for staging to work -->
+  <distributionManagement>
+    <site>
+      <id>turbine.apache.org</id>
+      <url>https://turbine.apache.org/fulcrum/fulcrum-yaafi-crypto</url>
+    </site>
+  </distributionManagement>
 		
   <scm>
-    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7</developerConnection>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7/</connection>
+    <developerConnection>scm:svn: https://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7</developerConnection>
     <url>http://svn.apache.org/viewvc/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7</url>
   </scm>
 	
@@ -65,6 +73,13 @@
     <sourceDirectory>${basedir}/src/java</sourceDirectory>
     <testSourceDirectory>${basedir}/src/test</testSourceDirectory>
   </build>
+
+  <properties>
+    <turbine.site.path>fulcrum/fulcrum-yaafi-crypto</turbine.site.path>
+    <turbine.scmPubCheckoutDirectory>${turbine.site.cache}/fulcrum/fulcrum-yaafi-crypto</turbine.scmPubCheckoutDirectory>
+    <turbine.site.cache>${project.build.directory}/turbine-sites</turbine.site.cache>
+    <siteContent.path>${project.build.directory}/staging</siteContent.path><!-- default stagingSiteURL -->
+  </properties>  
   
   <properties>
     <turbine.site.path>fulcrum/fulcrum-yaafi-crypto</turbine.site.path>
