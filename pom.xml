@@ -80,9 +80,5 @@
     <turbine.site.cache>${project.build.directory}/turbine-sites</turbine.site.cache>
     <siteContent.path>${project.build.directory}/staging</siteContent.path><!-- default stagingSiteURL -->
   </properties>  
-  
-  <properties>
-    <turbine.site.path>fulcrum/fulcrum-yaafi-crypto</turbine.site.path>
-  </properties>  
 	
 </project>
