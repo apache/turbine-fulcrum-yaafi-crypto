@@ -1,4 +1,4 @@
-package org.apache.fulcrum.jce.crypto;
+package org.apache.fulcrum.jce.crypto.extended;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -33,9 +33,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.crypto.Cipher;
 
-import org.apache.fulcrum.jce.crypto.CryptoParameters.TYPES;
+import org.apache.fulcrum.jce.crypto.CryptoStreamFactoryImpl;
+import org.apache.fulcrum.jce.crypto.PasswordFactory;
+import org.apache.fulcrum.jce.crypto.StreamUtil;
 import org.apache.fulcrum.jce.crypto.algo.CryptoStreamGCMImpl;
 import org.apache.fulcrum.jce.crypto.algo.CryptoStreamPBEImpl;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
 
 /**
  * Concrete factory for creating encrypting/decrypting streams. 
@@ -94,8 +97,8 @@ public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryI
         this.salt = salt;
         this.count = count;
         this.providerName = PROVIDERNAME;
-        this.algorithm = type.equals(TYPES.PBE)? CryptoParameters.ALGORITHM_J8_PBE:
-            CryptoParameters.ALGORITHM_J8_GCM;
+        this.algorithm = type.equals(TYPES.PBE)? CryptoParametersJ8.ALGORITHM_J8_PBE:
+            CryptoParametersJ8.ALGORITHM_J8_GCM;
     }
 
 

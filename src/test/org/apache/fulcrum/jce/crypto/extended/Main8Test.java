@@ -1,6 +1,7 @@
-package org.apache.fulcrum.jce.crypto;
+package org.apache.fulcrum.jce.crypto.extended;
 
-import org.apache.fulcrum.jce.crypto.cli.CLI;
+import org.apache.fulcrum.jce.crypto.cli.CLI2;
+import org.junit.jupiter.api.Test;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +22,6 @@ import org.apache.fulcrum.jce.crypto.cli.CLI;
  * under the License.
  */
 
-import junit.framework.TestCase;
 
 /**
  * Test suite for crypto functionality
@@ -29,21 +29,19 @@ import junit.framework.TestCase;
  * @author <a href="mailto:siegfried.goeschl@it20one.at">Siegfried Goeschl</a>
  */
 
-public class MainTest extends TestCase
+public class Main8Test
 {
     /** the password to be used */
-    private String password;
-
+    static private String password;
+    
     /**
      * Constructor
-     * @param name the name of the test case
      */
-    public MainTest( String name )
-    {
-        super(name);
+    public Main8Test() {
 
         this.password = "foobar";
     }
+   
 
     /**
      * @return Returns the password.
@@ -52,40 +50,42 @@ public class MainTest extends TestCase
     {
         return password.toCharArray();
     }
-
+    
+    
     /** Encrypt a string on the command line */
+    @Test
     public void testStringEncryption()
     {
         String[] encryptionArgs = { "string", "enc", this.password, "mysecretpassword"};
-        CLI.main(encryptionArgs);
-        String[] decryptionArgs = { "string", "dec", this.password, "9330419fc003b4e1461986782625db13f4c8c81c340a9caa"};
-        CLI.main(decryptionArgs);
+        CLI2.main(encryptionArgs);
+        String[] decryptionArgs = { "string", "dec", this.password, "ce3bf02da8a57c94b4f42c084230d1bedcd856c49a3fd23ec59835ca46a3d37ee02d470394691353478c905e7b342316d1fcc3e1b98837bf0595ef50853922df"};
+        CLI2.main(decryptionArgs);
     }
-    
+    @Test
     public void testAnotherStringEncryption()
     {
         String[] encryptionArgs = { "string", "enc", this.password, "secret"};
-        CLI.main(encryptionArgs);
-        String[] decryptionArgs = { "string", "dec", this.password, "39619852d48491af"};
-        CLI.main(decryptionArgs);
+        CLI2.main(encryptionArgs);
+        String[] decryptionArgs = { "string", "dec", this.password, "8626904c9e64fddfa64add56472c4796429b0adb7c8039424adef7434be6bc255ce092011e8c560965814e806dd68117"};
+        CLI2.main(decryptionArgs);
     }
-
+    @Test
     /** Encrypt a text file on the command line */
     public void testFileEncryption1()
     {
-        String[] encryptionArgs = { "file", "enc", this.password, "./src/test/data/plain.txt", "./target/main/plain.enc.txt" };
-        String[] decryptionArgs = { "file", "dec", this.password, "./target/main/plain.enc.txt", "./target/main/plain.dec.txt" };
-        CLI.main(encryptionArgs);
-        CLI.main(decryptionArgs);
+        String[] encryptionArgs = { "file", "enc", this.password, "./src/test/data/plain.txt", "./target/main8/plain.enc.txt" };
+        String[] decryptionArgs = { "file", "dec", this.password, "./target/main8/plain.enc.txt", "./target/main8/plain.dec.txt" };
+        CLI2.main(encryptionArgs);
+        CLI2.main(decryptionArgs);
     }
-
+    @Test
     /** Encrypt a text file in-place on the command line */
     public void testFileEncryption2()
     {
-        String[] encryptionArgs = { "file", "enc", this.password, "./src/test/data/plain.txt", "./target/main/plain.txt" };
-        String[] decryptionArgs = { "file", "dec", this.password, "./target/main/plain.txt" };
-        CLI.main(encryptionArgs);
-        CLI.main(decryptionArgs);
+        String[] encryptionArgs = { "file", "enc", this.password, "./src/test/data/plain.txt", "./target/main8/plain.txt" };
+        String[] decryptionArgs = { "file", "dec", this.password, "./target/main8/plain.txt" };
+        CLI2.main(encryptionArgs);
+        CLI2.main(decryptionArgs);
     }
 
 }

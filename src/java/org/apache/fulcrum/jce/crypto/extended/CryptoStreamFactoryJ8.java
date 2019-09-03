@@ -1,4 +1,4 @@
-package org.apache.fulcrum.jce.crypto;
+package org.apache.fulcrum.jce.crypto.extended;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
+
+import org.apache.fulcrum.jce.crypto.CryptoStreamFactory;
 
 /**
  * Interface for creating encrypting/decrypting streams. 

@@ -1,4 +1,4 @@
-package org.apache.fulcrum.jce.crypto;
+package org.apache.fulcrum.jce.crypto.extended;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,7 +14,10 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.fulcrum.jce.crypto.CryptoParameters.TYPES;
+import org.apache.fulcrum.jce.crypto.PasswordFactory;
+import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
+import org.apache.fulcrum.jce.crypto.extended.CryptoUtilJ8;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

@@ -1,4 +1,4 @@
-package org.apache.fulcrum.jce.crypto;
+package org.apache.fulcrum.jce.crypto.extended;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,7 +14,13 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.fulcrum.jce.crypto.CryptoParameters.TYPES;
+import org.apache.fulcrum.jce.crypto.PasswordFactory;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
+import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
+import org.apache.fulcrum.jce.crypto.extended.CryptoUtilJ8;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -36,7 +42,8 @@ public class CryptoUtilJ8Test {
     private File tempDataDirectory;
     
     private static List<CryptoUtilJ8> cryptoUtilJ8s = new ArrayList<>();
-    
+
+    private static Logger log = LogManager.getLogger(CryptoUtilJ8Test.class);
 
     /**
      * Constructor
@@ -49,21 +56,16 @@ public class CryptoUtilJ8Test {
         this.tempDataDirectory.mkdirs();
     }
 
-    /**
-     * @see junit.framework.TestCase#setUp() byte[] salt, int count, String
-     *      algorithm, String providerName )
-     * 
-     * @throws Exception Generic exception
-     */
+
     @BeforeAll
     public static void setUp() throws Exception {
         cryptoUtilJ8s.clear();
-        for (TYPES type : CryptoParameters.TYPES.values()) {
+        for (TYPES type : CryptoParametersJ8.TYPES.values()) {
             cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
         }
         for (CryptoUtilJ8 cryptoUtilJ8 : cryptoUtilJ8s) {
-            System.out.println("registered cryptoUtilsJ8: "+ cryptoUtilJ8.getType() );
-            System.out.println( ((CryptoStreamFactoryJ8Template)cryptoUtilJ8.getCryptoStreamFactory()).getAlgorithm());
+            log.debug("registered cryptoUtilsJ8: {}", cryptoUtilJ8.getType() );
+            log.debug( ((CryptoStreamFactoryJ8Template)cryptoUtilJ8.getCryptoStreamFactory()).getAlgorithm());
         }
 
     }
@@ -251,9 +253,9 @@ public class CryptoUtilJ8Test {
     public void testPasswordFactory() throws Exception {
         char[] result = null;
         result = PasswordFactory.getInstance("SHA-256").create();
-        System.out.println("random pw:" + new String(result));
+        log.debug("random pw: {}", new String(result));
         result = PasswordFactory.getInstance("SHA-256",10_000).create(this.getPassword());
-        System.out.println("password pw with seed:" + new String(result));
+        log.debug("password pw with seed: {}", new String(result));
         assertNotNull(result);
         return;
     }
@@ -306,9 +308,9 @@ public class CryptoUtilJ8Test {
             String cipherText = null;
             try {
                 cipherText = cuj8.encryptString(source, password);
-                System.out.println(cipherText);// about 128
-                
-                System.out.println("length for " + cuj8.getType() + " is:" +cipherText.length());// about 128
+                log.debug(cipherText);// about 128
+
+                log.debug("length for {} is: {}", cuj8.getType(), cipherText.length());// about 128
                 if (cuj8.type == TYPES.PBE) {
                     assertEquals(128, cipherText.length()); // 128bytes + 10 bytes for cleartext
                 } 

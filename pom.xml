@@ -68,6 +68,12 @@
       <version>1.0.8</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${turbine.log4j2.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

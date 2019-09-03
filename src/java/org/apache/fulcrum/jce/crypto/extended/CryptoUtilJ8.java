@@ -1,4 +1,4 @@
-package org.apache.fulcrum.jce.crypto;
+package org.apache.fulcrum.jce.crypto.extended;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,7 +26,10 @@ import java.security.GeneralSecurityException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.fulcrum.jce.crypto.CryptoParameters.TYPES;
+import org.apache.fulcrum.jce.crypto.CryptoStreamFactory;
+import org.apache.fulcrum.jce.crypto.CryptoUtil;
+import org.apache.fulcrum.jce.crypto.StreamUtil;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
 
 /**
  * Helper class to provde generic functions to work with CryptoStreams.
@@ -41,7 +44,7 @@ import org.apache.fulcrum.jce.crypto.CryptoParameters.TYPES;
 public final class CryptoUtilJ8 extends CryptoUtil {
 
     
-    protected TYPES type;// default see instance
+    public TYPES type;// default see instance
    
     
     public TYPES getType() {

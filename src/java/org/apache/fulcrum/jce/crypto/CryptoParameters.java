@@ -30,8 +30,6 @@ public interface CryptoParameters
 {
     /** Parameter for PBEParameterSpec */
     int COUNT = 20;
-    
-    int COUNT_J8 = 10_000; //200_000;
 
     /** The password salt */
     byte[] SALT = {
@@ -42,27 +40,4 @@ public interface CryptoParameters
     /** The crypto algorithm being used */
     String ALGORITHM = "PBEWithMD5AndDES";
     
-    /**
-     *  @see https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJCEProvider
-     *  
-     *  Algo/mode/padding for cipher transformation: 
-     *  @see https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html
-     *  
-     *  PBEWithHmacSHA256AndAES_256/CBC/PKCS5Padding, PBEWithHmacSHA256AndAES_128/CBC/PKCS5Padding
-     *  or
-     *  GCM
-     */
-    String ALGORITHM_J8_PBE = "PBEWithHmacSHA256AndAES_256"; //"PBEWithHmacSHA256AndAES_128 ";
-    String ALGORITHM_J8_GCM = "AES/GCM/NoPadding";
-    
-    public enum TYPES {
-        PBE, GCM
-    }
-    
-    /**
-     * Prefix to decrypted hex hash to get a clue, what to use and what it is.
-     * 
-     * This should be always 10 bytes
-     */
-    String CLEAR_CODE_J8 = "J8_AES256;"; //
 }

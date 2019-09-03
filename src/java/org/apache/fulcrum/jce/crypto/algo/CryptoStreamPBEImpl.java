@@ -35,16 +35,16 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
-import org.apache.fulcrum.jce.crypto.CryptoParameters;
-import org.apache.fulcrum.jce.crypto.CryptoStreamFactoryJ8Template;
 import org.apache.fulcrum.jce.crypto.StreamUtil;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
+import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
 
 /**
  * Concrete implementation for creating encrypting/decrypting streams. The
  * implementation uses the JCA (Java Crypto Extension) supplied
  * by SUN (using SunJCE 1.42).
  *
- * The implementation uses as @see {@link CryptoParameters#ALGORITHM_J8_PBE} for encryption which
+ * The implementation uses as @see {@link CryptoParametersJ8#ALGORITHM_J8_PBE} for encryption which
  * should be sufficent for most applications.
  *
  * The implementation also supplies a default password in the case that
@@ -70,9 +70,9 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
     public CryptoStreamPBEImpl() throws GeneralSecurityException
     {
         this.salt =  generateSalt();
-        this.count = CryptoParameters.COUNT_J8;
+        this.count = CryptoParametersJ8.COUNT_J8;
         this.providerName = PROVIDERNAME;
-        this.algorithm = CryptoParameters.ALGORITHM_J8_PBE;
+        this.algorithm = CryptoParametersJ8.ALGORITHM_J8_PBE;
     }
     
     /**
@@ -86,7 +86,7 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
         this.salt = salt;
         this.count = count;
         this.providerName = PROVIDERNAME;
-        this.algorithm = CryptoParameters.ALGORITHM_J8_PBE;
+        this.algorithm = CryptoParametersJ8.ALGORITHM_J8_PBE;
     }
 
     /**

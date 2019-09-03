@@ -143,7 +143,7 @@ public class CryptoStreamFactoryImpl extends CryptoStreamFactoryTemplate impleme
     /**
      * @return Returns the algorithm.
      */
-    protected String getAlgorithm()
+    public String getAlgorithm()
     {
         return algorithm;
     }

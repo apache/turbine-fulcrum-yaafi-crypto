@@ -25,6 +25,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
+
 /**
  * Helper class to provde generic functions to work with CryptoStreams.
  *
@@ -147,7 +149,7 @@ public class CryptoUtil {
             throws GeneralSecurityException, IOException {
         ByteArrayOutputStream bais = new ByteArrayOutputStream();
         encrypt(factory, plainText, bais, password);
-        return (useClearTextHeader)? CryptoParameters.CLEAR_CODE_J8 + HexConverter.toString(bais.toByteArray()):
+        return (useClearTextHeader)? CryptoParametersJ8.CLEAR_CODE_J8 + HexConverter.toString(bais.toByteArray()):
             HexConverter.toString(bais.toByteArray());
     }
 
@@ -163,7 +165,7 @@ public class CryptoUtil {
      */
     public String decryptString(String cipherText, char[] password) throws GeneralSecurityException, IOException {
         return decryptString(getCryptoStreamFactory(), (useClearTextHeader)?
-                cipherText.substring(CryptoParameters.CLEAR_CODE_J8.length()):
+                cipherText.substring(CryptoParametersJ8.CLEAR_CODE_J8.length()):
                 cipherText, password);
     }
 

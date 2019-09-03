@@ -1,4 +1,4 @@
-package org.apache.fulcrum.jce.crypto;
+package org.apache.fulcrum.jce.crypto.extended;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,12 +38,17 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
+import org.apache.fulcrum.jce.crypto.CryptoStreamFactory;
+import org.apache.fulcrum.jce.crypto.CryptoStreamFactoryImpl;
+import org.apache.fulcrum.jce.crypto.PasswordFactory;
+import org.apache.fulcrum.jce.crypto.StreamUtil;
+
 /**
  * Concrete factory for creating encrypting/decrypting streams. The
  * implementation uses the JCA (Java Crypto Extension) supplied
  * by SUN (using SunJCE 1.42).
  *
- * The implementation uses as PBEWithHmacSHA256AndAES_256, see {@link CryptoParameters#ALGORITHM_J8} for encryption which
+ * The implementation uses as PBEWithHmacSHA256AndAES_256, see {@link CryptoParametersJ8#ALGORITHM_J8} for encryption which
  * should be sufficent for most applications.
  *
  * The implementation also supplies a default password in the case that
@@ -104,9 +109,9 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
     public CryptoStreamFactoryJ8Impl() throws GeneralSecurityException
     {
         this.salt =  generateSalt();
-        this.count = CryptoParameters.COUNT_J8;
+        this.count = CryptoParametersJ8.COUNT_J8;
         this.providerName = PROVIDERNAME;
-        this.algorithm = CryptoParameters.ALGORITHM_J8_PBE;
+        this.algorithm = CryptoParametersJ8.ALGORITHM_J8_PBE;
     }
     
     /**
@@ -115,7 +120,7 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
     public CryptoStreamFactoryJ8Impl(String algo) throws GeneralSecurityException
     {
         this.salt =  generateSalt();
-        this.count = CryptoParameters.COUNT_J8;
+        this.count = CryptoParametersJ8.COUNT_J8;
         this.providerName = PROVIDERNAME;
         this.algorithm = algo;
     }
@@ -131,7 +136,7 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         this.salt = salt;
         this.count = count;
         this.providerName = PROVIDERNAME;
-        this.algorithm = CryptoParameters.ALGORITHM_J8_PBE;
+        this.algorithm = CryptoParametersJ8.ALGORITHM_J8_PBE;
     }
 
 
