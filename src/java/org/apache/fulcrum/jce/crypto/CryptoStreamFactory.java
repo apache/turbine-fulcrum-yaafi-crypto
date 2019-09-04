@@ -133,5 +133,11 @@ public interface CryptoStreamFactory
      */
     OutputStream getOutputStream(OutputStream os, char[] password)
         throws GeneralSecurityException, IOException;
+
+    /**
+     * Info about used algorithm.
+     * @return algorithm string 
+     */
+    String getAlgorithm();
     
 }

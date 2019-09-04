@@ -1,5 +1,7 @@
 package org.apache.fulcrum.jce.crypto.cli;
 
+import java.io.BufferedReader;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,8 +26,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import org.apache.fulcrum.jce.crypto.HexConverter;
+import org.apache.fulcrum.jce.crypto.StreamUtil;
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
 import org.apache.fulcrum.jce.crypto.extended.CryptoUtilJ8;
 
 /**
@@ -36,7 +50,7 @@ import org.apache.fulcrum.jce.crypto.extended.CryptoUtilJ8;
  * 
  * Example :
  * 
- * java -classpath target/classes org.apache.fulcrum.jce.crypto.cli.Main string enc changeit mysecretgeheim
+ * java -classpath target/classes org.apache.fulcrum.jce.crypto.cli.CLI2 string enc changeit mysecretgeheim
  * ...
  * 
  * java -cp target/classes org.apache.fulcrum.jce.crypto.cli.Main string dec changeit J8_AES256;<hashcode>
@@ -55,13 +69,28 @@ public class CLI2
     {
         try
         {
+
+            String operationMode = args[0];
+            
+            String msg = "No operationMode" ;
+            if (operationMode == null || operationMode.equals("")) {
+                throw new IllegalArgumentException(msg);
+            }
+            
+            if( operationMode.equals("info") )
+            {
+                printInfo();
+                return;
+            } else if (operationMode.equals("help") ) {
+                printHelp();
+                return;
+            }
+            
             if( args.length < 3 )
             {
                 printHelp();
                 throw new IllegalArgumentException("Invalid command line");
             }
-
-            String operationMode = args[0];
 
 
             if( operationMode.equals("file") )
@@ -76,7 +105,19 @@ public class CLI2
         catch (Exception e)
         {
             System.out.println("Error : " + e.getMessage());
+            e.printStackTrace();
         }
+    }
+
+    private static void printInfo() {
+        CryptoUtilJ8 cryptoUtilJ8 = CryptoUtilJ8.getInstance();
+        System.out.println("\tCrypto factory class: " + cryptoUtilJ8.getCryptoStreamFactory().getClass());
+        System.out.println("\tDefault Algorithm used: " + cryptoUtilJ8.getCryptoStreamFactory().getAlgorithm());
+        String algoShortList= Arrays.stream(CryptoParametersJ8.TYPES.values()).map(t-> t.toString()).collect(Collectors.joining(","));
+        System.out.println("\tAlgorithms (shortcut) available: " + algoShortList);
+        String algoList= Arrays.stream(CryptoParametersJ8.TYPES_IMPL.values()).map(t-> t.toString()).collect(Collectors.joining(", "));
+        System.out.println("\tAlgorithms available: " + algoList);
+        System.out.println("\tMore Info: https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html");
     }
 
     /**
@@ -84,11 +125,18 @@ public class CLI2
      */
     public static void printHelp()
     {
-        System.out.println("\r\n*** Command line tool for encrypting/decrypting strings/files ***\r\n*** algorithm based on "+ CryptoParametersJ8.ALGORITHM_J8_PBE+ "***\r\n");
+        System.out.println("\r\n*** Command line tool for encrypting/decrypting strings/files ***\r\n*** algorithm based on "+ CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE+ "***\r\n");
+        System.out.println("java -cp target\\classes; "+ CLI2.class.getName()+ " <operation mode> <coding mode> <password> <path|string> [target]");
         System.out.println( "*** Usage: ***\r\n");
-        System.out.println("java -cp target\\classes; "+ CLI2.class.getName()+ " <operation mode:file|string> <coding mode:enc|dec> <password> <path|string> [target]\r\ne.g.\r\n");
+        System.out.println("java -cp target\\classes; "+ CLI2.class.getName()+ " <operation mode:file|string|info> <coding mode:enc<optional:algoshortcut>|dec<optional:algoshortcut>> <password> <code|coderef> [target]\r\ne.g.\r\n");
+        System.out.println("operation mode: file|string|info");
+        System.out.println("coding mode: enc|dec|enc:GCM. Default algorithm is " + TYPES.PBE);
+        System.out.println("<password: string or empty:''");
+        System.out.println("code|coderef: path|string");
+        System.out.println("target: ");
         System.out.println( CLI2.class.getSimpleName()+ " file [enc|dec] passwd source [target]");
         System.out.println(CLI2.class.getSimpleName() + " string [enc|dec] passwd source");
+        System.out.println(CLI2.class.getSimpleName() + " info");
     }
 
     /**
@@ -125,7 +173,7 @@ public class CLI2
     /**
      * Decrypt/encrypt a single file
      * @param cipherMode the mode
-     * @param password the passwors
+     * @param password the password
      * @param sourceFile the file to process
      * @param targetFile the targetf file
      * @throws Exception the operation failed
@@ -133,40 +181,73 @@ public class CLI2
     public static void processFile(String cipherMode, char[] password, File sourceFile, File targetFile)
         throws Exception
     {
-        FileInputStream fis = new FileInputStream(sourceFile);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        
-        CryptoUtilJ8 cryptoUtilJ8 = CryptoUtilJ8.getInstance();
-
-        if( cipherMode.equals("dec") )
-        {
-            System.out.println("Decrypting " + sourceFile.getAbsolutePath() );
-            cryptoUtilJ8.decrypt( fis, baos, password );
-            fis.close();
-
-            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-            FileOutputStream fos = new FileOutputStream(targetFile);
-            CryptoUtilJ8.copy(bais,fos);
-            bais.close();
-            fos.close();
+                
+        try (FileInputStream fis = new FileInputStream(sourceFile)) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            
+            CryptoUtilJ8 cryptoUtilJ8 = createCryptoUtil(cipherMode);
+    
+            if( cipherMode.startsWith("dec") )
+            {
+                System.out.println("Decrypting " + sourceFile.getAbsolutePath() );
+                
+                
+                    //String value = new String(Files.readAllBytes(Paths.get(sourceFile.toURI())));
+                    StringBuffer stringBuffer = new StringBuffer();
+                    int i; 
+                    while ((i=fis.read()) != -1)  {
+                        stringBuffer.append((char) i); 
+                    } 
+                    String value = stringBuffer.toString();
+                    if (isHexadecimal(new String(value))) {
+                        byte[] buffer = HexConverter.toBytes(value);
+                        cryptoUtilJ8.decrypt( buffer, baos, password );
+                    } else {
+                        try ( FileInputStream fis2 = new FileInputStream(sourceFile) ) {
+                            cryptoUtilJ8.decrypt( fis2, baos, password );
+                        }
+                    }
+    
+                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                FileOutputStream fos = new FileOutputStream(targetFile);
+                StreamUtil.copy(bais,fos);
+                bais.close();
+                fos.close();
+            }
+            else if( cipherMode.startsWith("enc") )
+            {
+                System.out.println("Encrypting " + sourceFile.getAbsolutePath() );
+                cryptoUtilJ8.encrypt( fis, baos, password );
+                fis.close();
+    
+                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                FileOutputStream fos = new FileOutputStream(targetFile);
+                StreamUtil.copy(bais,fos);
+                bais.close();
+                fos.close();
+            }
+            else
+            {
+                String msg = "Don't know what to do with : " + cipherMode;
+                throw new IllegalArgumentException(msg);
+            }
         }
-        else if( cipherMode.equals("enc") )
-        {
-            System.out.println("Encrypting " + sourceFile.getAbsolutePath() );
-            cryptoUtilJ8.encrypt( fis, baos, password );
-            fis.close();
+    }
 
-            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-            FileOutputStream fos = new FileOutputStream(targetFile);
-            CryptoUtilJ8.copy(bais,fos);
-            bais.close();
-            fos.close();
+    private static CryptoUtilJ8 createCryptoUtil(String cipherMode) throws Exception {
+        CryptoUtilJ8 cryptoUtilJ8 = null;
+        if (cipherMode.endsWith(TYPES.PBE.toString()) || cipherMode.substring("enc".length()).equals("") ) {
+            cryptoUtilJ8 = CryptoUtilJ8.getInstance();
+        } else {
+            Optional<TYPES> algoShortcut = Arrays.stream(CryptoParametersJ8.TYPES.values()).filter(a-> cipherMode.endsWith(a.toString())).findFirst(); //.collect(Collectors.toList());
+            if (algoShortcut.isPresent()) {
+                cryptoUtilJ8 = CryptoUtilJ8.getInstance(algoShortcut.get());
+            }
         }
-        else
-        {
-            String msg = "Don't know what to do with : " + cipherMode;
-            throw new IllegalArgumentException(msg);
+        if (cryptoUtilJ8 == null) {
+            throw new Exception("Could not find any algorithms. check provided alog shortcuts with CLI2 info!");
         }
+        return cryptoUtilJ8;
     }
 
     /**
@@ -180,20 +261,47 @@ public class CLI2
     {
         String cipherMode = args[1];
         char[] password = args[2].toCharArray();
-        String value = args[3];
-        String result = null;
+        String value = args[3];        
+        File targetFile = null;
         
-        CryptoUtilJ8 cryptoUtilJ8 = CryptoUtilJ8.getInstance();
+        if( args.length == 5 ) {
+            targetFile = new File(args[4]);
+            File parentFile = targetFile.getParentFile(); 
 
-        if( cipherMode.equals("dec") )
-        {
-            result = cryptoUtilJ8.decryptString(value,password);
+            if(parentFile != null)
+            {
+                parentFile.mkdirs();
+            }
         }
-        else
-        {
-            result = cryptoUtilJ8.encryptString(value,password);
+        
+        if (value != null && !value.equals("")) {
+        
+            CryptoUtilJ8 cryptoUtilJ8 = createCryptoUtil(cipherMode);
+    
+            String result = null;
+            if ( cipherMode.startsWith("dec") )
+            {
+                result = cryptoUtilJ8.decryptString(value,password);
+            }
+            else if ( cipherMode.startsWith("enc"))
+            {
+                result = cryptoUtilJ8.encryptString(value,password);
+            }
+    
+            System.out.println( result );
+            
+            if (targetFile != null) {
+                try ( FileOutputStream outputStream = new FileOutputStream(targetFile)) {
+                    outputStream.write(result.getBytes());         
+                }
+            }
         }
+    }
+    
+    private static final Pattern HEXADECIMAL_PATTERN = Pattern.compile("\\p{XDigit}+");
 
-        System.out.println( result );
+    public static boolean isHexadecimal(String input) {
+        final Matcher matcher = HEXADECIMAL_PATTERN.matcher(input);
+        return matcher.matches();
     }
 }

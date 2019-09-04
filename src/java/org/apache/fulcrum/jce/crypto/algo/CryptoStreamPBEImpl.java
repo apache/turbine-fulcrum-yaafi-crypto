@@ -72,7 +72,7 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
         this.salt =  generateSalt();
         this.count = CryptoParametersJ8.COUNT_J8;
         this.providerName = PROVIDERNAME;
-        this.algorithm = CryptoParametersJ8.ALGORITHM_J8_PBE;
+        this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE.getAlgorithm();
     }
     
     /**
@@ -86,7 +86,7 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
         this.salt = salt;
         this.count = count;
         this.providerName = PROVIDERNAME;
-        this.algorithm = CryptoParametersJ8.ALGORITHM_J8_PBE;
+        this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE.getAlgorithm();
     }
 
     /**

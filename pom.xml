@@ -72,13 +72,20 @@
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
       <version>${turbine.log4j2.version}</version>
-      <scope>test</scope>
+      <scope>test</scope><!-- chnage to provided ? -->
     </dependency>
   </dependencies>
 
   <build>
     <sourceDirectory>${basedir}/src/java</sourceDirectory>
     <testSourceDirectory>${basedir}/src/test</testSourceDirectory>
+    <testResources>
+      <testResource>
+        <directory>src/test</directory>
+        <includes> <include>**/*.xml</include>
+        </includes>
+      </testResource>
+    </testResources>
   </build>
   
   <properties>

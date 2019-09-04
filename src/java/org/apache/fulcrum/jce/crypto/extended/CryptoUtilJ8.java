@@ -30,6 +30,9 @@ import org.apache.fulcrum.jce.crypto.CryptoStreamFactory;
 import org.apache.fulcrum.jce.crypto.CryptoUtil;
 import org.apache.fulcrum.jce.crypto.StreamUtil;
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES_IMPL;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Helper class to provde generic functions to work with CryptoStreams.
@@ -45,14 +48,14 @@ public final class CryptoUtilJ8 extends CryptoUtil {
 
     
     public TYPES type;// default see instance
-   
+       
     
     public TYPES getType() {
         return type;
     }
 
     /** the typed default instances */    
-    private static Map<TYPES,CryptoUtilJ8> cryptoUtilJ8s = new ConcurrentHashMap();
+    private static Map<TYPES,CryptoUtilJ8> cryptoUtilJ8s = new ConcurrentHashMap<>();
     
     
     /**
@@ -67,7 +70,6 @@ public final class CryptoUtilJ8 extends CryptoUtil {
             {
                 cryptoUtilJ8s.put(type, new CryptoUtilJ8(type) );
             }
-    
             return cryptoUtilJ8s.get(type);
         }
     }
@@ -81,20 +83,22 @@ public final class CryptoUtilJ8 extends CryptoUtil {
     public static CryptoUtilJ8 getInstance()
     {
         synchronized (CryptoUtilJ8.class) {
-            if( cryptoUtilJ8s.isEmpty() && !cryptoUtilJ8s.containsKey(TYPES.PBE) )
+            TYPES defaultType = TYPES.PBE;
+            if( cryptoUtilJ8s.isEmpty() && !cryptoUtilJ8s.containsKey(defaultType) )
             {
-                cryptoUtilJ8s.put(TYPES.PBE, new CryptoUtilJ8(TYPES.PBE) );
+                cryptoUtilJ8s.put(defaultType, new CryptoUtilJ8(defaultType) );
             }
-    
-            return cryptoUtilJ8s.get(TYPES.PBE);
+            return cryptoUtilJ8s.get(defaultType);
         }
     }
     
-    public CryptoUtilJ8(TYPES type) {
+    private CryptoUtilJ8(TYPES type) {
+        super();
         this.type = type;
     }
     
-    public CryptoUtilJ8() {
+    private CryptoUtilJ8() {
+        super();
     }
 
     /**
@@ -129,7 +133,7 @@ public final class CryptoUtilJ8 extends CryptoUtil {
      * @throws IOException              accessing the source failed
      */
     @Override
-    public void decrypt(CryptoStreamFactory factory, Object source, Object target, char[] password)
+    protected void decrypt(CryptoStreamFactory factory, Object source, Object target, char[] password)
             throws GeneralSecurityException, IOException {
         InputStream is = StreamUtil.createInputStream(source);
         OutputStream os = StreamUtil.createOutputStream(target);

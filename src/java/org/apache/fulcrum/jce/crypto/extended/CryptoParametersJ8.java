@@ -46,8 +46,24 @@ public interface CryptoParametersJ8
      *  
      *  <li>AES/GCM/NoPadding 
      */
-    String ALGORITHM_J8_PBE = "PBEWithHmacSHA256AndAES_256"; //"PBEWithHmacSHA256AndAES_128 ";
-    String ALGORITHM_J8_GCM = "AES/GCM/NoPadding";
+    
+    public enum TYPES_IMPL {
+        ALGORITHM_J8_PBE("PBEWithHmacSHA256AndAES_256"), 
+        ALGORITHM_J8_GCM("AES/GCM/NoPadding");
+        
+        private final String algorithm;
+        
+        private TYPES_IMPL(String algo) {
+            algorithm = algo;
+        }
+        @Override
+        public String toString() {
+            return this.algorithm;
+        }
+        public String getAlgorithm() {
+            return algorithm;
+        }
+    }
     
     public enum TYPES {
         PBE, GCM

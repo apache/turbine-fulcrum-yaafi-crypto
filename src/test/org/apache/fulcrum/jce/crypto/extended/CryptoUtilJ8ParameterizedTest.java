@@ -3,6 +3,7 @@ package org.apache.fulcrum.jce.crypto.extended;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayOutputStream;
@@ -15,9 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.fulcrum.jce.crypto.PasswordFactory;
-import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
-import org.apache.fulcrum.jce.crypto.extended.CryptoUtilJ8;
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,6 +42,7 @@ public class CryptoUtilJ8ParameterizedTest {
     
     private List<CryptoUtilJ8> cryptoUtilJ8s = new ArrayList<>();
     
+    private static Logger log = LogManager.getLogger(CryptoUtilJ8ParameterizedTest.class);
 
     /**
      * Constructor
@@ -99,7 +101,7 @@ public class CryptoUtilJ8ParameterizedTest {
         
         cryptoUtilJ8s.forEach(cuj8 -> {
             try {
-                System.out.println("checking "+ cuj8.getType());
+                log.info("checking "+ cuj8.getType());
                 cuj8.encrypt(sourceFile, targetFile, this.getPassword());
             } catch (GeneralSecurityException e) {
                 e.printStackTrace();
@@ -119,7 +121,7 @@ public class CryptoUtilJ8ParameterizedTest {
     public void testTextDecryption(TYPES type) {
         cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
             cryptoUtilJ8s.forEach(cuj8 -> {
-                System.out.println("checking "+ cuj8.getType());
+                log.info("checking "+ cuj8.getType());
                 try {
                     File sourceFile = new File(this.getTestDataDirectory(), "plain.txt");
                     File targetFile = new File(this.getTempDataDirectory(), "plain.j8.enc.txt");
@@ -197,7 +199,7 @@ public class CryptoUtilJ8ParameterizedTest {
     @ParameterizedTest
     @EnumSource( TYPES.class )
     public void testStringEncryption(TYPES type) {
-        cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
+        CryptoUtilJ8 cuj8= CryptoUtilJ8.getInstance(type);
         char[] testVector = new char[513];
 
         for (int i = 0; i < testVector.length; i++) {
@@ -205,21 +207,25 @@ public class CryptoUtilJ8ParameterizedTest {
         }
 
         String source = new String(testVector);
-        cryptoUtilJ8s.forEach(cuj8 -> { 
-            String cipherText;
-            String plainText;
-            try {
-                cipherText = cuj8.encryptString(source, this.getPassword());
-                plainText = cuj8.decryptString(cipherText, this.getPassword());
-                assertEquals(source, plainText, source +" is not equal with " + plainText); 
-            } catch (GeneralSecurityException | IOException e) {
-                e.printStackTrace();
-                fail();
-            }
-           
-        });
-        
-
+        String cipherText = null;
+        String plainText = null;
+        try {
+            log.debug("without clearTextHeader");
+            cipherText = cuj8.encryptString(source, this.getPassword());
+            plainText = cuj8.decryptString(cipherText, this.getPassword());
+            assertEquals(source, plainText, source +" is not equal with " + plainText);
+            
+            log.debug("with clearTextHeader in encrypted string:" + CryptoParametersJ8.CLEAR_CODE_J8);
+            String cipherText2 = cuj8.encryptStringWithClearCode(source, this.getPassword());
+            
+            assertTrue(cipherText2.startsWith(CryptoParametersJ8.CLEAR_CODE_J8), cipherText2 +" does not start with " + CryptoParametersJ8.CLEAR_CODE_J8);
+            String plainText2 = cuj8.decryptStringWithClearCode(cipherText2, this.getPassword());
+            assertEquals(source, plainText2, source +" is not equal with " + plainText);
+            
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 
     /** Test encryption and decryption of Strings
@@ -252,9 +258,9 @@ public class CryptoUtilJ8ParameterizedTest {
     public void testPasswordFactory() throws Exception {
         char[] result = null;
         result = PasswordFactory.getInstance("SHA-256").create();
-        System.out.println("random pw:" + new String(result));
+        log.info("random pw:" + new String(result));
         result = PasswordFactory.getInstance("SHA-256",10_000).create(this.getPassword());
-        System.out.println("password pw with seed:" + new String(result));
+        log.info("password pw with seed:" + new String(result));
         assertNotNull(result);
         return;
     }
@@ -304,28 +310,23 @@ public class CryptoUtilJ8ParameterizedTest {
     public void testStringWithPasswordEncryption(TYPES type) {
         char[] password = "57cb-4a23-d838-45222".toCharArray();
         String source = "e02c-3b76-ff1e-5d9a1";
-        cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
-        cryptoUtilJ8s.forEach(cuj8 -> { 
-            System.out.println("checking "+ cuj8.getType());
-            String cipherText = null;
-            try {
-                cipherText = cuj8.encryptString(source, password);
-                System.out.println(cipherText);// about 128
-                
-                System.out.println("length for " + cuj8.getType() + " is:" +cipherText.length());// about 128
-                if (cuj8.type == TYPES.PBE) {
-                    assertEquals(128, cipherText.length()); // 128bytes + 10 bytes for cleartext
-                } 
-                CryptoStreamFactoryJ8Template.setInstance(null);
-                String plainText = cuj8.decryptString(cipherText, password);
-                assertEquals(source, plainText);
-            } catch (GeneralSecurityException | IOException e) {
-                e.printStackTrace();
-                fail();
-            }
-            
-        });      
-
+        CryptoUtilJ8 cuj8 = CryptoUtilJ8.getInstance(type);
+        log.debug("checking "+ cuj8.getType());
+        String cipherText = null;
+        try {
+            cipherText = cuj8.encryptString(source, password);
+            log.info(cipherText);// about 128 
+            log.info("length for " + cuj8.getType() + " is:" +cipherText.length());// about 128
+            if (cuj8.type == TYPES.PBE) {
+                assertEquals(128, cipherText.length()); // 128bytes + 10 bytes for cleartext
+            } 
+            CryptoStreamFactoryJ8Template.setInstance(null);
+            String plainText = cuj8.decryptString(cipherText, password);
+            assertEquals(source, plainText);
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+            fail();
+        }      
     }
 
 }

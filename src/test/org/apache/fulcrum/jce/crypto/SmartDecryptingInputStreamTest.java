@@ -158,7 +158,7 @@ public class SmartDecryptingInputStreamTest extends TestCase
         String result = null;
         FileInputStream fis = new FileInputStream( file );
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        CryptoUtil.copy(fis,baos);
+        StreamUtil.copy(fis,baos);
         fis.close();
         result = new String( baos.toByteArray(), enc );
         return result;
@@ -202,7 +202,7 @@ public class SmartDecryptingInputStreamTest extends TestCase
             this.getPassword()
             );
 
-        CryptoUtil.copy(sdis,baos);
+        StreamUtil.copy(sdis,baos);
 
         return new String( baos.toByteArray(), enc );
     }
@@ -224,7 +224,7 @@ public class SmartDecryptingInputStreamTest extends TestCase
             this.getPassword()
             );
 
-        CryptoUtil.copy(sdis,baos);
+        StreamUtil.copy(sdis,baos);
         return new String( baos.toByteArray(), enc );
     }
 

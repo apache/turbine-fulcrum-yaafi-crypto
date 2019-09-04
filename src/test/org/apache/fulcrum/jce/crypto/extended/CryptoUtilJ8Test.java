@@ -74,11 +74,6 @@ public class CryptoUtilJ8Test {
         cryptoUtilJ8s.clear();
     }
     
-//    @ParameterizedTest
-//    @EnumSource( TYPES.class )
-//    public void setUp(TYPES type) throws Exception {
-//        cryptoUtilJ8 = CryptoUtilJ8.getInstance(type); // (TYPES.PBE);
-//    }
 
     /**
      * @return Returns the password.

@@ -43,7 +43,7 @@ import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
  * implementation uses the JCA (Java Crypto Extension) supplied
  * by SUN (using SunJCE 1.42).
  *
- * The implementation uses @see {@link CryptoParametersJ8#ALGORITHM_J8_GCM} for encryption which
+ * The implementation uses @see {@link CryptoParametersJ8.TYPES_IMPL#ALGORITHM_J8_GCM} for encryption which
  * should be sufficent for most applications.
  *
  * The implementation also supplies a default password in the case that
@@ -67,7 +67,7 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
         this.salt =  generateSalt();
         this.count = CryptoParametersJ8.COUNT_J8;// not used
         this.providerName = PROVIDERNAME;
-        this.algorithm = CryptoParametersJ8.ALGORITHM_J8_GCM;
+        this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_GCM.getAlgorithm();
     }
 
 
@@ -82,7 +82,7 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
         this.salt = salt;
         this.count = count;
         this.providerName = PROVIDERNAME;
-        this.algorithm = CryptoParametersJ8.ALGORITHM_J8_GCM;
+        this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_GCM.getAlgorithm();
     }
 
     /**

@@ -22,6 +22,10 @@ package org.apache.fulcrum.jce.crypto;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 
+import org.apache.fulcrum.jce.crypto.extended.CryptoUtilJ8ParameterizedTest;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import junit.framework.TestCase;
 
 /**
@@ -39,6 +43,8 @@ public class CryptoUtilTest extends TestCase {
 
 	/** the temp data director */
 	private File tempDataDirectory;
+	
+	private static Logger log = LogManager.getLogger(CryptoUtilTest.class);
 
 	/**
 	 * Constructor
@@ -297,7 +303,7 @@ public class CryptoUtilTest extends TestCase {
 		result = PasswordFactory.getInstance().create();
 		System.out.println(new String(result));
 		result = PasswordFactory.getInstance().create(this.getPassword());
-		System.out.println(new String(result));
+		log.info(new String(result));
 		assertNotNull(result);
 		return;
 	}
@@ -319,7 +325,7 @@ public class CryptoUtilTest extends TestCase {
 		char[] password = "57cb-4a23-d838-45222".toCharArray();
 		String source = "e02c-3b76-ff1e-5d9a1";
 		String cipherText = CryptoUtil.getInstance().encryptString(source, password);
-		System.out.println(cipherText);// len 48
+		log.info(cipherText);// len 48
 		assertEquals(48, cipherText.length());
 		String plainText = CryptoUtil.getInstance().decryptString(cipherText, password);
 		assertEquals(source, plainText);

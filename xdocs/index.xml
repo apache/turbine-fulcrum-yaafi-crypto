@@ -131,7 +131,7 @@
           </tr>
            <tr>
             <td>SunJCE (Java 8)</td>
-            <td>PBEWithHmacSHA256AndAES_128</td>
+            <td>PBEWithHmacSHA256AndAES_256</td>
           </tr>
         </table>
       </subsection>

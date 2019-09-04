@@ -52,7 +52,7 @@ public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryI
     protected static final int KEY_SIZE = 256;
 
     /** the default instances */
-    protected static Map<TYPES,CryptoStreamFactoryJ8Template> instances = new ConcurrentHashMap();
+    protected static Map<TYPES,CryptoStreamFactoryJ8Template> instances = new ConcurrentHashMap<>();
     
     protected AlgorithmParameters algorithmParameters;// used only for debugging
    
@@ -97,8 +97,8 @@ public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryI
         this.salt = salt;
         this.count = count;
         this.providerName = PROVIDERNAME;
-        this.algorithm = type.equals(TYPES.PBE)? CryptoParametersJ8.ALGORITHM_J8_PBE:
-            CryptoParametersJ8.ALGORITHM_J8_GCM;
+        this.algorithm = type.equals(TYPES.PBE)? CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE.getAlgorithm():
+            CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_GCM.getAlgorithm();;
     }
 
 
@@ -122,8 +122,8 @@ public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryI
     public InputStream getInputStream( InputStream is, char[] password )
         throws GeneralSecurityException, IOException
     {
-        byte[] encrypted =  this.createCipher( is, Cipher.DECRYPT_MODE, password );
-        InputStream eis = new ByteArrayInputStream(encrypted);
+        byte[] decrypted =  this.createCipher( is, Cipher.DECRYPT_MODE, password );
+        InputStream eis = new ByteArrayInputStream(decrypted);
         return eis;
     }
 
