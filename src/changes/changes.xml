@@ -28,6 +28,9 @@
       <action dev="jk" type="update">
         Add Java 8 PBEWithHmacSHA256AndAES_128 based encryption
       </action>
+      <action dev="painter" type="update">
+        Clean up PMD and FindBug reports.  Fixed some typos and updated to conform with Turbine coding style guidelines
+      </action>
     </release>
     <release version="1.0.7" date="2018-11-08">
       <action dev="painter" type="update">

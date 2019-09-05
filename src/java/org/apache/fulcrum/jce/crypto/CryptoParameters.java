@@ -31,12 +31,17 @@ public interface CryptoParameters
     /** Parameter for PBEParameterSpec */
     int COUNT = 20;
 
-    /** The password salt */
-    byte[] SALT = {
-        (byte)0xc7, (byte)0x73, (byte)0x21, (byte)0x8c,
-        (byte)0x7e, (byte)0xc8, (byte)0xee, (byte)0x99
-        };
-
+    /** The password salt: update to a method to prevent malicious code bug */
+    public static byte[] Salt() 
+    {
+    	return new byte[] 
+    			{
+    					(byte)0xc7, (byte)0x73, (byte)0x21, (byte)0x8c,
+    					(byte)0x7e, (byte)0xc8, (byte)0xee, (byte)0x99
+    			};
+    }
+    
+    
     /** The crypto algorithm being used */
     String ALGORITHM = "PBEWithMD5AndDES";
     

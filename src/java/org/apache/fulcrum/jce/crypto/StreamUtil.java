@@ -27,7 +27,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.stream.IntStream;
 
 /**
  * Helper class to provde generic stream functions.
@@ -181,7 +180,11 @@ public final class StreamUtil
         
         if((parentFile != null) && !parentFile.exists())
         {
-            parentFile.mkdirs();
+            boolean success = parentFile.mkdirs();
+            if ( !success )
+            {
+            	System.err.println("Error, could not create directory to write parent file");
+            }
         }
     }
 }

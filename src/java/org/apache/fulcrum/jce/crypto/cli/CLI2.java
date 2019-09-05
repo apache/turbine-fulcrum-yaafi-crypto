@@ -1,7 +1,5 @@
 package org.apache.fulcrum.jce.crypto.cli;
 
-import java.io.BufferedReader;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -26,10 +24,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -73,7 +69,8 @@ public class CLI2
             String operationMode = args[0];
             
             String msg = "No operationMode" ;
-            if (operationMode == null || operationMode.equals("")) {
+            if (operationMode == null || operationMode.equals("")) 
+            {
                 throw new IllegalArgumentException(msg);
             }
             
@@ -81,7 +78,9 @@ public class CLI2
             {
                 printInfo();
                 return;
-            } else if (operationMode.equals("help") ) {
+            } 
+            else if (operationMode.equals("help") ) 
+            {
                 printHelp();
                 return;
             }
@@ -109,7 +108,8 @@ public class CLI2
         }
     }
 
-    private static void printInfo() {
+    private static void printInfo() 
+    {
         CryptoUtilJ8 cryptoUtilJ8 = CryptoUtilJ8.getInstance();
         System.out.println("\tCrypto factory class: " + cryptoUtilJ8.getCryptoStreamFactory().getClass());
         System.out.println("\tDefault Algorithm used: " + cryptoUtilJ8.getCryptoStreamFactory().getAlgorithm());
@@ -152,7 +152,7 @@ public class CLI2
         File sourceFile = new File(args[3]);
         File targetFile = null;
 
-        if( args.length == 4 )
+        if (args.length == 4)
         {
             targetFile = sourceFile;
         }
@@ -161,9 +161,13 @@ public class CLI2
             targetFile = new File(args[4]);
             File parentFile = targetFile.getParentFile(); 
 
-            if(parentFile != null)
+            if (parentFile != null)
             {
-                parentFile.mkdirs();
+                boolean success = parentFile.mkdirs();
+                if ( !success )
+                {
+                	System.err.println("Error, could not create directory to write parent file");
+                }            	
             }
         }
 
@@ -182,31 +186,36 @@ public class CLI2
         throws Exception
     {
                 
-        try (FileInputStream fis = new FileInputStream(sourceFile)) {
+        try (FileInputStream fis = new FileInputStream(sourceFile)) 
+        {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            
             CryptoUtilJ8 cryptoUtilJ8 = createCryptoUtil(cipherMode);
     
             if( cipherMode.startsWith("dec") )
             {
                 System.out.println("Decrypting " + sourceFile.getAbsolutePath() );
+            
+                //String value = new String(Files.readAllBytes(Paths.get(sourceFile.toURI())));
+                StringBuffer stringBuffer = new StringBuffer();
+                int i; 
+                while ((i=fis.read()) != -1)  
+                {
+                    stringBuffer.append((char) i); 
+                } 
                 
-                
-                    //String value = new String(Files.readAllBytes(Paths.get(sourceFile.toURI())));
-                    StringBuffer stringBuffer = new StringBuffer();
-                    int i; 
-                    while ((i=fis.read()) != -1)  {
-                        stringBuffer.append((char) i); 
-                    } 
-                    String value = stringBuffer.toString();
-                    if (isHexadecimal(new String(value))) {
-                        byte[] buffer = HexConverter.toBytes(value);
-                        cryptoUtilJ8.decrypt( buffer, baos, password );
-                    } else {
-                        try ( FileInputStream fis2 = new FileInputStream(sourceFile) ) {
-                            cryptoUtilJ8.decrypt( fis2, baos, password );
-                        }
+                String value = stringBuffer.toString();
+                if (isHexadecimal(value)) 
+                {
+                    byte[] buffer = HexConverter.toBytes(value);
+                    cryptoUtilJ8.decrypt( buffer, baos, password );
+                } 
+                else 
+                {
+                    try ( FileInputStream fis2 = new FileInputStream(sourceFile) ) 
+                    {
+                        cryptoUtilJ8.decrypt( fis2, baos, password );
                     }
+                }
     
                 ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
                 FileOutputStream fos = new FileOutputStream(targetFile);
@@ -234,24 +243,32 @@ public class CLI2
         }
     }
 
-    private static CryptoUtilJ8 createCryptoUtil(String cipherMode) throws Exception {
+    private static CryptoUtilJ8 createCryptoUtil(String cipherMode) throws Exception 
+    {
         CryptoUtilJ8 cryptoUtilJ8 = null;
-        if (cipherMode.endsWith(TYPES.PBE.toString()) || cipherMode.substring("enc".length()).equals("") ) {
+        if (cipherMode.endsWith(TYPES.PBE.toString()) || cipherMode.substring("enc".length()).equals("") ) 
+        {
             cryptoUtilJ8 = CryptoUtilJ8.getInstance();
-        } else {
+        } 
+        else 
+        {
             Optional<TYPES> algoShortcut = Arrays.stream(CryptoParametersJ8.TYPES.values()).filter(a-> cipherMode.endsWith(a.toString())).findFirst(); //.collect(Collectors.toList());
-            if (algoShortcut.isPresent()) {
+            if (algoShortcut.isPresent()) 
+            {
                 cryptoUtilJ8 = CryptoUtilJ8.getInstance(algoShortcut.get());
             }
         }
-        if (cryptoUtilJ8 == null) {
+        
+        if (cryptoUtilJ8 == null) 
+        {
             throw new Exception("Could not find any algorithms. check provided alog shortcuts with CLI2 info!");
         }
+        
         return cryptoUtilJ8;
     }
 
     /**
-     * Decrypt/encrypt a string.
+     * Decrypt and encrypt a string.
      * 
      * @param args the command line
      * @throws Exception the operation failed
@@ -264,17 +281,24 @@ public class CLI2
         String value = args[3];        
         File targetFile = null;
         
-        if( args.length == 5 ) {
+        if (args.length == 5) 
+        {
             targetFile = new File(args[4]);
             File parentFile = targetFile.getParentFile(); 
 
             if(parentFile != null)
             {
-                parentFile.mkdirs();
+                boolean success = parentFile.mkdirs();
+                if ( !success )
+                {
+                	System.err.println("Error, could not create directory to write parent file");
+                }            	
+                
             }
         }
         
-        if (value != null && !value.equals("")) {
+        if (value != null && !value.equals("")) 
+        {
         
             CryptoUtilJ8 cryptoUtilJ8 = createCryptoUtil(cipherMode);
     
@@ -291,9 +315,11 @@ public class CLI2
             System.out.println( result );
             
             if (targetFile != null) {
-                try ( FileOutputStream outputStream = new FileOutputStream(targetFile)) {
-                    outputStream.write(result.getBytes());         
-                }
+       
+            	try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(targetFile), Charset.forName("UTF-8").newEncoder() ) )
+            	{
+            		osw.write(result);
+            	}
             }
         }
     }

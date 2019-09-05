@@ -20,7 +20,6 @@ package org.apache.fulcrum.jce.crypto;
  */
 
 import java.io.UnsupportedEncodingException;
-import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -109,8 +108,8 @@ public class PasswordFactory implements PasswordParameters
         throws NoSuchAlgorithmException, UnsupportedEncodingException
     {
         return create(
-            PasswordParameters.DEFAULTPASSWORD,
-            PasswordParameters.SALT,
+            PasswordParameters.DefaultPassword(),
+            PasswordParameters.Salt(),
             count
             );
     }
@@ -143,7 +142,7 @@ public class PasswordFactory implements PasswordParameters
     {
         return create(
             seed,
-            PasswordFactory.SALT,
+            PasswordParameters.Salt(),
             count
             );
     }

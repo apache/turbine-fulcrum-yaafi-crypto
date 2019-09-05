@@ -54,18 +54,21 @@ public abstract class CryptoStreamFactoryTemplate implements CryptoStreamFactory
     /** the default instance */
     protected static CryptoStreamFactory instance;
     
-    public static CryptoStreamFactory getInstance() {
+    public static CryptoStreamFactory getInstance() 
+    {
         return instance;
     }
 
-    public static void setInstance(CryptoStreamFactory instance) {
+    public static void setInstance(CryptoStreamFactory instance) 
+    {
         CryptoStreamFactoryTemplate.instance = instance;
     }
 
     /**
      * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream, String)
      */
-    public InputStream getInputStream(InputStream is, String decryptionMode) throws GeneralSecurityException, IOException {
+    public InputStream getInputStream(InputStream is, String decryptionMode) throws GeneralSecurityException, IOException 
+    {
 
         InputStream result = null;
 
@@ -87,7 +90,8 @@ public abstract class CryptoStreamFactoryTemplate implements CryptoStreamFactory
     /**
      * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream, String, char[])
      */
-    public InputStream getInputStream(InputStream is, String decryptionMode, char[] password) throws GeneralSecurityException, IOException {
+    public InputStream getInputStream(InputStream is, String decryptionMode, char[] password) throws GeneralSecurityException, IOException 
+    {
 
         InputStream result = null;
 

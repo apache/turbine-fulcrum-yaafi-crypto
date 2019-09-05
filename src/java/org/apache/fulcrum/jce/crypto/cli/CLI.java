@@ -102,9 +102,13 @@ public class CLI
             targetFile = new File(args[4]);
             File parentFile = targetFile.getParentFile(); 
 
-            if(parentFile != null)
+            if (parentFile != null)
             {
-                parentFile.mkdirs();
+                boolean success = parentFile.mkdirs();
+                if ( !success )
+                {
+                	System.err.println("Failed to create directory");
+                }
             }
         }
 
@@ -112,11 +116,11 @@ public class CLI
     }
 
     /**
-     * Decrypt/encrypt a single file
+     * Decrypt and encrypt a single file
      * @param cipherMode the mode
-     * @param password the passwors
+     * @param password the password
      * @param sourceFile the file to process
-     * @param targetFile the targetf file
+     * @param targetFile the target file
      * @throws Exception the operation failed
      */
     public static void processFile(String cipherMode, char[] password, File sourceFile, File targetFile)

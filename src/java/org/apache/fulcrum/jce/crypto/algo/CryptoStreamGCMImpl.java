@@ -118,7 +118,7 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
         Cipher cipher;
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
-        long total = StreamUtil.copy(is, bos);
+        StreamUtil.copy(is, bos);
         byte[] input = bos.toByteArray();
         
         byte[] ciphertext = null;  

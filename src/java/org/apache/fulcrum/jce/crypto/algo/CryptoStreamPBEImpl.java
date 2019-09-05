@@ -45,11 +45,11 @@ import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
  * by SUN (using SunJCE 1.42).
  *
  * The implementation uses as @see {@link CryptoParametersJ8#ALGORITHM_J8_PBE} for encryption which
- * should be sufficent for most applications.
+ * should be sufficient for most applications.
  *
  * The implementation also supplies a default password in the case that
  * the programmer don't want to have additional hassles. It is easy to
- * reengineer the password being used but much better than a hard-coded
+ * re-engineer the password being used but much better than a hard-coded
  * password in the application.
  *
  * The code uses parts from Markus Hahn's Blowfish library found at
@@ -147,7 +147,7 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
         PBEParameterSpec paramSpec = null; 
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
-        long total = StreamUtil.copy(is, bos);
+        StreamUtil.copy(is, bos);
         byte[] input = bos.toByteArray();
         
         byte[] ciphertext = null;

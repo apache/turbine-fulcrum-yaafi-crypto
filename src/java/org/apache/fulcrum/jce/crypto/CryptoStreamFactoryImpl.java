@@ -103,7 +103,7 @@ public class CryptoStreamFactoryImpl extends CryptoStreamFactoryTemplate impleme
      */
     public CryptoStreamFactoryImpl()
     {
-        this.salt = CryptoParameters.SALT;
+        this.salt = CryptoParameters.Salt();
         this.count = CryptoParameters.COUNT;
         this.providerName = PROVIDERNAME;
         this.algorithm = CryptoParameters.ALGORITHM;

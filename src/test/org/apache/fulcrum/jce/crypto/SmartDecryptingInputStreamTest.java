@@ -63,7 +63,7 @@ public class SmartDecryptingInputStreamTest extends TestCase
     protected void setUp() throws Exception
     {
         CryptoStreamFactoryImpl factory = new CryptoStreamFactoryImpl(
-            CryptoParameters.SALT,
+            CryptoParameters.Salt(),
             CryptoParameters.COUNT
             );
 

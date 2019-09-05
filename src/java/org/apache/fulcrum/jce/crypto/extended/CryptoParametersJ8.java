@@ -37,30 +37,40 @@ public interface CryptoParametersJ8
      *  Algo/mode/padding for cipher transformation: 
      *  @see https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html
      *  
-     *  using PBEWith<digest>And<encryption>: 
+     *  using PBEWith &lt;digest&gt;And&lt;encryption&gt;: 
      *  
-     *  <li>PBEWithHmacSHA256AndAES_256/CBC/PKCS5Padding
+     *  <ul>
+     *  <li>PBEWithHmacSHA256AndAES_256/CBC/PKCS5Padding</li>
+     *  </ul>
      *  
      *  or
      *  Cipher Algorithm Names/Cipher Algorithm Modes/Cipher Algorithm Padding
      *  
-     *  <li>AES/GCM/NoPadding 
+     *  <ul>
+     *  <li>AES/GCM/NoPadding</li>
+     *  </ul> 
      */
     
-    public enum TYPES_IMPL {
+    public enum TYPES_IMPL 
+    {
         ALGORITHM_J8_PBE("PBEWithHmacSHA256AndAES_256"), 
         ALGORITHM_J8_GCM("AES/GCM/NoPadding");
         
         private final String algorithm;
         
-        private TYPES_IMPL(String algo) {
+        private TYPES_IMPL(String algo) 
+        {
             algorithm = algo;
         }
+        
         @Override
-        public String toString() {
+        public String toString() 
+        {
             return this.algorithm;
         }
-        public String getAlgorithm() {
+        
+        public String getAlgorithm() 
+        {
             return algorithm;
         }
     }
@@ -74,5 +84,5 @@ public interface CryptoParametersJ8
      * 
      * This should be always 10 bytes
      */
-    String CLEAR_CODE_J8 = "J8_AES256;"; //
+    String CLEAR_CODE_J8 = "J8_AES256;";
 }

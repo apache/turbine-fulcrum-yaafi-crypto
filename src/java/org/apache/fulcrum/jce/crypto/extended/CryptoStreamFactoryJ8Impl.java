@@ -25,7 +25,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.AlgorithmParameters;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -38,7 +37,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
-import org.apache.fulcrum.jce.crypto.CryptoStreamFactory;
 import org.apache.fulcrum.jce.crypto.CryptoStreamFactoryImpl;
 import org.apache.fulcrum.jce.crypto.PasswordFactory;
 import org.apache.fulcrum.jce.crypto.StreamUtil;
@@ -67,15 +65,12 @@ import org.apache.fulcrum.jce.crypto.StreamUtil;
 public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl implements CryptoStreamFactoryJ8
 {
 
-    private static final int SALT_SIZE = 128;//might increase cipher length
+    private static final int SALT_SIZE = 128; //might increase cipher length
     private static final int KEY_SIZE = 256;
 
     /** the default instance */
     private static CryptoStreamFactoryJ8 instance;
     
-    private AlgorithmParameters algorithmParameters;// used only for debugging
-   
-
     /**
      * Factory method to get a default instance
      * @return an instance of the CryptoStreamFactory
@@ -230,14 +225,14 @@ public final class CryptoStreamFactoryJ8Impl extends CryptoStreamFactoryImpl imp
         PBEParameterSpec paramSpec = null; 
         
         ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
-        long total = StreamUtil.copy(is, bos);
+        StreamUtil.copy(is, bos);
+        
         byte[] input = bos.toByteArray();
-        
         byte[] ciphertext = null;
-        
         byte[] salt = null;
         byte[] iv = null;
-        if (mode == Cipher.DECRYPT_MODE) {     
+        if (mode == Cipher.DECRYPT_MODE) 
+        {     
             salt = Arrays.copyOfRange(input, 0, SALT_SIZE / 8);
             iv = Arrays.copyOfRange(input, salt.length, salt.length + 128 / 8);
             ciphertext = Arrays.copyOfRange(input, salt.length + iv.length, input.length);// cut out salt and iv

@@ -115,7 +115,7 @@ public class SmartDecryptingInputStream extends ByteArrayInputStream
 
     /**
      * Determine if the content is encrypted. We are
-     * using our knowledge about block lenght, check
+     * using our knowledge about block length, check
      * for XML, ZIP and PDF files and at the end of
      * the day we are just guessing.
      *
@@ -227,8 +227,8 @@ public class SmartDecryptingInputStream extends ByteArrayInputStream
      */
     private boolean hasByteOrderMark( byte[] content )
     {
-        if( ( (content[0] == 0xFF) && (content[1] == 0xFF) ) ||
-            ( (content[0] == 0xFF) && (content[1] == 0xFF) ) )
+        if( (content[0] == 0xFF) && (content[1] == 0xFE) || 
+        	(content[0] == 0xFE) && (content[1] == 0xFF) )
         {
             return true;
         }

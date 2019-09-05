@@ -67,7 +67,7 @@ public class CryptoUtilTest extends TestCase {
 	 * @throws Exception Generic exception
 	 */
 	protected void setUp() throws Exception {
-	    CryptoStreamFactoryImpl factory = new CryptoStreamFactoryImpl(CryptoParameters.SALT, CryptoParameters.COUNT);
+	    CryptoStreamFactoryImpl factory = new CryptoStreamFactoryImpl(CryptoParameters.Salt(), CryptoParameters.COUNT);
 
 	    CryptoStreamFactoryImpl.setInstance(factory);
 	}
