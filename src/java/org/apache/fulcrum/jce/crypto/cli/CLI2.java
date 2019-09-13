@@ -161,7 +161,7 @@ public class CLI2
             targetFile = new File(args[4]);
             File parentFile = targetFile.getParentFile(); 
 
-            if (parentFile != null)
+            if (parentFile != null && (!parentFile.exists() || !parentFile.isDirectory()))
             {
                 boolean success = parentFile.mkdirs();
                 if ( !success )
@@ -179,7 +179,7 @@ public class CLI2
      * @param cipherMode the mode
      * @param password the password
      * @param sourceFile the file to process
-     * @param targetFile the targetf file
+     * @param targetFile the target file
      * @throws Exception the operation failed
      */
     public static void processFile(String cipherMode, char[] password, File sourceFile, File targetFile)
@@ -278,7 +278,7 @@ public class CLI2
     {
         String cipherMode = args[1];
         char[] password = args[2].toCharArray();
-        String value = args[3];        
+        String value = args[3];
         File targetFile = null;
         
         if (args.length == 5) 
@@ -286,13 +286,13 @@ public class CLI2
             targetFile = new File(args[4]);
             File parentFile = targetFile.getParentFile(); 
 
-            if(parentFile != null)
+            if (parentFile != null && (!parentFile.exists() || !parentFile.isDirectory()))
             {
                 boolean success = parentFile.mkdirs();
                 if ( !success )
                 {
-                	System.err.println("Error, could not create directory to write parent file");
-                }            	
+                  System.err.println("Error, could not create directory to write parent file");
+                }
                 
             }
         }
@@ -300,6 +300,33 @@ public class CLI2
         if (value != null && !value.equals("")) 
         {
         
+            String result = processString(cipherMode, password, value);
+            
+            if (targetFile != null) {
+       
+              try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(targetFile), Charset.forName("UTF-8").newEncoder() ) )
+              {
+                osw.write(result);
+              }
+            } else {
+               System.out.println( result );
+            }
+        }
+    }
+    
+    /**
+     * Decrypt and encrypt a string.
+     * 
+     * @param cipherMode \"dec|enc\" + @link{TYPES}
+     * @param password as char array
+     * @param value String to be en/decrypted
+     * @throws Exception the operation failed
+     */
+    public static String processString(String cipherMode, char[] password, String value)
+        throws Exception
+    {  
+        if (value != null && !value.equals("")) 
+        {
             CryptoUtilJ8 cryptoUtilJ8 = createCryptoUtil(cipherMode);
     
             String result = null;
@@ -311,16 +338,9 @@ public class CLI2
             {
                 result = cryptoUtilJ8.encryptString(value,password);
             }
-    
-            System.out.println( result );
-            
-            if (targetFile != null) {
-       
-            	try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(targetFile), Charset.forName("UTF-8").newEncoder() ) )
-            	{
-            		osw.write(result);
-            	}
-            }
+            return result;
+        } else {
+          return null;
         }
     }
     

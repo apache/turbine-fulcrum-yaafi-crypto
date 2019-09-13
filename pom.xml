@@ -74,6 +74,12 @@
       <version>${turbine.log4j2.version}</version>
       <scope>test</scope><!-- change to provided ? -->
     </dependency>
+    <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.6</version>
+        <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
