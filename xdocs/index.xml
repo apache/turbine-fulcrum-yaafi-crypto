@@ -29,8 +29,7 @@
 
     <section name="Overview">
       <p> Fulcrum YAFFI Crypto Library is an extension library for Fulcrum YAAFI to support
-        transparent decryption of configuration files. The encryption/decryption is based on DES
-        using 56 bit key length. </p>
+        transparent decryption of configuration files. The encryption/decryption is based by default on <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html" target="blank_">PBEWithHmacSHA256AndAES_256</a> (PBEWith&lt;digest&gt;And&lt;encryption&gt;algorithm.)  with 128bit key length.</p>
     </section>
 
     <section name="Functionality">
@@ -135,8 +134,7 @@
           </tr>
         </table>
       </subsection>
-    </section>
-
+     </section>
   </body>
 
 </document>

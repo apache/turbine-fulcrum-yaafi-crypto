@@ -66,6 +66,10 @@ public class CLI2
         try
         {
 
+            if (args.length ==0 ){
+                printHelp();
+                return;
+            }
             String operationMode = args[0];
             
             String msg = "No operationMode" ;
@@ -125,18 +129,17 @@ public class CLI2
      */
     public static void printHelp()
     {
-        System.out.println("\r\n*** Command line tool for encrypting/decrypting strings/files ***\r\n*** algorithm based on "+ CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE+ "***\r\n");
-        System.out.println("java -cp target\\classes; "+ CLI2.class.getName()+ " <operation mode> <coding mode> <password> <path|string> [target]");
-        System.out.println( "*** Usage: ***\r\n");
-        System.out.println("java -cp target\\classes; "+ CLI2.class.getName()+ " <operation mode:file|string|info> <coding mode:enc<optional:algoshortcut>|dec<optional:algoshortcut>> <password> <code|coderef> [target]\r\ne.g.\r\n");
-        System.out.println("operation mode: file|string|info");
-        System.out.println("coding mode: enc|dec|enc:GCM. Default algorithm is " + TYPES.PBE);
-        System.out.println("<password: string or empty:''");
-        System.out.println("code|coderef: path|string");
-        System.out.println("target: ");
-        System.out.println( CLI2.class.getSimpleName()+ " file [enc|dec] passwd source [target]");
-        System.out.println(CLI2.class.getSimpleName() + " string [enc|dec] passwd source");
-        System.out.println(CLI2.class.getSimpleName() + " info");
+        System.out.println("\r\n\t*** Command line tool for encrypting/decrypting strings/files ***\r\n\t*** algorithm based on "+ CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE+ "***\r\n");
+        System.out.println("\tjava -cp target\\classes; "+ CLI2.class.getName()+ " <operation mode> <coding mode> <password> <path|string> [target]\r\n");
+        System.out.println("\t\toperation mode: file|string|info");
+        System.out.println("\t\tcoding mode: enc|dec|enc:GCM. Default algorithm is " + TYPES.PBE);
+        System.out.println("\t\t<password: string or empty:''");
+        System.out.println("\t\tcode|coderef: path|string");
+        System.out.println("\t\ttarget: optional\r\n");
+        System.out.println( "\t*** Usage: ***\r\n");
+        System.out.println("\t\t"+ CLI2.class.getSimpleName()+ " file [enc|dec] passwd source [target]");
+        System.out.println("\t\t"+ CLI2.class.getSimpleName() + " string [enc|dec] passwd source");
+        System.out.println("\t\t"+ CLI2.class.getSimpleName() + " info");
     }
 
     /**

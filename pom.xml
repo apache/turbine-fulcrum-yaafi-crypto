@@ -21,7 +21,7 @@
   <parent>
     <artifactId>turbine-parent</artifactId>
        <groupId>org.apache.turbine</groupId>
-       <version>6</version>
+       <version>7-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -52,6 +52,15 @@
       <name>Siegfried Goeschl</name>
       <id>sgoeschl</id>
       <email>sgoeschl@apache.org</email>
+      <organization />
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
+     <developer>
+      <name>Georg Kallidis </name>
+      <id>gk</id>
+      <email>gk@apache.org</email>
       <organization />
       <roles>
         <role>Java Developer</role>
