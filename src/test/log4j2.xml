@@ -30,10 +30,14 @@
 	    </File>
     </Appenders>
     <Loggers>
-        <Logger name="org.apache.fulcrum.jce.crypto" level="debug" additivity="false">
+      <Logger name="org.apache.fulcrum.jce.crypto" level="debug" additivity="false">
             <AppenderRef ref="console"/>
             <AppenderRef ref="logfile"/>
-        </Logger>
+       </Logger>
+       <Logger name="org.apache.fulcrum.jce" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="logfile"/>
+       </Logger>
       <Logger name="org.apache.fulcrum" level="info" additivity="false">
           <AppenderRef ref="console"/>
           <AppenderRef ref="logfile"/>

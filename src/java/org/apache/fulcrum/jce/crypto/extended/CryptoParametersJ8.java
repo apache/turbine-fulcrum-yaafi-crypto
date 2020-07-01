@@ -19,70 +19,70 @@ package org.apache.fulcrum.jce.crypto.extended;
  * under the License.
  */
 
-
 /**
  * CryptoParameters used for encryption/decryption.
  *
  * @author <a href="mailto:gk@apache.org">Georg Kallidis</a>
  */
 
-public interface CryptoParametersJ8
-{
+public interface CryptoParametersJ8 {
 
-    int COUNT_J8 = 10_000; //200_000;
-    
-    /**
-     *  @see https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJCEProvider
-     *  
-     *  Algo/mode/padding for cipher transformation: 
-     *  @see https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html
-     *  
-     *  using PBEWith &lt;digest&gt;And&lt;encryption&gt;: 
-     *  
-     *  <ul>
-     *  <li>PBEWithHmacSHA256AndAES_256/CBC/PKCS5Padding</li>
-     *  </ul>
-     *  
-     *  or
-     *  Cipher Algorithm Names/Cipher Algorithm Modes/Cipher Algorithm Padding
-     *  
-     *  <ul>
-     *  <li>AES/GCM/NoPadding</li>
-     *  </ul> 
-     */
-    
-    public enum TYPES_IMPL 
-    {
-        ALGORITHM_J8_PBE("PBEWithHmacSHA256AndAES_256"), 
-        ALGORITHM_J8_GCM("AES/GCM/NoPadding");
-        
-        private final String algorithm;
-        
-        private TYPES_IMPL(String algo) 
-        {
-            algorithm = algo;
-        }
-        
-        @Override
-        public String toString() 
-        {
-            return this.algorithm;
-        }
-        
-        public String getAlgorithm() 
-        {
-            return algorithm;
-        }
-    }
-    
-    public enum TYPES {
-        PBE, GCM
-    }
-    
-    /**
-     * Prefix to decrypted hex hash to get a clue, what to use and what it is.
-     * 
-     * This should be always 10 bytes
-     */
-    String CLEAR_CODE_J8 = "J8_AES256;";
+	/**
+	 * default 
+	 */
+	int COUNT_J8 = 10_000; // 200_000;
+
+	/**
+	 * 
+	 * This module is using PBEWith &lt;digest&gt;And&lt;encryption&gt;:
+	 * 
+	 * <ul>
+	 * <li>PBEWithHmacSHA256AndAES_256/CBC/PKCS5Padding in {@link #ALGORITHM_J8_PBE}</li>
+	 * </ul>
+	 * 
+	 * or Cipher Algorithm Names/Cipher Algorithm Modes/Cipher Algorithm Padding
+	 * 
+	 * <ul>
+	 * <li>AES/GCM/NoPadding in {@link #ALGORITHM_J8_GCM}</li>
+	 * </ul>
+	 * 
+	 * 
+	 * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJCEProvider">The Oracle Security SunJCE Provider</a>
+	 * 
+	 * Algo/mode/padding for cipher transformation:
+	 * 
+	 * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Cipher">The Oracle Security Standard Names Cipher Algorithms</a>
+	 */
+	public enum TYPES_IMPL {
+		
+		ALGORITHM_J8_PBE("PBEWithHmacSHA256AndAES_256"), 
+		
+		ALGORITHM_J8_GCM("AES/GCM/NoPadding");
+
+		private final String algorithm;
+
+		private TYPES_IMPL(String algo) {
+			algorithm = algo;
+		}
+
+		@Override
+		public String toString() {
+			return this.algorithm;
+		}
+
+		public String getAlgorithm() {
+			return algorithm;
+		}
+	}
+
+	public enum TYPES {
+		PBE, GCM
+	}
+
+	/**
+	 * Prefix to decrypted hex hash to get a clue, what to use and what it is.
+	 * 
+	 * This should be always 10 bytes
+	 */
+	String CLEAR_CODE_J8 = "J8_AES256;";
 }

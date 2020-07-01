@@ -64,8 +64,10 @@ public class CryptoUtilJ8Test {
             cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
         }
         for (CryptoUtilJ8 cryptoUtilJ8 : cryptoUtilJ8s) {
-            log.debug("registered cryptoUtilsJ8: {}", cryptoUtilJ8.getType() );
-            log.debug( ((CryptoStreamFactoryJ8Template)cryptoUtilJ8.getCryptoStreamFactory()).getAlgorithm());
+            log.debug("registered {}: {}", cryptoUtilJ8.getClass().getSimpleName(), cryptoUtilJ8.getType() );
+            CryptoStreamFactoryJ8Template crt = ((CryptoStreamFactoryJ8Template)cryptoUtilJ8.getCryptoStreamFactory());
+            log.debug(String.format("created default crypto factory instance %s for algo %s", crt.getClass().getSimpleName(),
+            		crt.getAlgorithm()));
         }
 
     }
@@ -97,7 +99,7 @@ public class CryptoUtilJ8Test {
     }
     
     /** Encrypt a text file 
-     * @throws Exception Generic exception
+     * 
      */
     @Test
     public void testTextEncryption()  {
@@ -119,7 +121,6 @@ public class CryptoUtilJ8Test {
     }
 
     /** Decrypt a text file 
-     * @throws Exception Generic exception
      */
     @Test
     public void testTextDecryption() {           
@@ -145,7 +146,6 @@ public class CryptoUtilJ8Test {
     
     /** Encrypt a PDF file 
      * 
-     * @throws Exception Generic exception
      */
     @Test
     public void testPdfEncryption() {
@@ -163,7 +163,6 @@ public class CryptoUtilJ8Test {
 
     /** Decrypt a PDF file 
      * 
-     * @throws Exception Generic exception
      */
     @Test
     public void testPdfDecryption()  {
@@ -192,7 +191,6 @@ public class CryptoUtilJ8Test {
 
     /** Test encryption and decryption of Strings
      * 
-     *  @throws Exception Generic exception
      */
     @Test
     public void testStringEncryption() {
@@ -221,7 +219,6 @@ public class CryptoUtilJ8Test {
     }
 
     /** Test encryption and decryption of Strings
-     * @throws Exception Generic exception
      */
     @Test
     public void testStringHandling()  {
@@ -241,7 +238,8 @@ public class CryptoUtilJ8Test {
 
     }
 
-    /** Test creating a password
+    /** 
+     * Test creating a password
      * @throws Exception Generic exception
      */
     @Test
@@ -291,8 +289,8 @@ public class CryptoUtilJ8Test {
 
     }
     
-    /** Test encryption and decryption of Strings 
-     * @throws Exception Generic exception
+    /** 
+     * Test encryption and decryption of Strings 
      */
     @Test
     public void testStringWithPasswordEncryption() {
@@ -309,7 +307,7 @@ public class CryptoUtilJ8Test {
                 if (cuj8.type == TYPES.PBE) {
                     assertEquals(128, cipherText.length()); // 128bytes + 10 bytes for cleartext
                 } 
-                CryptoStreamFactoryJ8Template.setInstance(null);
+                CryptoStreamFactoryJ8Template.resetInstances();
                 String plainText = cuj8.decryptString(cipherText, password);
                 assertEquals(source, plainText);
             } catch (GeneralSecurityException | IOException e) {

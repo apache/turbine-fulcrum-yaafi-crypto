@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.crypto.Cipher;
 
-import org.apache.fulcrum.jce.crypto.CryptoStreamFactoryImpl;
 import org.apache.fulcrum.jce.crypto.PasswordFactory;
 import org.apache.fulcrum.jce.crypto.StreamUtil;
 import org.apache.fulcrum.jce.crypto.algo.CryptoStreamGCMImpl;
@@ -45,8 +44,27 @@ import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
  * 
  * 
  **/
-public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryImpl implements CryptoStreamFactoryJ8
+public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFactoryImpl*/ implements CryptoStreamFactoryJ8
 {
+	
+	/** the salt for the algorithm */
+    protected byte[] salt;
+
+    /** the count paramter for the algorithm */
+    protected int count;
+
+    /** the name of the JCE provider */
+    protected String providerName;
+
+    /** the algorithm to use */
+    protected String algorithm;
+    
+    /**
+     * The JCE provider name known to work. If the value
+     * is set to null an appropriate provider will be
+     * used.
+     */
+    protected static final String PROVIDERNAME = null;
 
     protected static final int SALT_SIZE = 16; //might increase cipher length
     protected static final int KEY_SIZE = 256;
@@ -62,6 +80,8 @@ public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryI
 
     /**
      * Factory method to get a default instance
+     * 
+     * @param type the @see {@link TYPES} of the instance.
      * @return an instance of the CryptoStreamFactory
      */
     public static CryptoStreamFactoryJ8 getInstance(TYPES type) 
@@ -90,7 +110,7 @@ public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryI
      *
      * @param salt the salt for the PBE algorithm
      * @param count the iteration for PBEParameterSpec
-     * @paramn type {@link TYPES}
+     * @param type {@link TYPES} what type the algorithm will be
      */
     public CryptoStreamFactoryJ8Template( byte[] salt, int count, TYPES type)
     {
@@ -105,7 +125,7 @@ public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryI
     /**
      * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getSmartInputStream(java.io.InputStream)
      */
-    @Override
+
     public InputStream getSmartInputStream(InputStream is)
         throws GeneralSecurityException, IOException
     {
@@ -118,7 +138,6 @@ public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryI
     /**
      * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream,char[])
      */
-    @Override
     public InputStream getInputStream( InputStream is, char[] password )
         throws GeneralSecurityException, IOException
     {
@@ -127,8 +146,6 @@ public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryI
         return eis;
     }
 
-    
-    @Override
     public OutputStream getOutputStream(InputStream is, OutputStream os, char[] password)
             throws GeneralSecurityException, IOException {
         byte[] encrypted =  this.createCipher( is, Cipher.ENCRYPT_MODE, password );
@@ -136,6 +153,61 @@ public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryI
         StreamUtil.copy(eis, os);
         return os;
     }
+    
+    /**
+     * resets the default instances
+     */
+    public static void resetInstances()
+    {
+        CryptoStreamFactoryJ8Template.instances.clear();
+    }
+    
+    /**
+     * Set the default instances from an external application.
+     * @param instances the new default instances map
+     * @throws Exception if instances are null
+     */
+    public static void setInstances(Map<TYPES,CryptoStreamFactoryJ8Template> instances ) throws Exception
+    {
+    	if (instances == null) throw new Exception("setting instances to null not allowed!");
+        CryptoStreamFactoryJ8Template.instances = instances;
+    }
+    
+    /** not used / implemented methods **/
+    
+    @Override
+	public InputStream getInputStream(InputStream is, String decryptionMode)
+			throws GeneralSecurityException, IOException {
+		throw new UnsupportedOperationException("not implemented");
+	}
+
+	@Override
+	public InputStream getInputStream(InputStream is, String decryptionMode, char[] password)
+			throws GeneralSecurityException, IOException {
+		throw new UnsupportedOperationException("not implemented");
+	}
+
+	@Override
+	public InputStream getInputStream(InputStream is) throws GeneralSecurityException, IOException {
+		throw new UnsupportedOperationException("not implemented");
+	}
+
+	@Override
+	public InputStream getSmartInputStream(InputStream is, char[] password)
+			throws GeneralSecurityException, IOException {
+		throw new UnsupportedOperationException("not implemented");
+	}
+
+	@Override
+	public OutputStream getOutputStream(OutputStream os) throws GeneralSecurityException, IOException {
+		throw new UnsupportedOperationException("not implemented");
+	}
+
+	@Override
+	public OutputStream getOutputStream(OutputStream os, char[] password) throws GeneralSecurityException, IOException {
+		throw new UnsupportedOperationException("not implemented");
+	}
+    /** not used methods end **/
 
     /**
      * Create a PBE key.
@@ -151,19 +223,31 @@ public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryI
     /**
      * Create a Cipher.
      *
+     * @param is the input stream
      * @param mode the cipher mode
      * @param password the password
      * @return an instance of a cipher
+     * @return the cipher as byte array
      * @throws GeneralSecurityException creating a cipher failed
      * @throws IOException creating a cipher failed
      */
     protected abstract byte[] createCipher(InputStream is, int mode, char[] password )
         throws GeneralSecurityException, IOException;
     
+    /**
+     * creates salt from {@link SecureRandom#getInstance(String)} by default was algorithm SHA1PRNG
+     * 
+     * changed to {@link SecureRandom#getInstanceStrong()} and let the system decide, what PRNG to use for salt random.
+     * 
+     * salt size by default @link {@value #SALT_SIZE}.
+     * 
+     * @return the generated salt as byte array
+     * @throws GeneralSecurityException if no algo could be found.
+     */
     protected byte[] generateSalt() throws GeneralSecurityException {
         SecureRandom random;
         try {
-            random = SecureRandom.getInstance("SHA1PRNG");
+            random = SecureRandom.getInstanceStrong();
             byte[] salt = new byte[SALT_SIZE ];
             random.nextBytes(salt);
             return salt;
@@ -171,5 +255,37 @@ public abstract class CryptoStreamFactoryJ8Template extends CryptoStreamFactoryI
             throw new GeneralSecurityException(e);  
         }
     }
+
+	public byte[] getSalt() {
+		return salt;
+	}
+
+	public void setSalt(byte[] salt) {
+		this.salt = salt;
+	}
+
+	public int getCount() {
+		return count;
+	}
+
+	public void setCount(int count) {
+		this.count = count;
+	}
+
+	public String getProviderName() {
+		return providerName;
+	}
+
+	public void setProviderName(String providerName) {
+		this.providerName = providerName;
+	}
+
+	public String getAlgorithm() {
+		return algorithm;
+	}
+
+	public void setAlgorithm(String algorithm) {
+		this.algorithm = algorithm;
+	}
 
 }

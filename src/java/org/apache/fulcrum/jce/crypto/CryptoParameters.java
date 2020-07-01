@@ -31,7 +31,12 @@ public interface CryptoParameters
     /** Parameter for PBEParameterSpec */
     int COUNT = 20;
 
-    /** The password salt: update to a method to prevent malicious code bug */
+    /** 
+     * The password salt: update to a method to prevent malicious code bug.
+     * 
+     * @return the salt 
+     * 
+     * */
     public static byte[] Salt() 
     {
     	return new byte[] 
@@ -42,7 +47,6 @@ public interface CryptoParameters
     }
     
     
-    /** The crypto algorithm being used */
-    String ALGORITHM = "PBEWithMD5AndDES";
-    
-}
+    /** 
+     * The default crypto algorithm being used */
+    String ALGORITHM = "PBEWithMD5AndDES";}

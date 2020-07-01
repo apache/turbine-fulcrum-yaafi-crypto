@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.Key;
@@ -37,6 +38,7 @@ import javax.crypto.spec.PBEParameterSpec;
 
 import org.apache.fulcrum.jce.crypto.StreamUtil;
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
 import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
 
 /**
@@ -44,7 +46,7 @@ import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
  * implementation uses the JCA (Java Crypto Extension) supplied
  * by SUN (using SunJCE 1.42).
  *
- * The implementation uses as @see {@link CryptoParametersJ8#ALGORITHM_J8_PBE} for encryption which
+ * The implementation uses as @see {@link CryptoParametersJ8} ALGORITHM_J8_PBE for encryption which
  * should be sufficient for most applications.
  *
  * The implementation also supplies a default password in the case that
@@ -58,14 +60,18 @@ import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
  * @author <a href="mailto:gk@apache.org">Georg Kallidis</a>
  * @author <a href="mailto:siegfried.goeschl@it20one.at">Siegfried Goeschl </a>
  * @author <a href="mailto:maakus@earthlink.net">Markus Hahn</a>
+ * 
+ * The Implementation for {@link TYPES} PBE.
  */
 
 public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
 {
 
     protected static final int IV_SIZE = 16;
+
     /**
      * Constructor
+     * @throws GeneralSecurityException
      */
     public CryptoStreamPBEImpl() throws GeneralSecurityException
     {
@@ -81,7 +87,7 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
      * @param salt the salt for the PBE algorithm
      * @param count the iteration for PBEParameterSpec
      */
-    public CryptoStreamPBEImpl( byte[] salt, int count) throws GeneralSecurityException
+    public CryptoStreamPBEImpl( byte[] salt, int count)
     {
         this.salt = salt;
         this.count = count;
@@ -95,7 +101,7 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
      * @param password the password to use.
      * @param salt if provided this is used, otherweise {@link #getSalt()}.
      * @return the key
-     * @throws GeneralSecurityException creating the key failed
+     * @throws GeneralSecurityException if creating the key failed
      */
     @Override
     protected Key createKey( char[] password, byte[] salt ) 
@@ -108,7 +114,7 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
 
         byte[] encodedTmp = null;
         try {
-            if( getProviderName() == null )
+            if( this.getProviderName() == null )
             {
                 keyFactory = SecretKeyFactory.getInstance( algorithm );
             }
@@ -210,12 +216,6 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
 //            System.arraycopy(result, 0, ciphertext, salt.length + iv.length, result.length);// push after salt and iv  
         }
         return ciphertext;
-    }
-
-
-    @Override
-    protected Cipher createCipher(int encryptMode, char[] password) throws GeneralSecurityException, IOException {
-        throw new RuntimeException("not provided for this implementation");
     }
 
 }

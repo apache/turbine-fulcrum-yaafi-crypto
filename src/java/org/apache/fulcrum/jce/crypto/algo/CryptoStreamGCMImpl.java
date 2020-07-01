@@ -37,6 +37,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.fulcrum.jce.crypto.StreamUtil;
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
 import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
 
 /**
  * Concrete implementation for creating encrypting/decrypting streams. The
@@ -53,14 +54,18 @@ import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
  *
  *
  * @author <a href="mailto:gk@apache.org">Georg Kallidis</a>
+ * 
+ * The Implementation for {@link TYPES} GCM.
  */
 
 public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
 {  
 
     protected static final int IV_SIZE = 12;
+    
     /**
      * Constructor
+     * @throws GeneralSecurityException  - wraps {@link NoSuchAlgorithmException}
      */
     public CryptoStreamGCMImpl() throws GeneralSecurityException
     {
@@ -76,8 +81,9 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
      *
      * @param salt the salt for the PBE algorithm
      * @param count the iteration for PBEParameterSpec
+
      */
-    public CryptoStreamGCMImpl( byte[] salt, int count) throws GeneralSecurityException
+    public CryptoStreamGCMImpl( byte[] salt, int count) 
     {
         this.salt = salt;
         this.count = count;
@@ -91,7 +97,7 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
      * @param password the password to use.
      * @param salt if provided this is used, otherweise {@link #getSalt()}.
      * @return the key
-     * @throws GeneralSecurityException creating the key failed
+     * @throws GeneralSecurityException if creating the key failed
      */
     @Override
     protected Key createKey( char[] password, byte[] salt ) 
@@ -108,7 +114,7 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
      * @param mode the cipher mode
      * @param password the password
      * @return an instance of a cipher
-     * @throws GeneralSecurityException creating a cipher failed
+     * @throws GeneralSecurityException if creating a cipher failed
      * @throws IOException creating a cipher failed
      */
     @Override
@@ -190,6 +196,11 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
         return ciphertext;
     }
     
+    /**
+     * 
+     * @return the random byte array from {@link SecureRandom} SHA1PRNG (as default)
+     * @throws GeneralSecurityException - if creating the key failed
+     */
     private byte[] generateIV( ) throws GeneralSecurityException {
         SecureRandom random;
         try {
@@ -202,10 +213,6 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
         }
     }
 
-    @Override
-    protected Cipher createCipher(int encryptMode, char[] password) throws GeneralSecurityException, IOException {
-        throw new RuntimeException("not provided for this implementation");
-    }
 
 
 }

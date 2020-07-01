@@ -125,6 +125,8 @@ public class CryptoStreamFactoryImpl extends CryptoStreamFactoryTemplate impleme
 
     /**
      * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getSmartInputStream(java.io.InputStream,char[])
+     * 
+     * 
      */
     public InputStream getSmartInputStream(InputStream is, char[] password )
         throws GeneralSecurityException, IOException

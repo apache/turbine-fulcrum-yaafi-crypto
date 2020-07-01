@@ -47,16 +47,4 @@ public interface CryptoStreamFactoryJ8 extends CryptoStreamFactory
     OutputStream getOutputStream(InputStream is, OutputStream os, char[] password)
         throws GeneralSecurityException, IOException;
     
-    /**
-     * Creates input stream based on the decryption mode
-     * using the default password.
-     *
-     * @param is the input stream to be wrapped
-     * @param decryptionMode the decryption mode (true|false|auto)
-     * @return an decrypting input stream
-     * @throws GeneralSecurityException creating the input stream failed
-     * @throws IOException creating the input stream failed
-     */
-    InputStream getInputStream(InputStream is, char[] password)
-            throws GeneralSecurityException, IOException;
 }

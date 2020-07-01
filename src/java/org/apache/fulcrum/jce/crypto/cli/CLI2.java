@@ -46,10 +46,10 @@ import org.apache.fulcrum.jce.crypto.extended.CryptoUtilJ8;
  * 
  * Example :
  * 
- * java -classpath target/classes org.apache.fulcrum.jce.crypto.cli.CLI2 string enc changeit mysecretgeheim
+ * <pre>java -classpath target/classes org.apache.fulcrum.jce.crypto.cli.CLI2 string enc changeit mysecretgeheim</pre>
  * ...
  * 
- * java -cp target/classes org.apache.fulcrum.jce.crypto.cli.Main string dec changeit J8_AES256;<hashcode>
+ * <pre>java -cp target/classes org.apache.fulcrum.jce.crypto.cli.Main string dec changeit J8_AES256 </pre>
  *
  * @author <a href="mailto:siegfried.goeschl@it20one.at">Siegfried Goeschl</a>
  */
@@ -324,6 +324,8 @@ public class CLI2
      * @param password as char array
      * @param value String to be en/decrypted
      * @throws Exception the operation failed
+     * 
+     * @return the result - either the encrypted or decrypted string depending on cipherMode
      */
     public static String processString(String cipherMode, char[] password, String value)
         throws Exception

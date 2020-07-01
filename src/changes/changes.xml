@@ -25,8 +25,8 @@
 
   <body>
     <release version="1.0.8" date="as in SVN">
-      <action dev="jk" type="update">
-        Add Java 8 PBEWithHmacSHA256AndAES_128 based encryption
+      <action dev="gk" type="update">
+        Added two Java 8 implementations based on PBE (PBEWithHmacSHA256AndAES_128) or GCM (AES/GCM/NoPadding) encryption.
       </action>
       <action dev="painter" type="update">
         Clean up PMD and FindBug reports.  Fixed some typos and updated to conform with Turbine coding style guidelines
