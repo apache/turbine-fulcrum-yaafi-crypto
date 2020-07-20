@@ -65,7 +65,6 @@ public class CLI2
     {
         try
         {
-
             if (args.length ==0 ){
                 printHelp();
                 return;
@@ -279,11 +278,19 @@ public class CLI2
     public static void processString(String[] args)
         throws Exception
     {
-        String cipherMode = args[1];
-        char[] password = args[2].toCharArray();
-        String value = args[3];
+        final String cipherMode;
+        final char[] password;
+        final String value;
         File targetFile = null;
-        
+        if (args.length > 3) {
+            cipherMode = args[1];
+            password = args[2].toCharArray();
+            value = args[3];
+        } else {
+            value = null;
+            cipherMode = null;
+            password = null;
+        }
         if (args.length == 5) 
         {
             targetFile = new File(args[4]);
@@ -302,7 +309,7 @@ public class CLI2
         
         if (value != null && !value.equals("")) 
         {
-        
+
             String result = processString(cipherMode, password, value);
             
             if (targetFile != null) {

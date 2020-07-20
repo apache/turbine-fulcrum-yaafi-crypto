@@ -23,7 +23,6 @@ import java.io.ByteArrayOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.Key;
@@ -32,6 +31,7 @@ import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
@@ -68,15 +68,20 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
 {
 
     protected static final int IV_SIZE = 16;
+    
+	/**
+	 * default count for pbe spec
+	 */
+	protected int COUNT_J8 = 10_000; // 200_000;
 
     /**
      * Constructor
-     * @throws GeneralSecurityException
+     * @throws GeneralSecurityException  if no algo could be found.
      */
     public CryptoStreamPBEImpl() throws GeneralSecurityException
     {
         this.salt =  generateSalt();
-        this.count = CryptoParametersJ8.COUNT_J8;
+        this.count = COUNT_J8;
         this.providerName = PROVIDERNAME;
         this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE.getAlgorithm();
     }
@@ -89,7 +94,7 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
      */
     public CryptoStreamPBEImpl( byte[] salt, int count)
     {
-        this.salt = salt;
+        this.salt = salt.clone();
         this.count = count;
         this.providerName = PROVIDERNAME;
         this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE.getAlgorithm();
@@ -110,7 +115,7 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
         SecretKeyFactory keyFactory;
         String algorithm = this.getAlgorithm();
         
-        PBEKeySpec keySpec = new PBEKeySpec(password, (salt == null)? this.getSalt(): salt, this.getCount(), KEY_SIZE );
+        PBEKeySpec keySpec = new PBEKeySpec(password, (salt == null)? this.getSalt(): salt.clone(), this.getCount(), KEY_SIZE );
 
         byte[] encodedTmp = null;
         try {
@@ -138,12 +143,15 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
 
     /**
      * Create a Cipher.
+     * 
+     * Find additional information here: {@link PBEParameterSpec}.
      *
      * @param mode the cipher mode
      * @param password the password
      * @return an instance of a cipher
      * @throws GeneralSecurityException creating a cipher failed
      * @throws IOException creating a cipher failed
+
      */
     @Override
     protected byte[] createCipher(InputStream is, int mode, char[] password )

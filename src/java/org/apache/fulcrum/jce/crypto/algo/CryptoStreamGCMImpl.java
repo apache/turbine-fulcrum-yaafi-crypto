@@ -70,7 +70,6 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
     public CryptoStreamGCMImpl() throws GeneralSecurityException
     {
         this.salt =  generateSalt();
-        this.count = CryptoParametersJ8.COUNT_J8;// not used
         this.providerName = PROVIDERNAME;
         this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_GCM.getAlgorithm();
     }
@@ -85,7 +84,7 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
      */
     public CryptoStreamGCMImpl( byte[] salt, int count) 
     {
-        this.salt = salt;
+        this.salt = salt.clone();
         this.count = count;
         this.providerName = PROVIDERNAME;
         this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_GCM.getAlgorithm();
@@ -104,18 +103,21 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
             throws GeneralSecurityException
     {
 
-        SecretKey key = new SecretKeySpec(((salt == null)? this.getSalt(): salt), "AES"); 
+        SecretKey key = new SecretKeySpec(((salt == null)? this.getSalt(): salt.clone()), "AES");
         return key;
     }
 
     /**
      * Create a Cipher.
+     * 
+     * Find additional information here: {@link GCMParameterSpec}
      *
      * @param mode the cipher mode
      * @param password the password
      * @return an instance of a cipher
      * @throws GeneralSecurityException if creating a cipher failed
      * @throws IOException creating a cipher failed
+     * 
      */
     @Override
     protected byte[] createCipher(InputStream is, int mode, char[] password )
@@ -176,7 +178,6 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
             cipher.init( mode, key, gcmParamSpec );
 
             //algorithmParameters = cipher.getParameters();
-            
             // might update with associated Data
             // cipher.updateAAD(associatedData );// not supported PBEWithHmacSHA256AndAES_256
             

@@ -72,7 +72,7 @@ public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFact
     /** the default instances */
     protected static Map<TYPES,CryptoStreamFactoryJ8Template> instances = new ConcurrentHashMap<>();
     
-    protected AlgorithmParameters algorithmParameters;// used only for debugging
+    //protected AlgorithmParameters algorithmParameters;// used only for debugging
    
     public CryptoStreamFactoryJ8Template() {
        
@@ -114,7 +114,7 @@ public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFact
      */
     public CryptoStreamFactoryJ8Template( byte[] salt, int count, TYPES type)
     {
-        this.salt = salt;
+        this.salt = salt.clone();
         this.count = count;
         this.providerName = PROVIDERNAME;
         this.algorithm = type.equals(TYPES.PBE)? CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE.getAlgorithm():
@@ -141,14 +141,14 @@ public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFact
     public InputStream getInputStream( InputStream is, char[] password )
         throws GeneralSecurityException, IOException
     {
-        byte[] decrypted =  this.createCipher( is, Cipher.DECRYPT_MODE, password );
+        byte[] decrypted =  this.createCipher( is, Cipher.DECRYPT_MODE, password.clone() );
         InputStream eis = new ByteArrayInputStream(decrypted);
         return eis;
     }
 
     public OutputStream getOutputStream(InputStream is, OutputStream os, char[] password)
             throws GeneralSecurityException, IOException {
-        byte[] encrypted =  this.createCipher( is, Cipher.ENCRYPT_MODE, password );
+        byte[] encrypted =  this.createCipher( is, Cipher.ENCRYPT_MODE, password.clone() );
         InputStream eis = new ByteArrayInputStream(encrypted);
         StreamUtil.copy(eis, os);
         return os;
@@ -257,11 +257,11 @@ public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFact
     }
 
 	public byte[] getSalt() {
-		return salt;
+		return salt.clone();
 	}
 
 	public void setSalt(byte[] salt) {
-		this.salt = salt;
+		this.salt = salt.clone();
 	}
 
 	public int getCount() {

@@ -70,13 +70,30 @@
 
   <dependencies>
     <!-- testing dependencies -->
-    <dependency>
-      <!-- to gt junit 5 -->
-      <groupId>org.apache.fulcrum</groupId>
-      <artifactId>fulcrum-testcontainer</artifactId>
-      <version>1.0.9-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
+       <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.6.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13</version>
+              <scope>test</scope>
+		</dependency>
+        <dependency>
+            <groupId>org.apache.fulcrum</groupId>
+            <artifactId>fulcrum-testcontainer</artifactId>
+            <version>1.0.8</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+            <scope>test</scope>
+      </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
@@ -88,7 +105,7 @@
         <artifactId>commons-io</artifactId>
         <version>2.6</version>
         <scope>test</scope>
-    </dependency>
+    </dependency>    
   </dependencies>
 
   <build>
@@ -97,10 +114,99 @@
     <testResources>
       <testResource>
         <directory>src/test</directory>
-        <includes> <include>**/*.xml</include>
+        <includes> <include>**/*.xml</include><include>**/*.properties</include>
         </includes>
+        <filtering>true</filtering>
       </testResource>
     </testResources>
+    
+    <!-- only needed for integration-test and manifest class testing -->
+    <filters>
+      <filter>${basedir}/src/filters/filter-integration-test.properties</filter>
+    </filters>
+    
+    <plugins>
+     <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>org.apache.fulcrum.jce.crypto.cli.CLI2</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>    
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <!-- 
+            Integration Test encrypts and decrypts in one step
+            mvn clean install integration-test 
+            -->
+        <executions>
+          <execution>
+            <id>init</id>
+            <phase>integration-test</phase>
+            <configuration>
+              <skip>${skip.pw.encrypt}</skip>
+              <target>
+                <ant
+                  antfile="${basedir}/src/ant/integration-test-build-pw.xml"
+                  target="init">
+                  <property name="build.path"
+                    value="${basedir}/build" />
+                   <property name="password" value="${test.password}" />
+                  <property name="meta.pw" value="${meta.pw}" />
+                  <property name="jarname" value="${project.build.finalName}" />
+                  <!-- generates encrypted password, saved in vcs: -->
+                  <property name="target.property.path"
+                    value="${basedir}/src/filters/filter-integration-test.properties" />
+                </ant>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>build</id>
+            <!-- 
+            1) run mvn package to generate executable jar 
+            2) mvn generate-sources -Dskip.pw.gen=false 
+            to generate encrypted password 
+            -->
+            <phase>integration-test</phase>
+            <configuration>
+              <skip>${skip.pw.gen}</skip>
+              <target>
+              <touch file="${basedir}/target/integration-test/filtered-pw.properties" mkdirs="true" />
+                <ant
+                  antfile="${basedir}/src/ant/integration-test-build-pw.xml"
+                  target="build">
+                  <property name="build.path"
+                    value="${basedir}/build" />
+                  <property name="meta.pw" value="${meta.pw}" /><!-- 
+                    provided by env variable -->
+                  <property name="jarname" value="${project.build.finalName}" />
+                  <!-- contains encrypted password, saved in vcs: -->
+                  <property name="source.property.path"
+                    value="${basedir}/src/filters/filter-integration-test.properties" />
+                  <!-- should not be saved in vcs: -->
+                  <property name="target.property.path"
+                    value="${basedir}/target/integration-test/filtered-pw.properties" />
+                </ant>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+
+        </executions>
+      </plugin>
+    </plugins>
   </build>
   
   <properties>
@@ -108,6 +214,11 @@
     <turbine.scmPubCheckoutDirectory>${turbine.site.cache}/fulcrum/yaafi-crypto</turbine.scmPubCheckoutDirectory>
     <turbine.site.cache>${project.build.directory}/turbine-sites</turbine.site.cache>
     <siteContent.path>${project.build.directory}/staging</siteContent.path><!-- default stagingSiteURL -->
+
+    <skip.pw.encrypt>false</skip.pw.encrypt>
+    <skip.pw.gen>false</skip.pw.gen>
+    <meta.pw>changeit</meta.pw>
+    <test.password>mypassword</test.password>
   </properties>  
 	
 </project>

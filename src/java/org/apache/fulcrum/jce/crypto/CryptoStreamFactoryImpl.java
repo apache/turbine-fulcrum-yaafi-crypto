@@ -52,7 +52,7 @@ import javax.crypto.spec.PBEParameterSpec;
 public class CryptoStreamFactoryImpl extends CryptoStreamFactoryTemplate implements CryptoStreamFactory
 {
     /** the salt for the PBE algorithm */
-    protected byte[] salt;
+    protected final byte[] salt;
 
     /** the count paramter for the PBE algorithm */
     protected int count;
@@ -117,7 +117,7 @@ public class CryptoStreamFactoryImpl extends CryptoStreamFactoryTemplate impleme
      */
     public CryptoStreamFactoryImpl( byte[] salt, int count)
     {
-        this.salt = salt;
+        this.salt = salt.clone();
         this.count = count;
         this.providerName = PROVIDERNAME;
         this.algorithm = CryptoParameters.ALGORITHM;

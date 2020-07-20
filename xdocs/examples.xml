@@ -17,7 +17,6 @@
  specific language governing permissions and limitations
  under the License.
 -->
-
 <document>
 
   <properties>
@@ -34,13 +33,24 @@
  java -classpath target/classes org.apache.fulcrum.jce.crypto.cli.CLI2 string enc changeit mysecretgeheim  
  ]]>
                 </source>
-                    </p>
-     </subsection>
+         </p>
+          <p>An example using an ant build tool and property file is the provided Integration Test in pom.xml.
+          By default running this will write the encrypted password to src/filters/filter-integration-test.properties and the decrypted password to target/integration-test/filtered-pw.properties.  On the command line with custom password and meta password this is done like this (assuming -Dskip.pw.gen=false  -Dskip.pw.encrypt=false):
+                <source> 
+                <![CDATA[
+mvn integration-test  -Dtest.password="xyz" -Dmeta.pw="abc"  
+ ]]>
+                </source>
+         </p>
+         
+         
+            </subsection>
      <subsection name="Code Usage">
-               <p>
-                    <source>
+       <p>
+          <source>
 <![CDATA[
-    // provide  target_password, meta_password        
+    // provide target_password, meta_password
+            
     char[] password = meta_password.toCharArray();
     // default
     CryptoUtilJ8 cryptoUtilJ8 = CryptoUtilJ8.getInstance();
@@ -63,17 +73,19 @@
         ...
     }
   ]]>
-                    </source>
-                   </p>
+              </source>
+           </p>
       </subsection> 
-      </section>
-      <section name="Building a Project">
+   </section>
+   <section name="Building a Project">
       <subsection name="Prepare the crypto-tool with Maven Assembly">
-            <p>First we build our crypto tool as executable jar in phase initialize (i.e. very early, to use it later) and name it <i>crypto-tool</i> using the assembly description saved in the file <i>build/assembly.xml</i> described below. Add this into your project pom.xml file.
-                <source>
+         <p>First we build our crypto tool as executable jar in phase initialize (i.e. very early, to use it later) and name it <i>crypto-tool</i> 
+            using the assembly description saved in the file <i>build/assembly.xml</i> described below. 
+            Add this into your project pom.xml file.
+            <source>
                 <![CDATA[
 <plugin>
-      <artifactId>maven-assembly-plugin</artifactId>
+    <artifactId>maven-assembly-plugin</artifactId>
     <version>3.3.0</version>
     <configuration>
        <finalName>crypto-tool</finalName>  
@@ -94,14 +106,16 @@
     <goals>
       <goal>single</goal>
     </goals>
-  </execution>
-</executions>
+   </execution>
+  </executions>
 </plugin>
                 ]]>
-                </source>
-               </p>
-               <p>Using this assembly description (adapted to our needs from the descriptor-ref jar-with-dependencies) the executable jar will be generated in target folder and will just include fulcrum yaafi-crypto classes. Here you will get a very tiny jar (build with java 8 on windows less than 45kb), as the tool has no library dependencies!
-                <source>
+      </source>
+   </p>
+   <p>Using this assembly description (adapted to our needs from the descriptor-ref jar-with-dependencies) the executable jar will be generated 
+       in target folder and will just include fulcrum yaafi-crypto classes. 
+       Here you will get a very tiny jar (build with java 8 on windows less than 45kb), as the tool has no library dependencies!
+      <source>
                 <![CDATA[
 <assembly xmlns="http://maven.apache.org/ASSEMBLY/2.1.0"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -124,32 +138,43 @@
   </dependencySets>
 </assembly>
                 ]]>
-                </source>
-            </p>
-              <p>After executing the following command the <i>crypto tool</i> is available in your project and we could use it to generate an encrypted password using a master password (to be saved separately and not in the project). This is done in the step.
-                <source>
-                <![CDATA[
+     </source>
+ </p>
+ <p>After executing the following command the <i>crypto tool</i> is available in your project and 
+   we could use it to generate an encrypted password using a master password (to be saved separately and not in the project). 
+   This is done in the following step.
+   <source>
+            <![CDATA[
  mvn initialize
-                ]]>
-                </source>
-                    </p>
-    </subsection>
-      <subsection name="Integrate with Ant Tool">
-      <p>First we encrypt the password using our master password and after that copying and save the encrypted password in one of our project's configuration files.  Running the following command will show the encrypted password. Save the encrypted password as value with key  key <i>password_encrypted</i> in an existing source property file, i.e. a configuration file of your project, which will be used later.
-            <source>
+               ]]>
+    </source>
+    </p>
+  </subsection>
+  <subsection name="Integrate with Ant Tool - Extended">
+    <p>Check the pom.xml's integration test ant calls. The following is an extended version using its own assembly, but is very similar to the integration test.</p>
+    <p>First we <i>encrypt</i> the password on the command line using our master password and after that we copy and save the encrypted password in one of our project's configuration files. 
+      Running the following command will show the encrypted password.
+      <source>
             <![CDATA[  
- java -jar target\crypto-tool.jar  string enc <master.pw> <unencrypted.password>
+ java -jar target/crypto-tool.jar string enc <master.pw> <unencrypted.password>
  ]]>
-            </source>
-                </p>
-         <p>Use the following xml code and save it into <i>build/build-pw.xml</i>. This is the ant build file we use to <i>decrypt</i> the encrypted password and use it while building the project. The example is configured as follows:
-         The global master password is set as environment variable "<i>meta.pw</i>". The already encrypted password is expected to be set in a source property file <i>source.property.path</i> (i.e. configuration file of your project) as value in key <i>password_encrypted</i> .  It will be read in automatically as ant variable ${password_encrypted}. The <i>decrypted</i> password will be saved to key "<i>password</i>" in another property file (<i>target.property.path</i>), which should not be set into version control. You may need to create it new.
-         You may use the ant tool as is setting the variables in <i>.build.properties</i> or integrate it in your pom.xml build process (see below).
-                <source>
-                <![CDATA[  
+       </source>
+       Save the encrypted password as value with key <i>password_encrypted</i> 
+      in an existing configuration file of your project, which will be used later. 
+      You may include this process into your build tool (by invoking target init) similar as we do it for the <i>decrypting</i> process (see below paragraph).      
+   </p>
+   <p>Use the following ant build script (windows only) and save it into <i>build/build-pw.xml</i>. This is the ant build file we use to <i>decrypt</i> the encrypted password and 
+      use it while building the project. The example is configured as follows:
+      The global master password is set as environment variable "<i>meta.pw</i>". The already encrypted password is expected to be set in a source property file <i>source.property.path</i> 
+      (i.e. configuration file of your project) as value in key <i>password_encrypted</i> .  It will be read in automatically as ant variable ${password_encrypted}. 
+      The <i>decrypted</i> password will be saved to key "<i>password</i>" in another property file (<i>target.property.path</i>), which should not be set into version control. You may need to create it new.
+      You may use the ant tool as is setting the variables in <i>.build.properties</i> or integrate it in your pom.xml build process (see below).
+       <source>
+   <![CDATA[  
 <project basedir="."  default="build" name="build">
   <property environment="env"/>
    <property file=".build.properties"/>  
+   <!-- reading from the file properties: password_encrypted, password -->
    <property file="${source.property.path}"/>
    <property name="meta.pw" value="${env.meta.pw}"/>
 
@@ -160,6 +185,7 @@
          <arg value="java -version"/>
       </exec>
     </target>
+    
    <target name="decrypt">
       <echo message="executing java -jar target/${jarname}.jar string dec ${meta.pw} ${password_encrypted}."/>
       <exec executable="cmd" dir="${build.path}/../" osfamily="windows" resultproperty="success" outputproperty="decoded.pw">
@@ -167,8 +193,37 @@
          <arg value="java -jar target/${jarname}.jar string dec ${meta.pw} ${password_encrypted}"/>
       </exec>
     </target>
+      
+   <target name="update">
+       <echo message="updating password in properties file: ${target.property.path}."/>
+       <propertyfile file="${target.property.path}" >
+          <entry  key="password" value="${decoded.pw}"/>
+        </propertyfile>
+    </target>
     
-    <target name="run">
+   <target name="encrypt">
+      <echo message="executing java -jar target/${jarname}.jar string enc ${meta.pw} ${password}"/>
+      <exec executable="cmd" dir="${build.path}/../" osfamily="windows" resultproperty="success" outputproperty="encoded.pw">
+        <arg value="/c"/>
+         <arg value="java -jar target/${jarname}.jar string enc ${meta.pw} ${password}"/>
+      </exec>
+    </target>
+    
+  <target name="init-update">
+       <echo message="updating password_encrypted in properties file: ${target.property.path}."/>
+       <propertyfile file="${target.property.path}" >
+          <entry  key="password_encrypted" value="${encoded.pw}"/>
+        </propertyfile>
+    </target>
+  
+  <target name="clean">
+   <echo message="cleaning up key password in propert file: ${target.property.path}."/>
+       <propertyfile file="${target.property.path}" >
+          <entry  key="password" value=""/>
+        </propertyfile>
+  </target>
+
+  <!-- target name="run">
         <echo message="test output java -jar target/${jarname}.jar string dec ${meta.pw} ${password_encrypted}."/>
         <java jar="./../target/${jarname}.jar" fork="true">
         <arg value="string"/>
@@ -176,34 +231,26 @@
         <arg value="${meta_password}"/>
         <arg value="${password_encrypted}"/>
         </java>
-    </target>
+  </target-->
   
-   <target name="update">
-   <echo message="updating propert file: ${target.property.path}."/>
-       <propertyfile file="${target.property.path}" >
-          <entry  key="password" value="${decoded.pw}"/>
-        </propertyfile>
-  </target>
-  
-<target name="clean">
-   <echo message="cleaning up key password in propert file: ${target.property.path}."/>
-       <propertyfile file="${target.property.path}" >
-          <entry  key="password" value=""/>
-        </propertyfile>
-  </target>
-  
+  <!-- decrypt to password -->
    <target name="build" depends="testjava, decrypt, update">
   </target>
   
- </project>    
-                    
+  <!-- encrypt to password_encrypted -->
+    <target name="init" depends="testjava, encrypt, init-update">
+  </target>
+  
+ </project>      
                 ]]>
-                </source>
-         </p>
-       </subsection>
-      <subsection name="Integration ANT Task into Maven Life cycle">
-    <p>Integrate the ant tool, check the file name and run maven command below after setting your configuration or filter files in <i>source.property.path</i> and <i>target.property.path</i>. You may add another clean-up in a later life cycle phase, e.g. post-integration-test. You may also simplify the process by cleaning always and using the same source and target property file.
-            <source>
+         </source>
+     </p>
+  </subsection>
+  <subsection name="Integration ANT Task into Maven Life cycle">
+    <p>Integrate the ant tool, check the file name and run maven command below after setting your configuration or filter files in <i>source.property.path</i> and <i>target.property.path</i>. 
+    You may add another clean-up in a later life cycle phase, e.g. post-integration-test. 
+    You may also simplify the process by cleaning always and using the same source and target property file.
+      <source>
             <![CDATA[
 <plugin>
    <artifactId>maven-antrun-plugin</artifactId>
@@ -249,14 +296,15 @@
     </executions>
   </plugin>
             ]]>
-            </source>
-                </p>
-       </subsection>
-          <subsection name="Maven Command line examples">
-              <p>Save the decrypted password for the build
-                <source>
+       </source>
+   You may add another  execution definiton with id and target "init" and probably another skip property to initially or regularily update the encoded password.
+     </p>
+  </subsection>
+  <subsection name="Maven Command line examples">
+     <p>Save the decrypted password for the build
+         <source>
                 <![CDATA[
-mvn  clean test -Dmeta.pw=<securepwd>
+mvn clean test -Dmeta.pw=<securepwd>
                 ]]>
                 </source>
                     </p>
@@ -267,20 +315,20 @@ mvn clean test install -Dskip.pw.gen=true
                 ]]>
                 </source>
                     </p>
-                        <p>Clean up finally.
+ <p>Clean up finally.
                 <source>
                 <![CDATA[
 mvn clean 
-                ]]>
-                </source>
-                    </p>
-                    <p>This example could be extended or adapted, eg. by using multiple passwords, or encrypting an entire file. 
-                    Have fun!
-                    </p><p>
-                    TODO Show gradle example..
-                    </p>
-     </subsection>
-    </section>
+               ]]>
+        </source>
+    </p>
+    <p>This example could be extended or adapted, eg. by using multiple passwords, or encrypting an entire file. 
+       Have fun!
+    </p>
+    <p>TODO Show gradle example..
+      </p>
+    </subsection>
+   </section>
 
   </body>
 

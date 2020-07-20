@@ -28,22 +28,17 @@ package org.apache.fulcrum.jce.crypto.extended;
 public interface CryptoParametersJ8 {
 
 	/**
-	 * default 
-	 */
-	int COUNT_J8 = 10_000; // 200_000;
-
-	/**
 	 * 
-	 * This module is using PBEWith &lt;digest&gt;And&lt;encryption&gt;:
+	 * Implementing classes are either using
 	 * 
 	 * <ul>
-	 * <li>PBEWithHmacSHA256AndAES_256/CBC/PKCS5Padding in {@link #ALGORITHM_J8_PBE}</li>
+	 * <li>PBEWith &lt;digest&gt;And&lt;encryption&gt; - the password-based encryption algorithm defined in PKCS #5: PBEWithHmacSHA256AndAES_256/CBC/PKCS5Padding in {@link #ALGORITHM_J8_PBE}</li>
 	 * </ul>
 	 * 
-	 * or Cipher Algorithm Names/Cipher Algorithm Modes/Cipher Algorithm Padding
+	 * or
 	 * 
 	 * <ul>
-	 * <li>AES/GCM/NoPadding in {@link #ALGORITHM_J8_GCM}</li>
+	 * <li>AES/GCM/NoPadding in {@link #ALGORITHM_J8_GCM} (Cipher Algorithm Names/Cipher Algorithm Modes/Cipher Algorithm Padding). Cipher is Galois/Counter Mode, as defined in NIST Special Publication SP 800-38D: </li>
 	 * </ul>
 	 * 
 	 * 
@@ -51,12 +46,17 @@ public interface CryptoParametersJ8 {
 	 * 
 	 * Algo/mode/padding for cipher transformation:
 	 * 
-	 * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Cipher">The Oracle Security Standard Names Cipher Algorithms</a>
+	 * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Cipher">Java 8: The Oracle Security Standard Names Cipher Algorithms</a>
+	 * 
+	 * @see <a href="https://docs.oracle.com/en/java/javase/14/docs/specs/security/standard-names.html#security-algorithm-implementation-requirements">Java 14: Security Algorithm Implementation Requirements</a>
+	 * 
+	 * 
 	 */
 	public enum TYPES_IMPL {
 		
+		// key size 256
 		ALGORITHM_J8_PBE("PBEWithHmacSHA256AndAES_256"), 
-		
+		// key size 128
 		ALGORITHM_J8_GCM("AES/GCM/NoPadding");
 
 		private final String algorithm;

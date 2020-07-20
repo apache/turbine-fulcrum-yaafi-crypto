@@ -1,0 +1,69 @@
+<project basedir="."  default="build" name="build">
+  <property environment="env"/>
+   <property file=".build"/>  
+   <!-- reading from the file properties: password_encrypted or password -->
+   <property file="${source.property.path}"/>
+   <property name="meta.pw" value="${env.meta.pw}"/>
+
+   <target name="testjava">
+      <echo>Ant Java/JVM  version: ${java.version}</echo> 
+    </target>
+   
+   <target name="decrypt">
+      <echo message="executing java -jar target/${jarname}.jar string dec &quot;${meta.pw}&quot; &quot;${password_encrypted}&quot;."/>
+      <java jar="target/${jarname}.jar" fork="true" failonerror="true" maxmemory="128m" dir="${build.path}/../" outputproperty="decoded.pw" inputstring="">
+         <arg value="string"/>
+         <arg value="dec"/>
+         <arg value="${meta.pw}"/>
+         <arg value="${password_encrypted}"/>
+         <classpath>
+            <pathelement location="target/${jarname}.jar"/>
+            <pathelement path="${java.class.path}"/>
+        </classpath>
+      </java>
+    </target>
+    
+     <target name="encrypt">
+      <echo message="executing java -jar target/${jarname}.jar string enc &quot;${meta.pw}&quot; &quot;${password}&quot;"/>
+      <java jar="target/${jarname}.jar" fork="true" failonerror="true" maxmemory="128m" dir="${build.path}/../" outputproperty="encoded.pw" inputstring="">
+         <arg value="string"/>
+         <arg value="enc"/>
+         <arg value="${meta.pw}"/>
+         <arg value="${password}"/>
+         <classpath>
+            <pathelement location="target/${jarname}.jar"/>
+            <pathelement path="${java.class.path}"/>
+        </classpath>
+      </java>
+    </target>
+  
+   <target name="update">
+       <echo message="updating password in property file: ${target.property.path}."/>
+       <propertyfile file="${target.property.path}" >
+          <entry  key="password" value="${decoded.pw}"/>
+        </propertyfile>
+    </target>
+    
+    <target name="init-update">
+       <echo message="updating password_encrypted in property file: ${target.property.path}."/>
+       <propertyfile file="${target.property.path}" >
+          <entry  key="password_encrypted" value="${encoded.pw}"/>
+        </propertyfile>
+    </target>
+  
+  <target name="clean">
+   <echo message="cleaning up key password in property file: ${target.property.path}."/>
+       <propertyfile file="${target.property.path}" >
+          <entry  key="password" value=""/>
+        </propertyfile>
+  </target>
+  
+    <!-- decrypt to --> 
+   <target name="build" depends="testjava, decrypt, update">
+  </target>
+  
+    <!-- encrypt to password_encrypted -->
+    <target name="init" depends="testjava, encrypt, init-update">
+  </target>
+  
+ </project>  

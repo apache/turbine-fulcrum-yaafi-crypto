@@ -30,7 +30,10 @@ public interface PasswordParameters
     /** Parameter for the number of SHA256 invocation */
     int COUNT = 1000;
 
-    /** The default password used for creating the internal password */
+    /** 
+     * The default password used for creating the internal password 
+     * @return the default password: <code>fulcrum-yaafi</code>.
+     * */
     public static char[] DefaultPassword() { 
     	return new char[] {
         (char) 'f', (char) 'u', (char) 'l', (char) 'c',
@@ -40,7 +43,9 @@ public interface PasswordParameters
         };
     }
 
-    /** The password salt */
+    /** The password salt 
+     * @return the 8bit default salt as byte array
+     * */
     public static byte[] Salt() {
     	return new byte[] {
         (byte)0xc6, (byte)0x74, (byte)0x81, (byte)0x8a,

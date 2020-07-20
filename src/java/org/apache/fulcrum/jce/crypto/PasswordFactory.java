@@ -70,6 +70,8 @@ public class PasswordFactory implements PasswordParameters
     
     /**
      * Factory method to get a default instance
+     * 
+     * @param algo algorithm
      * @return an instance of the CryptoStreamFactory
      */
     public synchronized static PasswordFactory getInstance(String algo) 
@@ -84,6 +86,9 @@ public class PasswordFactory implements PasswordParameters
     
     /**
      * Factory method to get a default instance
+     * 
+     * @param algo algorithm
+     * @param count the number of MessageDigest iterations
      * @return an instance of the CryptoStreamFactory
      */
     public synchronized static PasswordFactory getInstance(String algo, int count) 

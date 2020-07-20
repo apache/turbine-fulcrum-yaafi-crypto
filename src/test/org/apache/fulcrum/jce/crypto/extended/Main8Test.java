@@ -192,7 +192,8 @@ public class Main8Test
             conf.put("enc",TYPES.GCM);
 
             // encode as string to stderr and  file in hexdecimal format
-            String[] encryptionArgs = { "string", "enc"+ conf.get("enc"), this.password, 
+            String[] encryptionArgs = {
+                    "string", "enc"+ conf.get("enc"), this.password,
                     topSecret, 
                     "./target/main8/integrated-plain16chars.enc.txt"};
             CLI2.main(encryptionArgs);

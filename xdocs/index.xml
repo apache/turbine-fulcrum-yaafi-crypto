@@ -29,7 +29,7 @@
 
     <section name="Overview">
       <p> Fulcrum YAFFI Crypto Library is an extension library for Fulcrum YAAFI to support
-        transparent decryption of configuration files. The encryption/decryption is based by default on <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html" target="blank_">PBEWithHmacSHA256AndAES_256</a> (PBEWith&lt;digest&gt;And&lt;encryption&gt;algorithm.)  with 128bit key length.</p>
+        transparent decryption of configuration files. The encryption/decryption is based by default on <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html" target="blank_">PBEWith&lt;digest&gt;And&lt;encryption&gt;</a> algorithm (PBEWithHmacSHA256AndAES_256) with 128bit key length.</p>
     </section>
 
     <section name="Functionality">
@@ -41,7 +41,7 @@
       </p>
       <subsection name="Password Creation">
         <p> Why someone need a password factory to create safer password?! People tend to use weak
-          password vunerable to dictionary attacks. To improve the situation you have a base
+          password vulnerable to dictionary attacks. To improve the situation you have a base
           password which you convert into the real password using the PasswordFactory. For the
           password generation the base password is salted and repeatedly hashed to generate a UUID
           string (which you can still manually enter on the keyboard). Furthermore the password
@@ -106,10 +106,16 @@
             Java Cryptography Architecture Oracle Providers Documentation for Java Platform Standard Edition 7</a>
             </td>
           </tr>
-           <tr>
+          <tr>
             <td>JDK 1.8.x</td>
             <td> <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html">
             Java Cryptography Architecture Oracle Providers Documentation for JDK 8</a>
+            </td>
+          </tr>
+           <tr>
+            <td>JDK 14</td>
+            <td> <a href="https://docs.oracle.com/en/java/javase/14/security/java-cryptography-architecture-jca-reference-guide.html">
+            Java Cryptography Architecture Oracle Providers Documentation for JDK 14</a>
             </td>
           </tr>
         </table>
