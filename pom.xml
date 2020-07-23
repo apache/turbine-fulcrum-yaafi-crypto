@@ -117,14 +117,8 @@
         <directory>src/test</directory>
         <includes> <include>**/*.xml</include><include>**/*.properties</include>
         </includes>
-        <filtering>true</filtering>
       </testResource>
     </testResources>
-    
-    <!-- only needed for integration-test and manifest class testing -->
-    <filters>
-      <filter>${basedir}/src/filters/filter-integration-test.properties</filter>
-    </filters>
     
     <plugins>
      <plugin>
@@ -153,6 +147,7 @@
             <configuration>
               <skip>${skip.pw.encrypt}</skip>
               <target>
+                 <touch file="${basedir}/target/integration-test/filter-integration-test.properties" mkdirs="true"/>
                 <ant
                   antfile="${basedir}/src/ant/integration-test-build-pw.xml"
                   target="init">
@@ -163,7 +158,7 @@
                   <property name="jarname" value="${project.build.finalName}" />
                   <!-- generates encrypted password, saved in vcs: -->
                   <property name="target.property.path"
-                    value="${basedir}/src/filters/filter-integration-test.properties" />
+                    value="${basedir}/target/integration-test/filter-integration-test.properties" />
                 </ant>
               </target>
             </configuration>
@@ -182,7 +177,7 @@
             <configuration>
               <skip>${skip.pw.gen}</skip>
               <target>
-              <touch file="${basedir}/target/integration-test/filtered-pw.properties" mkdirs="true" />
+                <touch file="${basedir}/target/integration-test/filtered-pw.properties" mkdirs="true" />
                 <ant
                   antfile="${basedir}/src/ant/integration-test-build-pw.xml"
                   target="build">
@@ -193,7 +188,7 @@
                   <property name="jarname" value="${project.build.finalName}" />
                   <!-- contains encrypted password, saved in vcs: -->
                   <property name="source.property.path"
-                    value="${basedir}/src/filters/filter-integration-test.properties" />
+                    value="${basedir}/target/integration-test/filter-integration-test.properties" />
                   <!-- should not be saved in vcs: -->
                   <property name="target.property.path"
                     value="${basedir}/target/integration-test/filtered-pw.properties" />

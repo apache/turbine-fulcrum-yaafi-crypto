@@ -64,6 +64,6 @@
   
     <!-- encrypt to password_encrypted -->
     <target name="init" depends="testjava, encrypt, init-update">
-  </target>
+   </target>
   
  </project>  
