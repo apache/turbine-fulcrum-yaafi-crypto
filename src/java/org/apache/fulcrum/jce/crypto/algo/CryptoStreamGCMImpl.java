@@ -69,24 +69,21 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
      */
     public CryptoStreamGCMImpl() throws GeneralSecurityException
     {
-        this.salt =  generateSalt();
-        this.providerName = PROVIDERNAME;
-        this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_GCM.getAlgorithm();
+        this(generateSalt());
     }
 
 
     /**
      * Constructor
      *
-     * @param salt the salt for the PBE algorithm
-     * @param count the iteration for PBEParameterSpec
+     * @param salt the salt for the GCM algorithm
 
      */
-    public CryptoStreamGCMImpl( byte[] salt, int count) 
+    public CryptoStreamGCMImpl( byte[] salt) 
     {
-        this.salt = salt.clone();
-        this.count = count;
+        setSalt(salt);
         this.providerName = PROVIDERNAME;
+        setType(TYPES.GCM);
         this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_GCM.getAlgorithm();
     }
 
@@ -102,7 +99,6 @@ public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
     protected Key createKey( char[] password, byte[] salt ) 
             throws GeneralSecurityException
     {
-
         SecretKey key = new SecretKeySpec(((salt == null)? this.getSalt(): salt.clone()), "AES");
         return key;
     }

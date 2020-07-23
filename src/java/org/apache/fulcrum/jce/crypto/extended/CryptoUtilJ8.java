@@ -32,42 +32,19 @@ import org.apache.fulcrum.jce.crypto.StreamUtil;
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
 
 /**
- * Helper class to provide generic functions to work with CryptoStreams.
- *
- * The code uses parts from Markus Hahn's Blowfish library found at
- * http://blowfishj.sourceforge.net/
+ * Helper class to provide typed functions to work with CryptoStreams.
  *
  * @author <a href="mailto:siegfried.goeschl@it20one.at">Siegfried Goeschl </a>
- * @author <a href="mailto:maakus@earthlink.net">Markus Hahn</a>
  * @author <a href="mailto:gk@apache.org">Georg Kallidis</a>
  */
 public final class CryptoUtilJ8 extends CryptoUtil {
 
-	/** the typed default instances */
-	private static Map<TYPES, CryptoUtilJ8> cryptoUtilJ8s = new ConcurrentHashMap<>();
-
-	// default see instance
-	public TYPES type;
-
-	public TYPES getType() {
-		return type;
-	}
-
-	/**
-	 * Factory method to get a default instance
-	 * 
-	 * @param type one of the enum {@link TYPES}.
-	 * @return an instance of the CryptoStreamFactory
-	 */
-	public static CryptoUtilJ8 getInstance(TYPES type) {
-		synchronized (CryptoUtilJ8.class) {
-			if (!cryptoUtilJ8s.containsKey(type)) {
-				cryptoUtilJ8s.put(type, new CryptoUtilJ8(type));
-			}
-			return cryptoUtilJ8s.get(type);
-		}
-	}
-
+	/** the typed default instances */   
+    private static final Map<TYPES, CryptoUtilJ8> instances = new ConcurrentHashMap<>();
+    
+    /** the default instances with custom settings **/
+    private static final Map<TYPES, CryptoUtilJ8> instancesWithExplicitParams = new ConcurrentHashMap<>();    
+	
 	/**
 	 * Factory method to get a default instance
 	 * 
@@ -77,26 +54,69 @@ public final class CryptoUtilJ8 extends CryptoUtil {
 	 */
 	public static CryptoUtilJ8 getInstance() {
 		synchronized (CryptoUtilJ8.class) {
-			TYPES defaultType = TYPES.PBE;
-			if (cryptoUtilJ8s.isEmpty() && !cryptoUtilJ8s.containsKey(defaultType)) {
-				cryptoUtilJ8s.put(defaultType, new CryptoUtilJ8(defaultType));
+			TYPES defaultType = CryptoParametersJ8.DEFAULT_TYPE;
+			if (instances.isEmpty() && !instances.containsKey(defaultType)) {
+				instances.put(defaultType, new CryptoUtilJ8());
 			}
-			return cryptoUtilJ8s.get(defaultType);
+			return instances.get(defaultType);
 		}
 	}
-
-	private CryptoUtilJ8(TYPES type) {
-		super();
-		this.type = type;
+	
+	/**
+	 * Factory method to get a default instance
+	 * 
+	 * @param type one of the enum {@link TYPES}.
+	 * @return an instance of the CryptoStreamFactory
+	 */
+	public static CryptoUtilJ8 getInstance(TYPES type) {
+		synchronized (CryptoUtilJ8.class) {
+			if (!instances.containsKey(type)) {
+				instances.put(type, new CryptoUtilJ8(type));
+			}
+			return instances.get(type);
+		}
 	}
-
+	
+	/**
+	 * Factory method to get a default instance
+	 * 
+	 * @param type one of the enum {@link TYPES}.
+	 * @param salt the salt
+	 * @param count the iteration count
+	 * @return an instance of the CryptoStreamFactory
+	 */
+	public static CryptoUtilJ8 getInstance(TYPES type, byte[] salt, int count) {
+		synchronized (CryptoUtilJ8.class) {
+			if (!instancesWithExplicitParams.containsKey(type)) {
+				instancesWithExplicitParams.put(type, new CryptoUtilJ8(type, salt, count));
+			}
+			return instancesWithExplicitParams.get(type);
+		}
+	}
+	
 	private CryptoUtilJ8() {
-		super();
+		cryptoStreamFactory = CryptoStreamFactoryJ8Template.getInstance();
 	}
+	
+	private CryptoUtilJ8(TYPES type) {
+		cryptoStreamFactory = CryptoStreamFactoryJ8Template.getInstance(type);
+	}
+	
+    /**
+     * 
+     * @param type one of the enum {@link TYPES}.
+     * @param salt v
+     * @param count the iteration count
+     */
+    protected CryptoUtilJ8(TYPES type, byte[] salt, int count) {
+    	cryptoStreamFactory = CryptoStreamFactoryJ8Template.getInstance(type, salt, count);
+    }
 
 	/**
 	 * Copies from a source to a target object using encryption and a caller
 	 * supplied CryptoStreamFactory.
+	 * 
+	 * {@link CryptoStreamFactoryJ8Template#getOutputStream(InputStream, OutputStream, char[])} 
 	 *
 	 * @param factory  the factory to create the crypto streams
 	 * @param source   the source object
@@ -110,8 +130,7 @@ public final class CryptoUtilJ8 extends CryptoUtil {
 			throws GeneralSecurityException, IOException {
 		InputStream is = StreamUtil.createInputStream(source);
 		OutputStream os = StreamUtil.createOutputStream(target);
-		OutputStream eos = ((CryptoStreamFactoryJ8) factory).getOutputStream(is, os, password);
-		// StreamUtil.copy( is, eos );
+		((CryptoStreamFactoryJ8) factory).getOutputStream(is, os, password);
 	}
 
 	/**
@@ -134,11 +153,12 @@ public final class CryptoUtilJ8 extends CryptoUtil {
 		StreamUtil.copy(dis, os);
 	}
 
-	/**
-	 * 
-	 * @return the CryptoStreamFactory to be used
-	 */
-	public CryptoStreamFactory getCryptoStreamFactory() {
-		return CryptoStreamFactoryJ8Template.getInstance(type);
+	public static Map<TYPES, CryptoUtilJ8> getInstances() {
+		return instances;
 	}
+
+	public static Map<TYPES, CryptoUtilJ8> getInstancesWithExplicitParams() {
+		return instancesWithExplicitParams;
+	}
+
 }

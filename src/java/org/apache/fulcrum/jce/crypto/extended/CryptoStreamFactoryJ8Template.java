@@ -23,7 +23,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.AlgorithmParameters;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -50,7 +49,7 @@ public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFact
 	/** the salt for the algorithm */
     protected byte[] salt;
 
-    /** the count paramter for the algorithm */
+    /** the count parameter for the algorithm, not used for GCM */
     protected int count;
 
     /** the name of the JCE provider */
@@ -58,6 +57,16 @@ public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFact
 
     /** the algorithm to use */
     protected String algorithm;
+    
+    private TYPES type;
+    
+    public TYPES getType() {
+      return type;
+    }
+    
+    public void setType(TYPES type) {
+    	this.type = type;
+    }
     
     /**
      * The JCE provider name known to work. If the value
@@ -67,15 +76,41 @@ public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFact
     protected static final String PROVIDERNAME = null;
 
     protected static final int SALT_SIZE = 16; //might increase cipher length
-    protected static final int KEY_SIZE = 256;
 
     /** the default instances */
-    protected static Map<TYPES,CryptoStreamFactoryJ8Template> instances = new ConcurrentHashMap<>();
+    protected static final Map<TYPES,CryptoStreamFactoryJ8Template> instances = new ConcurrentHashMap<>();
     
     //protected AlgorithmParameters algorithmParameters;// used only for debugging
    
     public CryptoStreamFactoryJ8Template() {
        
+    }
+    
+    /**
+     * Factory method to get a default instance
+     * 
+     * creating instance of type {@link CryptoParametersJ8#DEFAULT_TYPE}.
+     * 
+     * @return an instance of the CryptoStreamFactory
+     */
+    public static CryptoStreamFactoryJ8 getInstance() 
+    {
+        synchronized (CryptoStreamFactoryJ8Template.class) {
+            if( !instances.containsKey(CryptoParametersJ8.DEFAULT_TYPE) )
+            {
+                try {
+                    instances.put(CryptoParametersJ8.DEFAULT_TYPE, 
+                            (CryptoParametersJ8.DEFAULT_TYPE.equals(TYPES.PBE))? new CryptoStreamPBEImpl():
+                                new CryptoStreamGCMImpl()
+                            );
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e.getMessage());
+                }
+            }
+    
+            return instances.get(CryptoParametersJ8.DEFAULT_TYPE);
+        }
     }
 
     /**
@@ -103,22 +138,33 @@ public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFact
             return instances.get(type);
         }
     }
-
-
+    
     /**
-     * Constructor
-     *
-     * @param salt the salt for the PBE algorithm
-     * @param count the iteration for PBEParameterSpec
-     * @param type {@link TYPES} what type the algorithm will be
+     * Factory method to get a default instance
+     * 
+     * @param type the @see {@link TYPES} of the instance.
+     * @param salt provided salt
+     * @param count provided count, used only for {@link TYPES#PBE}.
+     * @return an instance of the CryptoStreamFactory
      */
-    public CryptoStreamFactoryJ8Template( byte[] salt, int count, TYPES type)
+    public static CryptoStreamFactoryJ8 getInstance(TYPES type, byte[] salt, int count) 
     {
-        this.salt = salt.clone();
-        this.count = count;
-        this.providerName = PROVIDERNAME;
-        this.algorithm = type.equals(TYPES.PBE)? CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE.getAlgorithm():
-            CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_GCM.getAlgorithm();;
+        synchronized (CryptoStreamFactoryJ8Template.class) {
+            if( !instances.containsKey(type) )
+            {
+                try {
+                    instances.put(type, 
+                            (type.equals(TYPES.PBE))? new CryptoStreamPBEImpl(salt, count):
+                                new CryptoStreamGCMImpl(salt)
+                            );
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e.getMessage());
+                }
+            }
+    
+            return instances.get(type);
+        }
     }
 
 
@@ -146,6 +192,9 @@ public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFact
         return eis;
     }
 
+    /**
+     * @see org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8#getOutputStream(InputStream, OutputStream, char[])
+     */
     public OutputStream getOutputStream(InputStream is, OutputStream os, char[] password)
             throws GeneralSecurityException, IOException {
         byte[] encrypted =  this.createCipher( is, Cipher.ENCRYPT_MODE, password.clone() );
@@ -162,16 +211,16 @@ public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFact
         CryptoStreamFactoryJ8Template.instances.clear();
     }
     
-    /**
-     * Set the default instances from an external application.
-     * @param instances the new default instances map
-     * @throws Exception if instances are null
-     */
-    public static void setInstances(Map<TYPES,CryptoStreamFactoryJ8Template> instances ) throws Exception
-    {
-    	if (instances == null) throw new Exception("setting instances to null not allowed!");
-        CryptoStreamFactoryJ8Template.instances = instances;
-    }
+//    /**
+//     * Set the default instances from an external application.
+//     * @param instances the new default instances map
+//     * @throws Exception if instances are null
+//     */
+//    public static void setInstances(Map<TYPES,CryptoStreamFactoryJ8Template> instances ) throws Exception
+//    {
+//    	if (instances == null) throw new Exception("setting instances to null not allowed!");
+//        CryptoStreamFactoryJ8Template.instances = instances;
+//    }
     
     /** not used / implemented methods **/
     
@@ -239,12 +288,12 @@ public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFact
      * 
      * changed to {@link SecureRandom#getInstanceStrong()} and let the system decide, what PRNG to use for salt random.
      * 
-     * salt size by default @link {@value #SALT_SIZE}.
+     * salt size is by default @link {@value #SALT_SIZE}.
      * 
      * @return the generated salt as byte array
      * @throws GeneralSecurityException if no algo could be found.
      */
-    protected byte[] generateSalt() throws GeneralSecurityException {
+    protected static byte[] generateSalt() throws GeneralSecurityException {
         SecureRandom random;
         try {
             random = SecureRandom.getInstanceStrong();
@@ -260,7 +309,7 @@ public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFact
 		return salt.clone();
 	}
 
-	public void setSalt(byte[] salt) {
+	protected void setSalt(byte[] salt) {
 		this.salt = salt.clone();
 	}
 

@@ -16,18 +16,25 @@ import java.util.List;
 
 import org.apache.fulcrum.jce.crypto.PasswordFactory;
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
+import org.apache.fulcrum.jce.junit5.extension.SupportedTypeArguments;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 /**
  * Test suite for crypto functionality
+ * 
+ * Could still not access arguments of parameterized tests in lifecycle callback methods
+ * 
+ * - https://github.com/junit-team/junit5/issues/944
+ * - https://github.com/junit-team/junit5/issues/1139#issuecomment-341683075
  *
- * @author <a href="mailto:siegfried.goeschl@it20one.at">Siegfried Goeschl</a>
- */
+ * e.g. with ExtendWith(SupportedTypeArguments.class)
+ * */
 public class CryptoUtilJ8ParameterizedTest {
 	/** the password to be used */
 	private String password;
@@ -46,18 +53,11 @@ public class CryptoUtilJ8ParameterizedTest {
 	 * Constructor
 	 */
 	public CryptoUtilJ8ParameterizedTest() {
-
 		this.password = "mysecret";
 		this.testDataDirectory = new File("./src/test/data");
 		this.tempDataDirectory = new File("./target/temp");
 		this.tempDataDirectory.mkdirs();
 	}
-
-//    @ParameterizedTest
-//    @EnumSource( TYPES.class )
-//    public void setUp(TYPES type) throws Exception {
-//        cryptoUtilJ8 = CryptoUtilJ8.getInstance(type); // (TYPES.PBE);
-//    }
 
 	/**
 	 * @return Returns the password.
@@ -80,8 +80,15 @@ public class CryptoUtilJ8ParameterizedTest {
 		return testDataDirectory;
 	}
 
-	@AfterEach
+	@BeforeEach
 	public void setup() {
+		cryptoUtilJ8s.clear();
+        SupportedTypeArguments.init();
+	}
+	
+
+	@AfterEach
+	public void clean() {
 		cryptoUtilJ8s.clear();
 	}
 
@@ -94,7 +101,7 @@ public class CryptoUtilJ8ParameterizedTest {
 	 * 
 	 */
 	@ParameterizedTest
-	@EnumSource(TYPES.class)
+	@ArgumentsSource(SupportedTypeArguments.class)
 	public void testTextEncryption(TYPES type) {
 
 		cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
@@ -103,7 +110,11 @@ public class CryptoUtilJ8ParameterizedTest {
 
 		cryptoUtilJ8s.forEach(cuj8 -> {
 			try {
-				log.info("checking " + cuj8.getType());
+				log.debug("registered {}: {}", cuj8.getClass().getSimpleName());
+	            CryptoStreamFactoryJ8Template crt = ((CryptoStreamFactoryJ8Template)cuj8.getCryptoStreamFactory());
+	            log.debug(String.format("created default crypto factory instance %s for algo %s with salt (optional): %s", 
+	            		crt.getClass().getSimpleName(),
+           		crt.getAlgorithm(), crt.getSalt()));
 				cuj8.encrypt(sourceFile, targetFile, this.getPassword());
 			} catch (GeneralSecurityException e) {
 				e.printStackTrace();
@@ -122,11 +133,15 @@ public class CryptoUtilJ8ParameterizedTest {
 	 * 
 	 */
 	@ParameterizedTest
-	@EnumSource(TYPES.class)
+	@ArgumentsSource(SupportedTypeArguments.class)
 	public void testTextDecryption(TYPES type) {
 		cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
 		cryptoUtilJ8s.forEach(cuj8 -> {
-			log.info("checking " + cuj8.getType());
+			log.debug("registered {}: {}", cuj8.getClass().getSimpleName());
+            CryptoStreamFactoryJ8Template crt = ((CryptoStreamFactoryJ8Template)cuj8.getCryptoStreamFactory());
+            log.debug(String.format("created default crypto factory instance %s for algo %s with salt length: %s", 
+               		crt.getClass().getSimpleName(),
+               		crt.getAlgorithm(), crt.getSalt().length));
 			try {
 				File sourceFile = new File(this.getTestDataDirectory(), "plain.txt");
 				File targetFile = new File(this.getTempDataDirectory(), "plain.j8.enc.txt");
@@ -153,7 +168,7 @@ public class CryptoUtilJ8ParameterizedTest {
 	 * 
 	 */
 	@ParameterizedTest
-	@EnumSource(TYPES.class)
+	@ArgumentsSource(SupportedTypeArguments.class)
 	public void testPdfEncryption(TYPES type) {
 		cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
 		File sourceFile = new File(this.getTestDataDirectory(), "plain.pdf");
@@ -175,7 +190,7 @@ public class CryptoUtilJ8ParameterizedTest {
 	 * 
 	 */
 	@ParameterizedTest
-	@EnumSource(TYPES.class)
+	@ArgumentsSource(SupportedTypeArguments.class)
 	public void testPdfDecryption(TYPES type) {
 		cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
 		// testPdfEncryption();
@@ -206,9 +221,15 @@ public class CryptoUtilJ8ParameterizedTest {
 	 * 
 	 */
 	@ParameterizedTest
-	@EnumSource(TYPES.class)
+	@ArgumentsSource(SupportedTypeArguments.class)
 	public void testStringEncryption(TYPES type) {
 		CryptoUtilJ8 cuj8 = CryptoUtilJ8.getInstance(type);
+		
+		log.debug("registered {} and called for {}", cuj8.getClass().getSimpleName(), type);
+        CryptoStreamFactoryJ8Template crt = ((CryptoStreamFactoryJ8Template)cuj8.getCryptoStreamFactory());
+        log.debug(String.format("created default crypto factory instance %s for algo %s with salt length: %s", 
+           		crt.getClass().getSimpleName(),
+           		crt.getAlgorithm(), crt.getSalt().length));
 		char[] testVector = new char[513];
 
 		for (int i = 0; i < testVector.length; i++) {
@@ -219,18 +240,20 @@ public class CryptoUtilJ8ParameterizedTest {
 		String cipherText = null;
 		String plainText = null;
 		try {
-			log.info("Test without clearTextHeader");
+			log.info("Test without clearTextHeader in type {}", type);
 			cipherText = cuj8.encryptString(source, this.getPassword());
-			// log.debug(cipherText);
+			log.trace(cipherText);
 			plainText = cuj8.decryptString(cipherText, this.getPassword());
 			assertEquals(source, plainText, source + " is not equal with " + plainText);
+			
+			String clearCode = type.equals(TYPES.PBE)? CryptoParametersJ8.TYPES.PBE.getClearCode():
+				CryptoParametersJ8.TYPES.GCM.getClearCode() ;
 
-			log.info(String.format("Test with clearTextHeader %s in encrypted string.",
-					CryptoParametersJ8.CLEAR_CODE_J8));
+			log.info(String.format("Test with clearTextHeader %s in encrypted string.",clearCode) );
 			String cipherText2 = cuj8.encryptStringWithClearCode(source, this.getPassword());
-			// log.debug(cipherText2);
-			assertTrue(cipherText2.startsWith(CryptoParametersJ8.CLEAR_CODE_J8),
-					String.format("%s does not start with '%s'", cipherText2, CryptoParametersJ8.CLEAR_CODE_J8));
+			log.trace(cipherText2);
+			assertTrue(cipherText2.startsWith(clearCode),
+					String.format("%s does not start with '%s'", cipherText2, clearCode));
 			String plainText2 = cuj8.decryptStringWithClearCode(cipherText2, this.getPassword());
 			assertEquals(source, plainText2, String.format("%s is not equal with %s", source, plainText));
 
@@ -247,7 +270,7 @@ public class CryptoUtilJ8ParameterizedTest {
 	 * 
 	 */
 	@ParameterizedTest
-	@EnumSource(TYPES.class)
+	@ArgumentsSource(SupportedTypeArguments.class)
 	public void testStringHandling(TYPES type) {
 		cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
 		String source = "Nobody knows the toubles I have seen ...";
@@ -292,7 +315,7 @@ public class CryptoUtilJ8ParameterizedTest {
 	 * @param type the type to be tested based on {@link TYPES}
 	 */
 	@ParameterizedTest
-	@EnumSource(TYPES.class)
+	@ArgumentsSource(SupportedTypeArguments.class)
 	public void testBinaryHandling(TYPES type) throws Exception {
 		cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
 		cryptoUtilJ8s.forEach(cuj8 -> {
@@ -332,23 +355,28 @@ public class CryptoUtilJ8ParameterizedTest {
 	 * 
 	 */
 	@ParameterizedTest
-	@EnumSource(TYPES.class)
+	@ArgumentsSource(SupportedTypeArguments.class)
 	public void testStringWithPasswordEncryption(TYPES type) {
 		char[] password = "57cb-4a23-d838-45222".toCharArray();
 		String source = "e02c-3b76-ff1e-5d9a1";
 		CryptoUtilJ8 cuj8 = CryptoUtilJ8.getInstance(type);
-		log.debug("checking type " + cuj8.getType());
+		log.debug("registered {}: {}", cuj8.getClass().getSimpleName());
+        CryptoStreamFactoryJ8Template crt = ((CryptoStreamFactoryJ8Template)cuj8.getCryptoStreamFactory());
+        log.debug(String.format("created default crypto factory instance %s for algo %s with salt (optional): %s", 
+       		crt.getClass().getSimpleName(),
+       		crt.getAlgorithm(), crt.getSalt()));
 		String cipherText = null;
 		try {
 			cipherText = cuj8.encryptString(source, password);
 			log.info(cipherText);// about 128
-			log.info(String.format("length for %s is %d", cuj8.getType(), cipherText.length()));// about 128
-			if (cuj8.type == TYPES.PBE) {
-				assertEquals(128, cipherText.length()); // 128bytes + 10 bytes for cleartext
-			}
-			if (cuj8.type == TYPES.GCM) {
-				assertEquals(128, cipherText.length());
-			}
+			log.info(String.format("length for %s is %d", cuj8, cipherText.length()));// about 128
+			assertEquals(128, cipherText.length());
+//			if (cuj8.type == TYPES.PBE) {
+//				assertEquals(128, cipherText.length()); // 128bytes + 10 bytes for cleartext
+//			}
+//			if (cuj8.type == TYPES.GCM) {
+//				assertEquals(128, cipherText.length());
+//			}
 			String plainText = cuj8.decryptString(cipherText, password);
 			assertEquals(source, plainText);
 		} catch (GeneralSecurityException | IOException e) {

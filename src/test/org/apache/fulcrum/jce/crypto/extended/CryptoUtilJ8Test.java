@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +20,7 @@ import org.apache.fulcrum.jce.crypto.PasswordFactory;
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
 import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
 import org.apache.fulcrum.jce.crypto.extended.CryptoUtilJ8;
+import org.apache.fulcrum.jce.junit5.extension.SupportedTypeArguments;
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,6 +28,24 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 /**
  * Test suite for crypto functionality
@@ -60,17 +81,21 @@ public class CryptoUtilJ8Test {
     @BeforeAll
     public static void setUp() throws Exception {
         cryptoUtilJ8s.clear();
+        SupportedTypeArguments.init();
         for (TYPES type : CryptoParametersJ8.TYPES.values()) {
-            cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
+            if (SupportedTypeArguments.SUPPORTED_TYPES.contains(type.toString())) {
+            	cryptoUtilJ8s.add(CryptoUtilJ8.getInstance(type));
+            }
         }
         for (CryptoUtilJ8 cryptoUtilJ8 : cryptoUtilJ8s) {
-            log.debug("registered {}: {}", cryptoUtilJ8.getClass().getSimpleName(), cryptoUtilJ8.getType() );
+            log.debug("registered {}: {}", cryptoUtilJ8.getClass().getSimpleName());
             CryptoStreamFactoryJ8Template crt = ((CryptoStreamFactoryJ8Template)cryptoUtilJ8.getCryptoStreamFactory());
-            log.debug(String.format("created default crypto factory instance %s for algo %s", crt.getClass().getSimpleName(),
-            		crt.getAlgorithm()));
+            log.debug(String.format("created default crypto factory instance %s for algo %s with salt length: %s", 
+               		crt.getClass().getSimpleName(),
+               		crt.getAlgorithm(), crt.getSalt().length));
         }
-
     }
+    
     @AfterAll
     public static void destroy() {
         cryptoUtilJ8s.clear();
@@ -124,8 +149,13 @@ public class CryptoUtilJ8Test {
      */
     @Test
     public void testTextDecryption() {           
-            cryptoUtilJ8s.forEach(cuj8 -> { 
-                try {
+    	cryptoUtilJ8s.forEach(cuj8 -> { 
+    		log.debug("registered {}: {}", cuj8.getClass().getSimpleName());
+            CryptoStreamFactoryJ8Template crt = ((CryptoStreamFactoryJ8Template)cuj8.getCryptoStreamFactory());
+            log.debug(String.format("created default crypto factory instance %s for algo %s with salt length: %s", 
+               		crt.getClass().getSimpleName(),
+               		crt.getAlgorithm(), crt.getSalt().length));
+    		try {
                     File sourceFile = new File(this.getTestDataDirectory(), "plain.txt");
                     File targetFile = new File(this.getTempDataDirectory(), "plain.j8.enc.txt");
                     cuj8.encrypt(sourceFile, targetFile, this.getPassword());
@@ -302,9 +332,14 @@ public class CryptoUtilJ8Test {
             try {
                 cipherText = cuj8.encryptString(source, password);
                 log.debug(cipherText);// about 128
+                
+                CryptoStreamFactoryJ8Template crt = ((CryptoStreamFactoryJ8Template)cuj8.getCryptoStreamFactory());
+                log.debug(String.format("created default crypto factory instance %s for algo %s and type %s with salt (optional): %s", 
+                		crt.getClass().getSimpleName(), crt.getType(),
+                		crt.getAlgorithm(), crt.getSalt()));
 
-                log.debug("length for {} is: {}", cuj8.getType(), cipherText.length());// about 128
-                if (cuj8.type == TYPES.PBE) {
+                log.debug("length for {} is: {}", crt.getType(), cipherText.length());// about 128
+                if (crt.getType() == TYPES.PBE) {
                     assertEquals(128, cipherText.length()); // 128bytes + 10 bytes for cleartext
                 } 
                 CryptoStreamFactoryJ8Template.resetInstances();

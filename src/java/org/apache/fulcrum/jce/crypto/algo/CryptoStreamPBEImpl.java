@@ -31,7 +31,6 @@ import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
@@ -69,22 +68,35 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
 
     protected static final int IV_SIZE = 16;
     
+    protected static final int KEY_SIZE = 256;
+    
 	/**
 	 * default count for pbe spec
 	 */
-	protected int COUNT_J8 = 10_000; // 200_000;
+	protected static final int COUNT_J8 = 10_000; // 200_000;
 
     /**
      * Constructor
+     * count is set to {@link #COUNT_J8}.
+     * 
      * @throws GeneralSecurityException  if no algo could be found.
      */
     public CryptoStreamPBEImpl() throws GeneralSecurityException
     {
-        this.salt =  generateSalt();
-        this.count = COUNT_J8;
-        this.providerName = PROVIDERNAME;
-        this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE.getAlgorithm();
+        this(generateSalt(), COUNT_J8);
     }
+    
+    /**
+     * Constructor
+     *
+     * @param salt the salt for the PBE algorithm
+     */
+    public CryptoStreamPBEImpl( byte[] salt)
+    {
+        this(salt, COUNT_J8);
+        
+    }
+
     
     /**
      * Constructor
@@ -94,9 +106,10 @@ public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
      */
     public CryptoStreamPBEImpl( byte[] salt, int count)
     {
-        this.salt = salt.clone();
+        setSalt(salt);
         this.count = count;
         this.providerName = PROVIDERNAME;
+        setType(TYPES.PBE);
         this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE.getAlgorithm();
     }
 

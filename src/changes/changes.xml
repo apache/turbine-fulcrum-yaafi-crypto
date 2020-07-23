@@ -25,6 +25,9 @@
 
   <body>
     <release version="1.0.8" date="as in SVN">
+    <action dev="gk" type="update">
+        Updated Tests using Junit extension. More flexible comman line utility, defining CLI2 as manifest main class. Fine tuning clear code prefix and added integration-test
+      </action>
       <action dev="gk" type="update">
         Added two Java 8 implementations based on PBE/AES (PBEWithHmacSHA256AndAES_256) or GCM (AES/GCM/NoPadding) encryption.
       </action>

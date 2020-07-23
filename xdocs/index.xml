@@ -120,7 +120,7 @@
           </tr>
         </table>
       </subsection>
-      <subsection name="Availabe Algorithms">
+      <subsection name="Availabe Cipher Algorithms (Algorithm Modes)">
         <table>
           <tr>
             <th>Provider Version</th>
@@ -134,9 +134,13 @@
             <td>SunJCE 1.42</td>
             <td>PBEWithMD5AndDES</td>
           </tr>
-           <tr>
+          <tr>
             <td>SunJCE (Java 8)</td>
             <td>PBEWithHmacSHA256AndAES_256</td>
+          </tr>
+           <tr>
+            <td>SunJCE (Java 8)</td>
+            <td>AES_128/GCM/NoPadding</td>
           </tr>
         </table>
       </subsection>

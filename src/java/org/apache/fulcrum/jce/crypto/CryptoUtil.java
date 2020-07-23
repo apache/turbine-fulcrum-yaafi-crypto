@@ -26,6 +26,8 @@ import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
+import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
+import org.apache.fulcrum.jce.crypto.extended.CryptoUtilJ8;
 
 /**
  * Helper class to provde generic functions to work with CryptoStreams.
@@ -43,7 +45,7 @@ public class CryptoUtil {
     private static CryptoUtil instance;
     
     
-    private CryptoStreamFactory cryptoStreamFactory;
+    protected CryptoStreamFactory cryptoStreamFactory;
     
     /**
      * Factory method to get a default instance
@@ -63,6 +65,29 @@ public class CryptoUtil {
      */
     protected CryptoUtil() {
         cryptoStreamFactory = CryptoStreamFactoryImpl.getInstance();
+    }
+    
+    /**
+     * Factory method to get a default instance
+     * 
+     * @param salt the salt for the PBE algorithm
+     * @param count the iteration for PBEParameterSpec
+     * @return an instance of the CryptoUtil
+     */
+    public synchronized static CryptoUtil getInstance(byte[] salt, int count) {
+        if (CryptoUtil.instance == null) {
+            CryptoUtil.instance = new CryptoUtil(salt, count);
+        }
+
+        return CryptoUtil.instance;
+    }
+    
+    /**
+     *  @param salt the salt for the PBE algorithm
+     *  @param count the iteration for PBEParameterSpec
+     */
+    protected CryptoUtil(byte[] salt, int count) {
+        cryptoStreamFactory = CryptoStreamFactoryImpl.getInstance(salt, count);
     }
 
     /**
@@ -100,7 +125,7 @@ public class CryptoUtil {
 
     
     /**
-     * Encrypts a string into a hex string using {@link CryptoParametersJ8#CLEAR_CODE_J8}
+     * Encrypts a string into a hex string using {@link CryptoParametersJ8#CLEAR_CODE_DEFAULT}
      *
      * @param plainText the plain text to be encrypted
      * @param password  the password for encryption
@@ -138,10 +163,12 @@ public class CryptoUtil {
      */
     public String encryptString(CryptoStreamFactory factory, String plainText, char[] password, boolean withClearCode)
             throws GeneralSecurityException, IOException {
-        ByteArrayOutputStream bais = new ByteArrayOutputStream();
-        encrypt(factory, plainText, bais, password);
-        return (withClearCode)? CryptoParametersJ8.CLEAR_CODE_J8 + HexConverter.toString(bais.toByteArray()):
-            HexConverter.toString(bais.toByteArray());
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        encrypt(factory, plainText, baos, password);
+        String prefix =  (withClearCode)? (this instanceof CryptoUtilJ8)?
+        		((CryptoStreamFactoryJ8Template)((CryptoUtilJ8)this).getCryptoStreamFactory()).getType().getClearCode()
+            	: CryptoParametersJ8.CLEAR_CODE_DEFAULT: "";
+        return prefix + HexConverter.toString(baos.toByteArray());
     }
     
     /**
@@ -161,7 +188,9 @@ public class CryptoUtil {
      * Decrypts an encrypted string into the plain text. The encrypted string must
      * be a hex string created by encryptString.
      * 
-     * Decrypts encrypted text after {@link CryptoParametersJ8#CLEAR_CODE_J8}.
+     * Decrypts encrypted text after {@link CryptoParametersJ8#CLEAR_CODE_DEFAULT}.
+     * 
+     * Removes ClearCode length of 10 bit, before decrpyting expected as prefix.
      *
      * @param cipherText the encrypted text to be decrypted
      * @param password   the password for decryption
@@ -170,7 +199,7 @@ public class CryptoUtil {
      * @throws IOException              accessing the souce failed
      */
     public String decryptStringWithClearCode(String cipherText, char[] password) throws GeneralSecurityException, IOException {
-        return decryptString(getCryptoStreamFactory(), cipherText.substring(CryptoParametersJ8.CLEAR_CODE_J8.length()), password);
+        return decryptString(getCryptoStreamFactory(), cipherText.substring(10), password);
     }
 
     /**
@@ -200,7 +229,7 @@ public class CryptoUtil {
      */
     public String decryptString(String cipherText, char[] password, boolean withClearCode) throws GeneralSecurityException, IOException {
         return decryptString(getCryptoStreamFactory(), withClearCode?
-                cipherText.substring(CryptoParametersJ8.CLEAR_CODE_J8.length()):
+                cipherText.substring(CryptoParametersJ8.CLEAR_CODE_DEFAULT.length()):
                 cipherText, password);
     }
 

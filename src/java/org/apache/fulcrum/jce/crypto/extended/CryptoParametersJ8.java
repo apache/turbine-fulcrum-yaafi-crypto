@@ -1,5 +1,13 @@
 package org.apache.fulcrum.jce.crypto.extended;
 
+import java.security.Provider;
+import java.security.Security;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -26,7 +34,7 @@ package org.apache.fulcrum.jce.crypto.extended;
  */
 
 public interface CryptoParametersJ8 {
-
+	
 	/**
 	 * 
 	 * Implementing classes are either using
@@ -42,14 +50,13 @@ public interface CryptoParametersJ8 {
 	 * </ul>
 	 * 
 	 * 
-	 * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJCEProvider">The Oracle Security SunJCE Provider</a>
+	 * <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJCEProvider">The Oracle Security SunJCE Provider</a>
 	 * 
 	 * Algo/mode/padding for cipher transformation:
 	 * 
-	 * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Cipher">Java 8: The Oracle Security Standard Names Cipher Algorithms</a>
+	 * Java 8: <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Cipher">The Oracle Security Standard Names Cipher Algorithms</a>
 	 * 
-	 * @see <a href="https://docs.oracle.com/en/java/javase/14/docs/specs/security/standard-names.html#security-algorithm-implementation-requirements">Java 14: Security Algorithm Implementation Requirements</a>
-	 * 
+	 * Java 14: <a href="https://docs.oracle.com/en/java/javase/14/docs/specs/security/standard-names.html#security-algorithm-implementation-requirements">Security Algorithm Implementation Requirements</a>
 	 * 
 	 */
 	public enum TYPES_IMPL {
@@ -57,7 +64,7 @@ public interface CryptoParametersJ8 {
 		// key size 256
 		ALGORITHM_J8_PBE("PBEWithHmacSHA256AndAES_256"), 
 		// key size 128
-		ALGORITHM_J8_GCM("AES/GCM/NoPadding");
+		ALGORITHM_J8_GCM("AES_128/GCM/NoPadding");
 
 		private final String algorithm;
 
@@ -73,16 +80,113 @@ public interface CryptoParametersJ8 {
 		public String getAlgorithm() {
 			return algorithm;
 		}
-	}
-
-	public enum TYPES {
-		PBE, GCM
+		
+		/**
+		 * clear code depending on algorithm AES size return <pre>J8AESAES_&lt;size&gt;;</pre>.
+		 * {@link CryptoParametersJ8#CLEAR_CODE_DEFAULT}
+		 *  
+		 * @return clear code J8AES_&lt;size&gt;; with three digit size.
+		 */
+		public String getClearCode() {
+			
+			return String.format("J8%1$s;", 
+					algorithm.subSequence(algorithm.indexOf("AES_"),algorithm.indexOf("AES_")+7));
+		}
 	}
 
 	/**
-	 * Prefix to decrypted hex hash to get a clue, what to use and what it is.
 	 * 
-	 * This should be always 10 bytes
+	 * short names, exact names @see {@link TYPES_IMPL}.
+	 *
 	 */
-	String CLEAR_CODE_J8 = "J8_AES256;";
+	public enum TYPES {
+		
+		/**
+		 *  PBE algorithm is kind of meta algorithm, uses AES, see above. 
+		 */
+		PBE, 
+		/**
+		 *  AES algorithm, but GCM is is actually the algorithm mode, but nevertheless used as a short name.
+		 */
+		GCM;
+
+		/**
+		 * Clear code should be always 10 bytes.
+		 * 
+		 * {@link CryptoParametersJ8#CLEAR_CODE_DEFAULT}
+		 * 
+		 * @return clear code
+		 * 
+		 */
+		public String getClearCode() {
+			return this.equals(TYPES.PBE)? 
+					TYPES_IMPL.ALGORITHM_J8_PBE.getClearCode():
+				TYPES_IMPL.ALGORITHM_J8_GCM.getClearCode();
+		}
+	}
+
+	/**
+	 * Prefix to decrypted hex hash to get a clue, what to use and what it is; should be always 10 bytes.
+	 */
+	public String CLEAR_CODE_DEFAULT = "J8_AES064;";
+	
+	public TYPES DEFAULT_TYPE = TYPES.PBE;
+
+	
+	/**
+	 * Checks Java provider with <b>type</b> has exact type or contains any of the strings in algoList.
+	 * <pre>Types</pre> may be Cipher, AlgorithmParameters, KeyGenerator, Alg, Mac, SecretKeyFactory.
+	 * 
+	 * @param algoList the types to be checked
+	 * @param type the type is ignored if not exact, instead uses the two types: "AlgorithmParameters", "Cipher".
+	 * @param exact if exact does a exact match 
+	 * @return the matched results as a list
+	 */
+	public static List<String> getSupportedAlgos(List<String> algoList, String type, boolean exact) {
+		List<String> result = new ArrayList<String>();
+		Provider p[] = Security.getProviders();
+		List<Provider> providerList = Arrays.asList(p);
+
+		String[] PROVIDER_TYPES = { "AlgorithmParameters", "Cipher" };
+		for (Provider provider : providerList) {
+			// System.out.println(provider);
+			result.addAll(Collections.list(provider.keys()).stream().map(t -> t.toString())
+					.filter(x->
+							(exact)? 
+							(x.startsWith(type) && algoList.contains(x.replaceAll(type + ".", ""))):
+							(x.matches("(" +String.join("|", PROVIDER_TYPES) + ").*$") && 
+									algoList.stream().anyMatch(y -> y.contains(x.replaceAll(type + ".", "")))
+							)
+					)
+					.map( x ->
+					(exact)? 
+					   x.replaceAll(type + ".", ""):
+						   x.replaceAll("(" +String.join("|", PROVIDER_TYPES) + ")" + ".", "")
+					)
+					.collect(Collectors.toList()));
+		}
+		return result;
+	}
+
+	/**
+	 * initializes supported parameters by filtering {@link TYPES} against <i>AlgorithmParameters</i> in system supported cipher suites:
+	 * first by an exact match with type <i>AlgorithmParameters</i>, then by inexact matching.
+	 * 
+	 * {@link #getSupportedAlgos(List, String, boolean)}
+	 * @return list of supported algo short codes, if nothing is found the {@link #DEFAULT_TYPE} is set.
+	 */
+	static List<String> init() {
+		List<String> result = new ArrayList<String>();
+		List<String> defaultSupportedTypes = Arrays.asList( TYPES.values() ).stream().map(x-> x.toString()).collect(Collectors.toList());
+		String providerType = "AlgorithmParameters";
+		result = getSupportedAlgos(defaultSupportedTypes, providerType, true);
+		if (result.isEmpty()) {
+			// minimal default, try it 
+			result = getSupportedAlgos(defaultSupportedTypes, providerType, false);
+			result = !result.isEmpty()? 
+					result: Arrays.asList( DEFAULT_TYPE).stream().map(x-> x.toString()).collect(Collectors.toList());
+		} 
+		return result;
+	}
+
 }

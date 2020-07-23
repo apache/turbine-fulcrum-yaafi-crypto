@@ -122,6 +122,27 @@ public class CryptoStreamFactoryImpl extends CryptoStreamFactoryTemplate impleme
         this.providerName = PROVIDERNAME;
         this.algorithm = CryptoParameters.ALGORITHM;
     }
+    
+
+    /**
+     * Factory method to get a default instance
+     * 
+     * @param salt the salt for the PBE algorithm
+     * @param count the iteration for PBEParameterSpec
+     * @return an instance of the CryptoStreamFactory
+     * 
+     */
+    public static CryptoStreamFactory getInstance( byte[] salt, int count)
+    {
+        synchronized(CryptoStreamFactoryImpl.class ) {
+            if( CryptoStreamFactoryImpl.instance == null )
+            {
+                CryptoStreamFactoryImpl.instance = new CryptoStreamFactoryImpl(salt, count);
+            }
+    
+            return CryptoStreamFactoryImpl.instance;
+        }
+    }
 
     /**
      * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getSmartInputStream(java.io.InputStream,char[])

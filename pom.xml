@@ -20,8 +20,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <artifactId>turbine-parent</artifactId>
-       <groupId>org.apache.turbine</groupId>
-       <version>7</version>
+    <groupId>org.apache.turbine</groupId>
+    <version>7</version>
+    <relativePath />
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -206,6 +207,15 @@
 
         </executions>
       </plugin>
+      
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <forkCount>1</forkCount>
+            <reuseFork>true</reuseFork>
+           </configuration>
+        </plugin>
     </plugins>
   </build>
   
