@@ -28,7 +28,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>fulcrum-yaafi-crypto</artifactId>
   <groupId>org.apache.fulcrum</groupId>
-  <version>2.0.0-SNAPSHOT</version>
+  <version>2.0.0</version>
   <name>Fulcrum YAAFI Crypto</name>
   <inceptionYear>2008</inceptionYear>
   <description>Fulcrum YAAFI Crypto Library</description>
@@ -43,9 +43,9 @@
   </distributionManagement>
 
   <scm>
-    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7</developerConnection>
-    <url>http://svn.apache.org/viewvc/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7</url>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-2.0.0</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-2.0.0</developerConnection>
+    <url>http://svn.apache.org/viewvc/turbine/fulcrum/tags/fulcrum-yaafi-crypto-2.0.0</url>
   </scm>
 	
   <developers>
@@ -147,18 +147,14 @@
             <configuration>
               <skip>${skip.pw.encrypt}</skip>
               <target>
-                 <touch file="${basedir}/target/integration-test/filter-integration-test.properties" mkdirs="true"/>
-                <ant
-                  antfile="${basedir}/src/ant/integration-test-build-pw.xml"
-                  target="init">
-                  <property name="build.path"
-                    value="${basedir}/build" />
+                 <touch file="${basedir}/target/integration-test/filter-integration-test.properties" mkdirs="true" />
+                <ant antfile="${basedir}/src/ant/integration-test-build-pw.xml" target="init">
+                  <property name="build.path" value="${basedir}/build" />
                    <property name="password" value="${test.password}" />
                   <property name="meta.pw" value="${meta.pw}" />
                   <property name="jarname" value="${project.build.finalName}" />
                   <!-- generates encrypted password, saved in vcs: -->
-                  <property name="target.property.path"
-                    value="${basedir}/target/integration-test/filter-integration-test.properties" />
+                  <property name="target.property.path" value="${basedir}/target/integration-test/filter-integration-test.properties" />
                 </ant>
               </target>
             </configuration>
@@ -178,20 +174,15 @@
               <skip>${skip.pw.gen}</skip>
               <target>
                 <touch file="${basedir}/target/integration-test/filtered-pw.properties" mkdirs="true" />
-                <ant
-                  antfile="${basedir}/src/ant/integration-test-build-pw.xml"
-                  target="build">
-                  <property name="build.path"
-                    value="${basedir}/build" />
+                <ant antfile="${basedir}/src/ant/integration-test-build-pw.xml" target="build">
+                  <property name="build.path" value="${basedir}/build" />
                   <property name="meta.pw" value="${meta.pw}" /><!-- 
                     provided by env variable -->
                   <property name="jarname" value="${project.build.finalName}" />
                   <!-- contains encrypted password, saved in vcs: -->
-                  <property name="source.property.path"
-                    value="${basedir}/target/integration-test/filter-integration-test.properties" />
+                  <property name="source.property.path" value="${basedir}/target/integration-test/filter-integration-test.properties" />
                   <!-- should not be saved in vcs: -->
-                  <property name="target.property.path"
-                    value="${basedir}/target/integration-test/filtered-pw.properties" />
+                  <property name="target.property.path" value="${basedir}/target/integration-test/filtered-pw.properties" />
                 </ant>
               </target>
             </configuration>
