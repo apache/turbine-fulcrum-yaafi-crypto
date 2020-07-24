@@ -28,17 +28,43 @@
     <section name="Short Examples">
           <subsection name="Command line Usage">
               <p>
+Encrypt with default PCM the string "mysecretgeheim" and meta password "changeit", outputs encrypted string to stdout.
                 <source>
                 <![CDATA[
  java -classpath target/classes org.apache.fulcrum.jce.crypto.cli.CLI2 string enc changeit mysecretgeheim  
  ]]>
                 </source>
+ <source>
+                <![CDATA[
+ java -jar target/fulcrum-yaafi-crypto-<version>.jar string enc:GCM changeit mysecretgeheim  
+ ]]>
+                </source>
+This prints out the encrypted "mysecretgeheim".
+ <source>
+                <![CDATA[
+ java -jar target/fulcrum-yaafi-crypto-<version>.jar string dec:GCM changeit 88f8ecc93cc921672e13862d75f90c55a4cc2d823c36e6ac3da0225e397770f45d3944f6be859fe25d053a8442313a5a2581e7edf081030e  
+ ]]>
+                </source>
+This decrypts the result to stdout and prints information (supported type, matched type ..) to system.err.
          </p>
-          <p>An example using an ant build tool and property file is the provided Integration Test in pom.xml.
-          By default running this will write the encrypted password to src/filters/filter-integration-test.properties and the decrypted password to target/integration-test/filtered-pw.properties.  On the command line with custom password and meta password this is done like this (assuming -Dskip.pw.gen=false  -Dskip.pw.encrypt=false):
+	<p>CLI Usage Help:
+ <source>
+                <![CDATA[
+ java -jar target/fulcrum-yaafi-crypto-<version>.jar help 
+ ]]>
+                </source>
+ Information about supported cipher libs:
+                <source>
+                <![CDATA[
+ java -jar target/fulcrum-yaafi-crypto-<version>.jar info 
+ ]]>
+                </source>
+	</p>
+          <p>An example using an ant build tool and property file is provided in pom-xml with phase integration-test.
+          By default running this will write the encrypted password to target/integration-test/filter-integration-test.properties and the decrypted password to target/integration-test/filtered-pw.properties. You could play with this toll on the command line providing a custom secret and meta password like this (assuming -Dskip.pw.gen=false -Dskip.pw.encrypt=false):
                 <source> 
                 <![CDATA[
-mvn integration-test  -Dtest.password="xyz" -Dmeta.pw="abc"  
+mvn integration-test -Dtest.password="xyz" -Dmeta.pw="abc"  
  ]]>
                 </source>
          </p>
@@ -325,8 +351,7 @@ mvn clean
     <p>This example could be extended or adapted, eg. by using multiple passwords, or encrypting an entire file. 
        Have fun!
     </p>
-    <p>TODO Show gradle example..
-      </p>
+
     </subsection>
    </section>
 

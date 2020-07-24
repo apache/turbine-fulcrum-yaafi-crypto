@@ -115,8 +115,9 @@ public class CLI2 {
 	private static void printInfo() {
 		CryptoUtilJ8 cryptoUtilJ8 = CryptoUtilJ8.getInstance();
 		System.out.println("");
-		System.out.println("\t|Crypto factory class: \t" + cryptoUtilJ8.getCryptoStreamFactory().getClass());
+		System.out.println("\t| Default Crypto factory class: \t" + cryptoUtilJ8.getCryptoStreamFactory().getClass());
 		System.out.println("\t|_Default Algorithm used: \t" + cryptoUtilJ8.getCryptoStreamFactory().getAlgorithm());
+
 		List<String> algoShortList = Arrays.stream(CryptoParametersJ8.TYPES.values()).map(t -> t.toString())
 				.collect(Collectors.toList());
 		System.out.println("\t|Algorithms (shortcut) available: \t" + algoShortList);
@@ -139,6 +140,14 @@ public class CLI2 {
 								result:
 									CryptoParametersJ8.getSupportedAlgos(algoList, type, false)), type));
 		System.out.println("");
+		if (debug) {
+			Arrays.stream(CryptoParametersJ8.TYPES.values()).forEach(t -> {
+				CryptoUtilJ8 testcu = CryptoUtilJ8.getInstance(t);
+				System.out.println("\t| Crypto factory class: \t" + testcu.getCryptoStreamFactory().getClass());
+				System.out.println("\t|_Algorithm used: \t" + testcu.getCryptoStreamFactory().getAlgorithm());
+
+			});
+		}
 		System.out.println(
 				"\t|_ More Info: https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html\r\n");
 	}
@@ -151,21 +160,21 @@ public class CLI2 {
 		System.out.println(
 				"\r\n\t*** Command line tool for encrypting/decrypting strings/files ***\r\n\t*** algorithm based on "
 						+ CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE + "***\r\n");
-		System.out.println("\tjava -cp target\\classes; " + CLI2.class.getName()
+		System.out.println("\tjava -cp target\\classes " + CLI2.class.getName()
 				+ " <operation mode> <coding mode> <password> <path|string> [target]\r\n");
 		System.out.println(
 				"\tjava -jar target/fulcrum-yaafi-crypto-1.0.8-SNAPSHOT.jar <operation mode> <coding mode> <password> <path|string> [target]\r\n");
-		System.out.println("\t\t-------------------");
-		System.out.println("\t\toperation mode: file|string|info");
-		System.out.println("\t\tcoding mode: enc|dec|enc:GCM. Default algorithm is " + TYPES.PBE);
-		System.out.println("\t\t<password: string or empty:''");
-		System.out.println("\t\tcode|coderef: path|string");
-		System.out.println("\t\ttarget: optional\r\n");
-		System.out.println("\t\t-------------------");
+		System.out.println("\t-------------------");
+		System.out.println("\toperation mode: file|string|info");
+		System.out.println("\tcoding mode: enc|dec|enc:GCM. Default algorithm is " + TYPES.PBE);
+		System.out.println("\t<password: string or empty:''");
+		System.out.println("\tcode|coderef: path|string");
+		System.out.println("\ttarget: optional\r\n");
+		System.out.println("\t-------------------");
 		System.out.println("\t*** Usage: ***\r\n");
-		System.out.println("\t\t" + CLI2.class.getSimpleName() + " file [enc|dec] passwd source [target]");
-		System.out.println("\t\t" + CLI2.class.getSimpleName() + " string [enc|dec] passwd source");
-		System.out.println("\t\t" + CLI2.class.getSimpleName() + " info");
+		System.out.println("\t" + CLI2.class.getSimpleName() + " file [enc|dec] passwd source [target]");
+		System.out.println("\t" + CLI2.class.getSimpleName() + " string [enc|dec] passwd source");
+		System.out.println("\t" + CLI2.class.getSimpleName() + " info");
 	}
 
 	/**
