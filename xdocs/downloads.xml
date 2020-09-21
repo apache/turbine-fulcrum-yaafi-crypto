@@ -31,16 +31,22 @@
         </tr>
         <tr>
           <td>
-            <p><a href="http://www.apache.org/dyn/closer.cgi/turbine/fulcrum/fulcrum-yaafi-crypto/binaries/fulcrum-yaafi-crypto-1.0.6-bin.zip">Fulcrum's YAAFI Crypto v1.0.6</a>
-            </p><p>
-            <a href="http://www.apache.org/dyn/closer.cgi/turbine/fulcrum/fulcrum-yaafi-crypto/binaries/fulcrum-yaafi-crypto-1.0.7-bin.zip">Fulcrum's YAAFI Crypto v1.0.7</a>
+            <p>
+              <a href="http://www.apache.org/dyn/closer.cgi/turbine/fulcrum/fulcrum-yaafi-crypto/binaries/fulcrum-yaafi-crypto-2.0.1-bin.zip">Fulcrum's YAAFI Crypto v2.0.1</a>
+            </p>    
+            <p>
+              <a href="http://www.apache.org/dyn/closer.cgi/turbine/fulcrum/fulcrum-yaafi-crypto/binaries/fulcrum-yaafi-crypto-1.0.8-bin.zip">Fulcrum's YAAFI Crypto v1.0.8</a>
             </p>
             <p>
-            <a href="http://www.apache.org/dyn/closer.cgi/turbine/fulcrum/fulcrum-yaafi-crypto/binaries/fulcrum-yaafi-crypto-1.0.8-bin.zip">Fulcrum's YAAFI Crypto v1.0.8</a>
+              <a href="http://www.apache.org/dyn/closer.cgi/turbine/fulcrum/fulcrum-yaafi-crypto/binaries/fulcrum-yaafi-crypto-1.0.7-bin.zip">Fulcrum's YAAFI Crypto v1.0.7</a>
+            </p>
+            <p><a href="http://www.apache.org/dyn/closer.cgi/turbine/fulcrum/fulcrum-yaafi-crypto/binaries/fulcrum-yaafi-crypto-1.0.6-bin.zip">Fulcrum's YAAFI Crypto v1.0.6</a>
             </p>
           </td>
           <td>
-            <a href="announcements/announcement-1.0.6.txt">1.0.6</a>
+            <p>See <a href="changes-report.html">project changes report</a>.</p>
+             <p></p>
+              <p></p>   
           </td>
         </tr>
       </table>

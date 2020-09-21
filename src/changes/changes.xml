@@ -24,7 +24,9 @@
   </properties>
 
   <body>
-    <release version="1.0.8" date="as in SVN">
+    <release version="2.0.2" date="as in SVN">
+    </release>
+    <release version="2.0.1" date="as in SVN">
     <action dev="gk" type="update">
         Updated Tests using Junit extension. More flexible comman line utility, defining CLI2 as manifest main class. Fine tuning clear code prefix and added integration-test
       </action>
