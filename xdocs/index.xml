@@ -29,8 +29,7 @@
 
     <section name="Overview">
       <p> Fulcrum YAFFI Crypto Library is an extension library for Fulcrum YAAFI to support
-        transparent decryption of configuration files. The encryption/decryption is based on DES
-        using 56 bit key length. </p>
+        transparent decryption of configuration files. The encryption/decryption is based by default on <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html" target="blank_">PBEWith&lt;digest&gt;And&lt;encryption&gt;</a> algorithm (PBEWithHmacSHA256AndAES_256) with 128bit key length.</p>
     </section>
 
     <section name="Functionality">
@@ -42,7 +41,7 @@
       </p>
       <subsection name="Password Creation">
         <p> Why someone need a password factory to create safer password?! People tend to use weak
-          password vunerable to dictionary attacks. To improve the situation you have a base
+          password vulnerable to dictionary attacks. To improve the situation you have a base
           password which you convert into the real password using the PasswordFactory. For the
           password generation the base password is salted and repeatedly hashed to generate a UUID
           string (which you can still manually enter on the keyboard). Furthermore the password
@@ -96,11 +95,32 @@
           <tr>
             <td>JDK 1.6.x</td>
             <td> The current JDK's have the JCA built-in therefore no extra configuration is
-              required. </td>
+              required. 
+              <a href="https://docs.oracle.com/javase/6/docs/technotes/guides/security/SunProviders.html">
+            Java Cryptography Architecture Sun Providers Documentation for JavaTM Platform Standard Edition 6</a>
+               </td>
+          </tr>
+          <tr>
+            <td>JDK 1.7.x</td>
+            <td> <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html">
+            Java Cryptography Architecture Oracle Providers Documentation for Java Platform Standard Edition 7</a>
+            </td>
+          </tr>
+          <tr>
+            <td>JDK 1.8.x</td>
+            <td> <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html">
+            Java Cryptography Architecture Oracle Providers Documentation for JDK 8</a>
+            </td>
+          </tr>
+           <tr>
+            <td>JDK 14</td>
+            <td> <a href="https://docs.oracle.com/en/java/javase/14/security/java-cryptography-architecture-jca-reference-guide.html">
+            Java Cryptography Architecture Oracle Providers Documentation for JDK 14</a>
+            </td>
           </tr>
         </table>
       </subsection>
-      <subsection name="Availabe Algorithms">
+      <subsection name="Availabe Cipher Algorithms (Algorithm Modes)">
         <table>
           <tr>
             <th>Provider Version</th>
@@ -112,12 +132,19 @@
           </tr>
           <tr>
             <td>SunJCE 1.42</td>
-            <td> PBEWithMD5AndDES </td>
+            <td>PBEWithMD5AndDES</td>
+          </tr>
+          <tr>
+            <td>SunJCE (Java 8)</td>
+            <td>PBEWithHmacSHA256AndAES_256</td>
+          </tr>
+           <tr>
+            <td>SunJCE (Java 8)</td>
+            <td>AES_128/GCM/NoPadding</td>
           </tr>
         </table>
       </subsection>
-    </section>
-
+     </section>
   </body>
 
 </document>

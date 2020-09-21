@@ -180,7 +180,11 @@ public final class StreamUtil
         
         if((parentFile != null) && !parentFile.exists())
         {
-            parentFile.mkdirs();
+            boolean success = parentFile.mkdirs();
+            if ( !success )
+            {
+            	System.err.println("Error, could not create directory to write parent file");
+            }
         }
     }
 }

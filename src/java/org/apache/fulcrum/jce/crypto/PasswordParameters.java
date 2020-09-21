@@ -27,20 +27,29 @@ package org.apache.fulcrum.jce.crypto;
 
 public interface PasswordParameters
 {
-    /** Parameter for the number of SHA1 invocation */
-    int COUNT = 20;
+    /** Parameter for the number of SHA256 invocation */
+    int COUNT = 1000;
 
-    /** The default password used for creating the internal password */
-    char[] DEFAULTPASSWORD = {
+    /** 
+     * The default password used for creating the internal password 
+     * @return the default password: <code>fulcrum-yaafi</code>.
+     * */
+    public static char[] DefaultPassword() { 
+    	return new char[] {
         (char) 'f', (char) 'u', (char) 'l', (char) 'c',
         (char) 'r', (char) 'u', (char) 'm', (char) '-',
         (char) 'y', (char) 'a', (char) 'a', (char) 'f',
         (char) 'i'
         };
+    }
 
-    /** The password salt */
-    byte[] SALT = {
+    /** The password salt 
+     * @return the 8bit default salt as byte array
+     * */
+    public static byte[] Salt() {
+    	return new byte[] {
         (byte)0xc6, (byte)0x74, (byte)0x81, (byte)0x8a,
         (byte)0x7b, (byte)0xe8, (byte)0xfe, (byte)0x99
         };
+    }
 }

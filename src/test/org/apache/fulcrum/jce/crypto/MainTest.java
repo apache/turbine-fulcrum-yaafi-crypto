@@ -1,5 +1,7 @@
 package org.apache.fulcrum.jce.crypto;
 
+import org.apache.fulcrum.jce.crypto.cli.CLI;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -55,9 +57,17 @@ public class MainTest extends TestCase
     public void testStringEncryption()
     {
         String[] encryptionArgs = { "string", "enc", this.password, "mysecretpassword"};
-        Main.main(encryptionArgs);
+        CLI.main(encryptionArgs);
         String[] decryptionArgs = { "string", "dec", this.password, "9330419fc003b4e1461986782625db13f4c8c81c340a9caa"};
-        Main.main(decryptionArgs);
+        CLI.main(decryptionArgs);
+    }
+    
+    public void testAnotherStringEncryption()
+    {
+        String[] encryptionArgs = { "string", "enc", this.password, "secret"};
+        CLI.main(encryptionArgs);
+        String[] decryptionArgs = { "string", "dec", this.password, "39619852d48491af"};
+        CLI.main(decryptionArgs);
     }
 
     /** Encrypt a text file on the command line */
@@ -65,8 +75,8 @@ public class MainTest extends TestCase
     {
         String[] encryptionArgs = { "file", "enc", this.password, "./src/test/data/plain.txt", "./target/main/plain.enc.txt" };
         String[] decryptionArgs = { "file", "dec", this.password, "./target/main/plain.enc.txt", "./target/main/plain.dec.txt" };
-        Main.main(encryptionArgs);
-        Main.main(decryptionArgs);
+        CLI.main(encryptionArgs);
+        CLI.main(decryptionArgs);
     }
 
     /** Encrypt a text file in-place on the command line */
@@ -74,8 +84,8 @@ public class MainTest extends TestCase
     {
         String[] encryptionArgs = { "file", "enc", this.password, "./src/test/data/plain.txt", "./target/main/plain.txt" };
         String[] decryptionArgs = { "file", "dec", this.password, "./target/main/plain.txt" };
-        Main.main(encryptionArgs);
-        Main.main(decryptionArgs);
+        CLI.main(encryptionArgs);
+        CLI.main(decryptionArgs);
     }
 
 }

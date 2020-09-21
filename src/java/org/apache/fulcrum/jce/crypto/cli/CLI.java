@@ -1,4 +1,4 @@
-package org.apache.fulcrum.jce.crypto;
+package org.apache.fulcrum.jce.crypto.cli;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,6 +25,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
+import org.apache.fulcrum.jce.crypto.CryptoUtil;
+import org.apache.fulcrum.jce.crypto.StreamUtil;
+
 /**
  * Command line tool for encrypting/decrypting files
  *
@@ -34,7 +37,7 @@ import java.io.FileOutputStream;
  * @author <a href="mailto:siegfried.goeschl@it20one.at">Siegfried Goeschl</a>
  */
 
-public class Main
+public class CLI
 {
     /**
      * Allows testing on the command line.
@@ -74,7 +77,7 @@ public class Main
     public static void printHelp()
     {
         System.out.println("Main file [enc|dec] passwd source [target]");
-        System.out.println("Main string [enc|dec] passwd ");
+        System.out.println("Main string [enc|dec] passwd source");
     }
 
     /**
@@ -99,9 +102,13 @@ public class Main
             targetFile = new File(args[4]);
             File parentFile = targetFile.getParentFile(); 
 
-            if(parentFile != null)
+            if (parentFile != null)
             {
-                parentFile.mkdirs();
+                boolean success = parentFile.mkdirs();
+                if ( !success )
+                {
+                	System.err.println("Failed to create directory");
+                }
             }
         }
 
@@ -109,47 +116,48 @@ public class Main
     }
 
     /**
-     * Decrypt/encrypt a single file
+     * Decrypt and encrypt a single file
      * @param cipherMode the mode
-     * @param password the passwors
+     * @param password the password
      * @param sourceFile the file to process
-     * @param targetFile the targetf file
+     * @param targetFile the target file
      * @throws Exception the operation failed
      */
     public static void processFile(String cipherMode, char[] password, File sourceFile, File targetFile)
         throws Exception
     {
-        FileInputStream fis = new FileInputStream(sourceFile);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-        if( cipherMode.equals("dec") )
-        {
-            System.out.println("Decrypting " + sourceFile.getAbsolutePath() );
-            CryptoUtil.decrypt( fis, baos, password );
-            fis.close();
-
-            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-            FileOutputStream fos = new FileOutputStream(targetFile);
-            CryptoUtil.copy(bais,fos);
-            bais.close();
-            fos.close();
-        }
-        else if( cipherMode.equals("enc") )
-        {
-            System.out.println("Enrypting " + sourceFile.getAbsolutePath() );
-            CryptoUtil.encrypt( fis, baos, password );
-            fis.close();
-
-            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-            FileOutputStream fos = new FileOutputStream(targetFile);
-            CryptoUtil.copy(bais,fos);
-            bais.close();
-            fos.close();
-        }
-        else
-        {
-            String msg = "Don't know what to do with : " + cipherMode;
-            throw new IllegalArgumentException(msg);
+        try (FileInputStream fis = new FileInputStream(sourceFile)) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    
+            if( cipherMode.equals("dec") )
+            {
+                System.out.println("Decrypting " + sourceFile.getAbsolutePath() );
+                CryptoUtil.getInstance().decrypt( fis, baos, password );
+                fis.close();
+    
+                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                FileOutputStream fos = new FileOutputStream(targetFile);
+                StreamUtil.copy(bais,fos);
+                bais.close();
+                fos.close();
+            }
+            else if( cipherMode.equals("enc") )
+            {
+                System.out.println("Encrypting " + sourceFile.getAbsolutePath() );
+                CryptoUtil.getInstance().encrypt( fis, baos, password );
+                fis.close();
+    
+                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                FileOutputStream fos = new FileOutputStream(targetFile);
+                StreamUtil.copy(bais,fos);
+                bais.close();
+                fos.close();
+            }
+            else
+            {
+                String msg = "Don't know what to do with : " + cipherMode;
+                throw new IllegalArgumentException(msg);
+            }
         }
     }
 
@@ -169,11 +177,11 @@ public class Main
 
         if( cipherMode.equals("dec") )
         {
-            result = CryptoUtil.decryptString(value,password);
+            result = CryptoUtil.getInstance().decryptString(value,password);
         }
         else
         {
-            result = CryptoUtil.encryptString(value,password);
+            result = CryptoUtil.getInstance().encryptString(value,password);
         }
 
         System.out.println( result );

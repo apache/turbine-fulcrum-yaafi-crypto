@@ -63,7 +63,7 @@ public class SmartDecryptingInputStreamTest extends TestCase
     protected void setUp() throws Exception
     {
         CryptoStreamFactoryImpl factory = new CryptoStreamFactoryImpl(
-            CryptoParameters.SALT,
+            CryptoParameters.Salt(),
             CryptoParameters.COUNT
             );
 
@@ -158,7 +158,7 @@ public class SmartDecryptingInputStreamTest extends TestCase
         String result = null;
         FileInputStream fis = new FileInputStream( file );
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        CryptoUtil.copy(fis,baos);
+        StreamUtil.copy(fis,baos);
         fis.close();
         result = new String( baos.toByteArray(), enc );
         return result;
@@ -173,8 +173,8 @@ public class SmartDecryptingInputStreamTest extends TestCase
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         FileInputStream fis = new FileInputStream( file );
 
-        CryptoUtil.encrypt(
-            CryptoStreamFactoryImpl.getInstance(),
+        CryptoUtil.getInstance().encrypt(
+                CryptoStreamFactoryImpl.getInstance(),
             fis,
             baos,
             this.getPassword()
@@ -197,12 +197,12 @@ public class SmartDecryptingInputStreamTest extends TestCase
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         SmartDecryptingInputStream sdis = new SmartDecryptingInputStream(
-            CryptoStreamFactoryImpl.getInstance(),
+                CryptoStreamFactoryImpl.getInstance(),
             bais,
             this.getPassword()
             );
 
-        CryptoUtil.copy(sdis,baos);
+        StreamUtil.copy(sdis,baos);
 
         return new String( baos.toByteArray(), enc );
     }
@@ -219,12 +219,12 @@ public class SmartDecryptingInputStreamTest extends TestCase
         FileInputStream fis = new FileInputStream( file );
 
         SmartDecryptingInputStream sdis = new SmartDecryptingInputStream(
-            CryptoStreamFactoryImpl.getInstance(),
+                CryptoStreamFactoryImpl.getInstance(),
             fis,
             this.getPassword()
             );
 
-        CryptoUtil.copy(sdis,baos);
+        StreamUtil.copy(sdis,baos);
         return new String( baos.toByteArray(), enc );
     }
 

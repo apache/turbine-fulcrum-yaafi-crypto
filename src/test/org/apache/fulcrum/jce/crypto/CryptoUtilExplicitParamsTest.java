@@ -28,6 +28,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
 import org.apache.logging.log4j.LogManager;
@@ -41,7 +43,7 @@ import org.junit.jupiter.api.Test;
  * @author <a href="mailto:siegfried.goeschl@it20one.at">Siegfried Goeschl</a>
  */
 
-public class CryptoUtilTest {
+public class CryptoUtilExplicitParamsTest {
 	/** the password to be used */
 	private String password;
 
@@ -51,12 +53,30 @@ public class CryptoUtilTest {
 	/** the temp data director */
 	private File tempDataDirectory;
 	
-	private static Logger log = LogManager.getLogger(CryptoUtilTest.class);
+	private static Logger log = LogManager.getLogger(CryptoUtilExplicitParamsTest.class);
+	
+	private static byte[] SALT = Salt();
+	
+	private static int COUNT = 25;
+	
+	 public static byte[] Salt()
+	 {
+		SecureRandom random;
+		try {
+			random = SecureRandom.getInstanceStrong();
+	        byte[] salt = new byte[ 8 ];
+	        random.nextBytes(salt);
+	        return salt;
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		return null;
+	 }
 
 	/**
 	 * Constructor
 	 */
-	public CryptoUtilTest() {
+	public CryptoUtilExplicitParamsTest() {
 		this.password = "mysecret";
 		this.testDataDirectory = new File("./src/test/data");
 		this.tempDataDirectory = new File("./target/temp");
@@ -69,11 +89,6 @@ public class CryptoUtilTest {
 	 */
 	@BeforeAll
 	protected static void setUp() throws Exception {
-	    CryptoStreamFactoryImpl factory = new CryptoStreamFactoryImpl(CryptoParameters.Salt(), CryptoParameters.COUNT);
-
-	    CryptoStreamFactoryImpl.setInstance(factory);
-	    
-	    
 	}
 
 	/**
@@ -104,7 +119,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTestDataDirectory(), "plain.txt");
 		File targetFile = new File(this.getTempDataDirectory(), "plain.enc.txt");
 		try {
-			CryptoUtil.getInstance().encrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).encrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException e) {
 			fail(e);
 		} catch (IOException e) {
@@ -120,7 +135,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTempDataDirectory(), "plain.enc.txt");
 		File targetFile = new File(this.getTempDataDirectory(), "plain.dec.txt");
 		try {
-			CryptoUtil.getInstance().decrypt(sourceFile, targetFile.getAbsolutePath(), this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).decrypt(sourceFile, targetFile.getAbsolutePath(), this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -133,7 +148,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTestDataDirectory(), "empty.txt");
 		File targetFile = new File(this.getTempDataDirectory(), "empty.enc.txt");
 		try {
-			CryptoUtil.getInstance().encrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).encrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -147,7 +162,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTempDataDirectory(), "empty.enc.txt");
 		File targetFile = new File(this.getTempDataDirectory(), "empty.dec.txt");
 		try {
-			CryptoUtil.getInstance().decrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).decrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -160,7 +175,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTestDataDirectory(), "plain.pdf");
 		File targetFile = new File(this.getTempDataDirectory(), "plain.enc.pdf");
 		try {
-			CryptoUtil.getInstance().encrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).encrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -174,7 +189,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTempDataDirectory(), "plain.enc.pdf");
 		File targetFile = new File(this.getTempDataDirectory(), "plain.dec.pdf");
 		try {
-			CryptoUtil.getInstance().decrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).decrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -187,7 +202,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTestDataDirectory(), "plain.zip");
 		File targetFile = new File(this.getTempDataDirectory(), "plain.enc.zip");
 		try {
-			CryptoUtil.getInstance().encrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).encrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -201,7 +216,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTempDataDirectory(), "plain.enc.zip");
 		File targetFile = new File(this.getTempDataDirectory(), "plain.dec.zip");
 		try {
-			CryptoUtil.getInstance().decrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).decrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -214,7 +229,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTestDataDirectory(), "plain-utf16.xml");
 		File targetFile = new File(this.getTempDataDirectory(), "plain-utf16.enc.xml");
 		try {
-			CryptoUtil.getInstance().encrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).encrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -229,7 +244,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTempDataDirectory(), "plain-utf16.enc.xml");
 		File targetFile = new File(this.getTempDataDirectory(), "plain-utf16.dec.xml");
 		try {
-			CryptoUtil.getInstance().decrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).decrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -243,7 +258,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTestDataDirectory(), "plain-utf8.xml");
 		File targetFile = new File(this.getTempDataDirectory(), "plain-utf8.enc.xml");
 		try {
-			CryptoUtil.getInstance().encrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).encrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -258,7 +273,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTempDataDirectory(), "plain-utf8.enc.xml");
 		File targetFile = new File(this.getTempDataDirectory(), "plain-utf8.dec.xml");
 		try {
-			CryptoUtil.getInstance().decrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).decrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -272,7 +287,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTestDataDirectory(), "plain-iso-8859-1.xml");
 		File targetFile = new File(this.getTempDataDirectory(), "plain-iso-8859-1.enc.xml");
 		try {
-			CryptoUtil.getInstance().encrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).encrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -287,7 +302,7 @@ public class CryptoUtilTest {
 		File sourceFile = new File(this.getTempDataDirectory(), "plain-iso-8859-1.enc.xml");
 		File targetFile = new File(this.getTempDataDirectory(), "plain-iso-8859-1.dec.xml");
 		try {
-			CryptoUtil.getInstance().decrypt(sourceFile, targetFile, this.getPassword());
+			CryptoUtil.getInstance(SALT,COUNT).decrypt(sourceFile, targetFile, this.getPassword());
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
 		}
@@ -305,8 +320,8 @@ public class CryptoUtilTest {
 
 		String source = new String(testVector);
 		try {
-			String cipherText = CryptoUtil.getInstance().encryptString(source, this.getPassword());
-			String plainText = CryptoUtil.getInstance().decryptString(cipherText, this.getPassword());
+			String cipherText = CryptoUtil.getInstance(SALT,COUNT).encryptString(source, this.getPassword());
+			String plainText = CryptoUtil.getInstance(SALT,COUNT).decryptString(cipherText, this.getPassword());
 			assertEquals(source, plainText);
 		} catch (GeneralSecurityException | IOException e) {
 			fail(e);
@@ -316,7 +331,7 @@ public class CryptoUtilTest {
 	
 	@Test
 	public void testStringEncryptionWithType() {
-		CryptoUtil cu = CryptoUtil.getInstance();
+		CryptoUtil cu = CryptoUtil.getInstance(SALT,COUNT);
 		char[] testVector = new char[513];
 
 		for (int i = 0; i < testVector.length; i++) {
@@ -355,8 +370,8 @@ public class CryptoUtilTest {
 	public void testStringHandling() {
 		String source = "Nobody knows the toubles I have seen ...";
 		try {
-			String cipherText = CryptoUtil.getInstance().encryptString(source, this.getPassword());
-			String plainText = CryptoUtil.getInstance().decryptString(cipherText, this.getPassword());
+			String cipherText = CryptoUtil.getInstance(SALT,COUNT).encryptString(source, this.getPassword());
+			String plainText = CryptoUtil.getInstance(SALT,COUNT).decryptString(cipherText, this.getPassword());
 		assertEquals(source, plainText);
 		} catch (GeneralSecurityException | IOException e) {
 			e.printStackTrace();
@@ -379,8 +394,8 @@ public class CryptoUtilTest {
 		ByteArrayOutputStream cipherText = new ByteArrayOutputStream();
 		ByteArrayOutputStream plainText = new ByteArrayOutputStream();
 
-		CryptoUtil.getInstance().encrypt(source, cipherText, this.getPassword());
-		CryptoUtil.getInstance().decrypt(cipherText, plainText, this.getPassword());
+		CryptoUtil.getInstance(SALT,COUNT).encrypt(source, cipherText, this.getPassword());
+		CryptoUtil.getInstance(SALT,COUNT).decrypt(cipherText, plainText, this.getPassword());
 
 		result = plainText.toByteArray();
 
@@ -422,10 +437,10 @@ public class CryptoUtilTest {
 	public void testPasswordEncryption() throws Exception {
 		char[] password = "57cb-4a23-d838-45222".toCharArray();
 		String source = "e02c-3b76-ff1e-5d9a1";
-		String cipherText = CryptoUtil.getInstance().encryptString(source, password);
+		String cipherText = CryptoUtil.getInstance(SALT,COUNT).encryptString(source, password);
 		log.info(cipherText);// len 48
 		assertEquals(48, cipherText.length());
-		String plainText = CryptoUtil.getInstance().decryptString(cipherText, password);
+		String plainText = CryptoUtil.getInstance(SALT,COUNT).decryptString(cipherText, password);
 		assertEquals(source, plainText);
 	}
 

@@ -24,7 +24,20 @@
   </properties>
 
   <body>
-    <release version="1.0.7" date="as in SVN">
+    <release version="2.0.2" date="as in SVN">
+    </release>
+    <release version="2.0.1" date="as in SVN">
+    <action dev="gk" type="update">
+        Updated Tests using Junit extension. More flexible comman line utility, defining CLI2 as manifest main class. Fine tuning clear code prefix and added integration-test
+      </action>
+      <action dev="gk" type="update">
+        Added two Java 8 implementations based on PBE/AES (PBEWithHmacSHA256AndAES_256) or GCM (AES/GCM/NoPadding) encryption.
+      </action>
+      <action dev="painter" type="update">
+        Clean up PMD and FindBug reports.  Fixed some typos and updated to conform with Turbine coding style guidelines
+      </action>
+    </release>
+    <release version="1.0.7" date="2018-11-08">
       <action dev="painter" type="update">
         Simplify the HexConverter code, more Java 8 friendly
       </action>
@@ -38,7 +51,7 @@
         Fix missing license from rat report
       </action>
     </release>
-    <release version="1.0.6" date="as in SVN">
+    <release version="1.0.6" date="2009-03-25">
       <action dev="sgoeschl" type="update">
         Using the official fulcrum-parent-1 pom.	
       </action>

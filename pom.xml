@@ -20,14 +20,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <artifactId>turbine-parent</artifactId>
-       <groupId>org.apache.turbine</groupId>
-       <version>5</version>
+    <groupId>org.apache.turbine</groupId>
+    <version>7</version>
+    <relativePath />
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>fulcrum-yaafi-crypto</artifactId>
   <groupId>org.apache.fulcrum</groupId>
-  <version>1.0.7</version>
+  <version>2.0.1</version>
   <name>Fulcrum YAAFI Crypto</name>
   <inceptionYear>2008</inceptionYear>
   <description>Fulcrum YAAFI Crypto Library</description>
@@ -37,14 +38,14 @@
   <distributionManagement>
     <site>
       <id>turbine.apache.org</id>
-      <url>https://turbine.apache.org/fulcrum/fulcrum-yaafi-crypto</url>
+      <url>https://turbine.apache.org/fulcrum/fulcrum-yaafi-crypto/</url>
     </site>
   </distributionManagement>
-		
+
   <scm>
-    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7/</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7</developerConnection>
-    <url>http://svn.apache.org/viewvc/turbine/fulcrum/tags/fulcrum-yaafi-crypto-1.0.7</url>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-2.0.1</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/tags/fulcrum-yaafi-crypto-2.0.1</developerConnection>
+    <url>http://svn.apache.org/viewvc/turbine/fulcrum/tags/fulcrum-yaafi-crypto-2.0.1</url>
   </scm>
 	
   <developers>
@@ -57,28 +58,163 @@
         <role>Java Developer</role>
       </roles>
     </developer>
+     <developer>
+      <name>Georg Kallidis </name>
+      <id>gk</id>
+      <email>gk@apache.org</email>
+      <organization />
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+    </developer>
   </developers>
 
   <dependencies>
     <!-- testing dependencies -->
+       <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.6.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13</version>
+              <scope>test</scope>
+		</dependency>
+        <dependency>
+            <groupId>org.apache.fulcrum</groupId>
+            <artifactId>fulcrum-testcontainer</artifactId>
+            <version>1.0.8</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+            <scope>test</scope>
+      </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${turbine.log4j2.version}</version>
+      <scope>test</scope><!-- change to provided ? -->
     </dependency>
+    <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.6</version>
+        <scope>test</scope>
+    </dependency>    
   </dependencies>
 
   <build>
     <sourceDirectory>${basedir}/src/java</sourceDirectory>
     <testSourceDirectory>${basedir}/src/test</testSourceDirectory>
-  </build>
+    <testResources>
+      <testResource>
+        <directory>src/test</directory>
+        <includes> <include>**/*.xml</include><include>**/*.properties</include>
+        </includes>
+      </testResource>
+    </testResources>
+    
+    <plugins>
+     <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>org.apache.fulcrum.jce.crypto.cli.CLI2</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>    
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <!-- 
+            Integration Test encrypts and decrypts in one step
+            mvn clean install integration-test 
+            -->
+        <executions>
+          <execution>
+            <id>init</id>
+            <phase>integration-test</phase>
+            <configuration>
+              <skip>${skip.pw.encrypt}</skip>
+              <target>
+                 <touch file="${basedir}/target/integration-test/filter-integration-test.properties" mkdirs="true" />
+                <ant antfile="${basedir}/src/ant/integration-test-build-pw.xml" target="init">
+                  <property name="build.path" value="${basedir}/build" />
+                   <property name="password" value="${test.password}" />
+                  <property name="meta.pw" value="${meta.pw}" />
+                  <property name="jarname" value="${project.build.finalName}" />
+                  <!-- generates encrypted password, saved in vcs: -->
+                  <property name="target.property.path" value="${basedir}/target/integration-test/filter-integration-test.properties" />
+                </ant>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>build</id>
+            <!-- 
+            1) run mvn package to generate executable jar 
+            2) mvn generate-sources -Dskip.pw.gen=false 
+            to generate encrypted password 
+            -->
+            <phase>integration-test</phase>
+            <configuration>
+              <skip>${skip.pw.gen}</skip>
+              <target>
+                <touch file="${basedir}/target/integration-test/filtered-pw.properties" mkdirs="true" />
+                <ant antfile="${basedir}/src/ant/integration-test-build-pw.xml" target="build">
+                  <property name="build.path" value="${basedir}/build" />
+                  <property name="meta.pw" value="${meta.pw}" /><!-- 
+                    provided by env variable -->
+                  <property name="jarname" value="${project.build.finalName}" />
+                  <!-- contains encrypted password, saved in vcs: -->
+                  <property name="source.property.path" value="${basedir}/target/integration-test/filter-integration-test.properties" />
+                  <!-- should not be saved in vcs: -->
+                  <property name="target.property.path" value="${basedir}/target/integration-test/filtered-pw.properties" />
+                </ant>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
 
+        </executions>
+      </plugin>
+      
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <forkCount>1</forkCount>
+            <reuseFork>true</reuseFork>
+           </configuration>
+        </plugin>
+    </plugins>
+  </build>
+  
   <properties>
     <turbine.site.path>fulcrum/fulcrum-yaafi-crypto</turbine.site.path>
-    <turbine.scmPubCheckoutDirectory>${turbine.site.cache}/fulcrum/fulcrum-yaafi-crypto</turbine.scmPubCheckoutDirectory>
+    <turbine.scmPubCheckoutDirectory>${turbine.site.cache}/fulcrum/yaafi-crypto</turbine.scmPubCheckoutDirectory>
     <turbine.site.cache>${project.build.directory}/turbine-sites</turbine.site.cache>
     <siteContent.path>${project.build.directory}/staging</siteContent.path><!-- default stagingSiteURL -->
+
+    <skip.pw.encrypt>false</skip.pw.encrypt>
+    <skip.pw.gen>false</skip.pw.gen>
+    <meta.pw>changeit</meta.pw>
+    <test.password>mypassword</test.password>
   </properties>  
 	
 </project>

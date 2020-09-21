@@ -115,9 +115,9 @@ public interface CryptoStreamFactory
      * Creates an encrypting output stream using the default password.
      *
      * @param os the output stream to be wrapped
-     * @return an decrypting input stream
-     * @throws GeneralSecurityException creating the ouptut stream failed
-     * @throws IOException creating the ouptut stream failed
+     * @return an encrypting output stream
+     * @throws GeneralSecurityException creating the output stream failed
+     * @throws IOException creating the output stream failed
      */
     OutputStream getOutputStream(OutputStream os)
         throws GeneralSecurityException, IOException;
@@ -127,10 +127,17 @@ public interface CryptoStreamFactory
      *
      * @param os the output stream to be wrapped
      * @param password the password to be used
-     * @return an decrypting input stream
-     * @throws GeneralSecurityException creating the ouptut stream failed
-     * @throws IOException creating the ouptut stream failed
+     * @return an encrypting output stream
+     * @throws GeneralSecurityException creating the output stream failed
+     * @throws IOException creating the output stream failed
      */
     OutputStream getOutputStream(OutputStream os, char[] password)
         throws GeneralSecurityException, IOException;
+
+    /**
+     * Info about used algorithm.
+     * @return algorithm string 
+     */
+    String getAlgorithm();
+    
 }
