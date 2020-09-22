@@ -27,8 +27,10 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -36,8 +38,8 @@ import java.util.stream.Collectors;
 import org.apache.fulcrum.jce.crypto.HexConverter;
 import org.apache.fulcrum.jce.crypto.StreamUtil;
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
-import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
+import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
 import org.apache.fulcrum.jce.crypto.extended.CryptoUtilJ8;
 
 /**
@@ -107,7 +109,7 @@ public class CLI2 {
 				processString(args);
 			}
 		} catch (Exception e) {
-			System.out.println("Error : " + e.getMessage());
+			System.out.println("Error: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -117,29 +119,24 @@ public class CLI2 {
 		System.out.println("");
 		System.out.println("\t| Default Crypto factory class: \t" + cryptoUtilJ8.getCryptoStreamFactory().getClass());
 		System.out.println("\t|_Default Algorithm used: \t" + cryptoUtilJ8.getCryptoStreamFactory().getAlgorithm());
+		
+		for (int i = 0; i < CryptoParametersJ8.LISTS.length; i++) {
+			List<String> list =  CryptoParametersJ8.LISTS[i];
+			String type =  CryptoParametersJ8.PROVIDER_TYPES[i];
+			System.out.println("\t|Algorithms (unchecked) supported: \t" + list);	
+			List<String> result = CryptoParametersJ8.getSupportedAlgos(list, type, true);
+			Set<String> resultSet = new LinkedHashSet<String>(result);
+			resultSet.addAll( CryptoParametersJ8.getSupportedAlgos(list, type, false) );
+			System.out.println(
+					String.format("\t|_Matched supported %2$s:\t%1$s", 
+							(resultSet), type));
+		}
 
-		List<String> algoShortList = Arrays.stream(CryptoParametersJ8.TYPES.values()).map(t -> t.toString())
-				.collect(Collectors.toList());
-		System.out.println("\t|Algorithms (shortcut) available: \t" + algoShortList);
-		String type = "AlgorithmParameters";
-		List result = CryptoParametersJ8.getSupportedAlgos(algoShortList, type, true);
+		List<String> supportedAlgos = CryptoParametersJ8.init();
 		System.out.println(
-				String.format("\t|_Matched supported %2$s:\t%1$s", 
-						((result.size() > 0) ? 
-								result:
-									CryptoParametersJ8.getSupportedAlgos(algoShortList, type, false)), type));
-	
-		List<String> algoList = Arrays.stream(CryptoParametersJ8.TYPES_IMPL.values()).map(t -> t.toString())
-				.collect(Collectors.toList());
-		System.out.println("\t|Algorithms available: \t" + algoList);
-		type = "Cipher";
-		result = CryptoParametersJ8.getSupportedAlgos(algoList, type, true);
-		System.out.println(
-				String.format("\t|_Matched Supported %2$ss:\t%1$s", 
-						((result.size() > 0) ? 
-								result:
-									CryptoParametersJ8.getSupportedAlgos(algoList, type, false)), type));
-		System.out.println("");
+				String.format("\t|Effectively supported from %2$ss:\t*** %1$s ***", 
+						supportedAlgos, Arrays.toString( CryptoParametersJ8.PROVIDER_TYPES) ));		
+		
 		if (debug) {
 			Arrays.stream(CryptoParametersJ8.TYPES.values()).forEach(t -> {
 				CryptoUtilJ8 testcu = CryptoUtilJ8.getInstance(t);
@@ -166,7 +163,7 @@ public class CLI2 {
 				"\tjava -jar target/fulcrum-yaafi-crypto-1.0.8-SNAPSHOT.jar <operation mode> <coding mode> <password> <path|string> [target]\r\n");
 		System.out.println("\t-------------------");
 		System.out.println("\toperation mode: file|string|info");
-		System.out.println("\tcoding mode: enc|dec|enc:GCM. Default algorithm is " + TYPES.PBE);
+		System.out.println("\tcoding mode: enc|dec|enc:GCM. Default algorithm is " + CryptoParametersJ8.DEFAULT_TYPE);
 		System.out.println("\t<password: string or empty:''");
 		System.out.println("\tcode|coderef: path|string");
 		System.out.println("\ttarget: optional\r\n");
@@ -221,6 +218,11 @@ public class CLI2 {
 		try (FileInputStream fis = new FileInputStream(sourceFile)) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			CryptoUtilJ8 cryptoUtilJ8 = createCryptoUtil(cipherMode);
+			
+			if (cryptoUtilJ8 == null) {
+				System.out.println("Canceling ");
+				return;
+			}
 
 			if (cipherMode.startsWith("dec")) {
 				System.out.println("Decrypting " + sourceFile.getAbsolutePath());
@@ -266,11 +268,16 @@ public class CLI2 {
 
 	private static CryptoUtilJ8 createCryptoUtil(String cipherMode) throws Exception {
 		CryptoUtilJ8 cryptoUtilJ8 = null;
-		// now extension like enc:GCM
-		if (cipherMode.endsWith(TYPES.PBE.toString()) || cipherMode.substring("enc".length()).equals("")) {
-			cryptoUtilJ8 = CryptoUtilJ8.getInstance();
+		List<String> supportedTypes = CryptoParametersJ8.init();
+		// no extension like enc:GCM
+		if (cipherMode.substring("enc".length()).equals("")) {
+			if (supportedTypes.stream().anyMatch(x-> x.equals(CryptoParametersJ8.DEFAULT_TYPE.toString()) )) {
+				System.err.println("using default type:"+ CryptoParametersJ8.DEFAULT_TYPE);
+				cryptoUtilJ8 = CryptoUtilJ8.getInstance();
+			} else {
+				System.err.println("Could not use default type:"+ TYPES.PBE + ".You have to set explicit type, e.g. enc:"+supportedTypes.get(0) );
+			}
 		} else {
-			List<String> supportedTypes = CryptoParametersJ8.init();
 			System.err.println("checking supported types:"+ supportedTypes);
 			List<String> matchedType = supportedTypes.stream().filter(x-> cipherMode.endsWith(x) ).collect(Collectors.toList());
 			System.err.println("matched type:"+ matchedType);
@@ -283,7 +290,7 @@ public class CLI2 {
 		}
 
 		if (cryptoUtilJ8 == null) {
-			throw new Exception("Could not find any algorithms. check provided algo shortcuts with CLI2 info!");
+			throw new Exception("Could not use algorithm. Check debug output and JDK provided algo shortcuts with CLI2 info!");
 		}
 		
 		if (debug) {
@@ -324,7 +331,6 @@ public class CLI2 {
 				if (!success) {
 					System.err.println("Error, could not create directory to write parent file");
 				}
-
 			}
 		}
 

@@ -55,7 +55,7 @@ public final class CryptoUtilJ8 extends CryptoUtil {
 	public static CryptoUtilJ8 getInstance() {
 		synchronized (CryptoUtilJ8.class) {
 			TYPES defaultType = CryptoParametersJ8.DEFAULT_TYPE;
-			if (instances.isEmpty() && !instances.containsKey(defaultType)) {
+			if (instances.isEmpty() || !instances.containsKey(defaultType)) {
 				instances.put(defaultType, new CryptoUtilJ8());
 			}
 			return instances.get(defaultType);
