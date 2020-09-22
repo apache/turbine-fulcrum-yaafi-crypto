@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,11 +18,15 @@ import org.apache.fulcrum.jce.crypto.cli.CLI2;
 import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
 import org.apache.fulcrum.jce.junit5.extension.SupportedTypeArguments;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
 import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilderFactory;
 import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -50,15 +56,24 @@ import org.junit.jupiter.api.Test;
 public class Main8Test {
 	/** the password to be used */
 	private String password;
+	
+	/** the test data directory */
+	private File testDataDirectory;
+
+	/** the temp data director */
+	private File main8DataDirectory;
+	
+	private static Logger log = LogManager.getLogger(Main8Test.class);
 
 	/**
 	 * Constructor
 	 */
 	public Main8Test() {
-
 		this.password = "foobar";
 		ConfigurationBuilder<BuiltConfiguration> builder = ConfigurationBuilderFactory.newConfigurationBuilder();
 		builder.setStatusLevel(Level.DEBUG);
+		this.testDataDirectory = new File("./src/test/data");
+		this.main8DataDirectory = new File("./target/main8");
 	}
 
 	@BeforeAll
@@ -92,12 +107,13 @@ public class Main8Test {
 		CLI2.main(decryptionArgs);
 	}
 
-	@Test
+	@ParameterizedTest
+	@ArgumentsSource(SupportedTypeArguments.class)
 	/** Encrypt a text file on the command line */
-	public void testFileEncryption1() {
-		String[] encryptionArgs = { "file", "enc", this.password, "./src/test/data/plain.txt",
+	public void testFileEncryption1(TYPES type) {
+		String[] encryptionArgs = { "file", "enc:"+ type, this.password, "./src/test/data/plain.txt",
 				"./target/main8/plain.enc.txt" };
-		String[] decryptionArgs = { "file", "dec", this.password, "./target/main8/plain.enc.txt",
+		String[] decryptionArgs = { "file", "dec:"+ type, this.password, "./target/main8/plain.enc.txt",
 				"./target/main8/plain.dec.txt" };
 		CLI2.main(encryptionArgs);
 		CLI2.main(decryptionArgs);
@@ -105,6 +121,29 @@ public class Main8Test {
 			assertTrue(FileUtils.contentEquals(new File("./src/test/data/plain.txt"),
 					new File("./target/main8/plain.dec.txt")));
 		} catch (IOException e) {
+			fail();
+		}
+	}
+	
+
+	@ParameterizedTest
+	@ArgumentsSource(SupportedTypeArguments.class)
+	/** Encrypt a text file in-place on the command line */
+	public void testFileEncryption2Explicit(TYPES type) {
+		//System.out.println("checking type: "+ type);
+		File sourceFile = new File(this.testDataDirectory, "plain.txt");
+		File targetFile = new File(this.main8DataDirectory, "plain.txt");
+		String[] encryptionArgs = { "file", "enc:"+ type, this.password, "./src/test/data/plain.txt",
+				"./target/main8/plain.txt" };
+		// caution decrypting into source file!
+		String[] decryptionArgs = { "file", "dec:"+ type, this.password, "./target/main8/plain.txt" };
+		CLI2.main(encryptionArgs);
+		CLI2.main(decryptionArgs);
+		try {
+			assertEquals(new String(Files.readAllBytes(Paths.get(sourceFile.toURI()))),
+					new String(Files.readAllBytes(Paths.get(targetFile.toURI()))));
+		} catch (IOException e) {
+			e.printStackTrace();
 			fail();
 		}
 	}
@@ -226,6 +265,30 @@ public class Main8Test {
        
         CryptoUtilJ8.getInstances().clear();
         CryptoUtilJ8 cuj8 = CryptoUtilJ8.getInstance();
+        String cipherText;
+        String plainText;
+        try {
+            cipherText = cuj8.encryptString(source, this.getPassword());
+            plainText = cuj8.decryptString(cipherText, this.getPassword());
+            assertEquals(source, plainText, source +" is not equal with " + plainText); 
+        } catch (GeneralSecurityException | IOException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+	
+	@ParameterizedTest
+	@ArgumentsSource(SupportedTypeArguments.class)
+    public void testAvailableStringEncryption(TYPES type) {
+        char[] testVector = new char[513];
+
+        for (int i = 0; i < testVector.length; i++) {
+            testVector[i] = (char) i;
+        }
+        String source = new String(testVector);
+       
+        CryptoUtilJ8.getInstances().clear();
+        CryptoUtilJ8 cuj8 = CryptoUtilJ8.getInstance(type);
         String cipherText;
         String plainText;
         try {
