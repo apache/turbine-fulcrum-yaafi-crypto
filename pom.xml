@@ -43,9 +43,9 @@
   </distributionManagement>
 
   <scm>
-    <connection>scm:svn:http://svn.apache.org/repos/asf/turbine/fulcrum/trunk/yaafi-crypto/</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/turbine/fulcrum/trunk/yaafi-crypto/</developerConnection>
-    <url>http://svn.apache.org/viewvc/turbine/fulcrum/trunk/yaafi-crypto</url>
+    <connection>scm:git:https://gitbox.apache.org/repos/asf/turbine-fulcrum-yaafi-crypto.git</connection>
+    <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/turbine-fulcrum-yaafi-crypto.git</developerConnection>
+    <url>https://gitbox.apache.org/repos/asf/turbine-fulcrum-yaafi-crypto.git</url>
   </scm>
 	
   <developers>
