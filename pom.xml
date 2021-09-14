@@ -21,7 +21,7 @@
   <parent>
     <artifactId>turbine-parent</artifactId>
     <groupId>org.apache.turbine</groupId>
-    <version>8</version>
+    <version>9-SNAPSHOT</version>
     <relativePath />
   </parent>
 
@@ -34,13 +34,7 @@
   <description>Fulcrum YAAFI Crypto Library</description>
   <url>http://turbine.apache.org/fulcrum/fulcrum-yaafi-crytpo</url>
 
-  <!-- Required for staging to work -->
-  <distributionManagement>
-    <site>
-      <id>turbine.apache.org</id>
-      <url>https://turbine.apache.org/fulcrum/fulcrum-yaafi-crypto/</url>
-    </site>
-  </distributionManagement>
+  <!-- distributionManagement id and url defined in parent, adapt turbine.site.path -->
 
   <scm>
     <connection>scm:git:https://gitbox.apache.org/repos/asf/turbine-fulcrum-yaafi-crypto.git</connection>
@@ -188,7 +182,7 @@
   </build>
   
   <properties>
-    <turbine.site.path>fulcrum/fulcrum-yaafi-crypto</turbine.site.path>
+    <turbine.site.path>turbine-fulcrum-yaafi-crypto</turbine.site.path>
     <turbine.scmPubCheckoutDirectory>${turbine.site.cache}/fulcrum/yaafi-crypto</turbine.scmPubCheckoutDirectory>
     <turbine.site.cache>${project.build.directory}/turbine-sites</turbine.site.cache>
     <siteContent.path>${project.build.directory}/staging</siteContent.path><!-- default stagingSiteURL -->
