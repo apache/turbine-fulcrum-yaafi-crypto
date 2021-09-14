@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CryptoStreamPBEImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum YAAFI Crypto</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.jce.crypto.algo</a> &gt; <span class="el_source">CryptoStreamPBEImpl.java</span></div><h1>CryptoStreamPBEImpl.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.jce.crypto.algo;
+
+import java.io.ByteArrayOutputStream;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ *  * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.security.GeneralSecurityException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
+
+import org.apache.fulcrum.jce.crypto.StreamUtil;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
+import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
+
+/**
+ * Concrete implementation for creating encrypting/decrypting streams. The
+ * implementation uses the JCA (Java Crypto Extension) supplied
+ * by SUN (using SunJCE 1.42).
+ *
+ * The implementation uses as @see {@link CryptoParametersJ8} ALGORITHM_J8_PBE for encryption which
+ * should be sufficient for most applications.
+ *
+ * The implementation also supplies a default password in the case that
+ * the programmer don't want to have additional hassles. It is easy to
+ * re-engineer the password being used but much better than a hard-coded
+ * password in the application.
+ *
+ * The code uses parts from Markus Hahn's Blowfish library found at
+ * http://blowfishj.sourceforge.net/
+ *
+ * @author &lt;a href=&quot;mailto:gk@apache.org&quot;&gt;Georg Kallidis&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:siegfried.goeschl@it20one.at&quot;&gt;Siegfried Goeschl &lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:maakus@earthlink.net&quot;&gt;Markus Hahn&lt;/a&gt;
+ * 
+ * The Implementation for {@link TYPES} PBE.
+ */
+
+public final class CryptoStreamPBEImpl extends CryptoStreamFactoryJ8Template
+{
+
+    protected static final int IV_SIZE = 16;
+    
+    protected static final int KEY_SIZE = 256;
+    
+	/**
+	 * default count for pbe spec
+	 */
+	protected static final int COUNT_J8 = 10_000; // 200_000;
+
+    /**
+     * Constructor
+     * count is set to {@link #COUNT_J8}.
+     * 
+     * @throws GeneralSecurityException  if no algo could be found.
+     */
+    public CryptoStreamPBEImpl() throws GeneralSecurityException
+    {
+<span class="fc" id="L86">        this(generateSalt(), COUNT_J8);</span>
+<span class="fc" id="L87">    }</span>
+    
+    /**
+     * Constructor
+     *
+     * @param salt the salt for the PBE algorithm
+     */
+    public CryptoStreamPBEImpl( byte[] salt)
+    {
+<span class="nc" id="L96">        this(salt, COUNT_J8);</span>
+        
+<span class="nc" id="L98">    }</span>
+
+    
+    /**
+     * Constructor
+     *
+     * @param salt the salt for the PBE algorithm
+     * @param count the iteration for PBEParameterSpec
+     */
+    public CryptoStreamPBEImpl( byte[] salt, int count)
+<span class="fc" id="L108">    {</span>
+<span class="fc" id="L109">        setSalt(salt);</span>
+<span class="fc" id="L110">        this.count = count;</span>
+<span class="fc" id="L111">        this.providerName = PROVIDERNAME;</span>
+<span class="fc" id="L112">        setType(TYPES.PBE);</span>
+<span class="fc" id="L113">        this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE.getAlgorithm();</span>
+<span class="fc" id="L114">    }</span>
+
+    /**
+     * Create a PBE key.
+     *
+     * @param password the password to use.
+     * @param salt if provided this is used, otherweise {@link #getSalt()}.
+     * @return the key
+     * @throws GeneralSecurityException if creating the key failed
+     */
+    @Override
+    protected Key createKey( char[] password, byte[] salt ) 
+            throws GeneralSecurityException
+    {
+        SecretKeyFactory keyFactory;
+<span class="fc" id="L129">        String algorithm = this.getAlgorithm();</span>
+        
+<span class="fc bfc" id="L131" title="All 2 branches covered.">        PBEKeySpec keySpec = new PBEKeySpec(password, (salt == null)? this.getSalt(): salt.clone(), this.getCount(), KEY_SIZE );</span>
+
+<span class="fc" id="L133">        byte[] encodedTmp = null;</span>
+        try {
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">            if( this.getProviderName() == null )</span>
+            {
+<span class="fc" id="L137">                keyFactory = SecretKeyFactory.getInstance( algorithm );</span>
+            }
+            else
+            {
+<span class="nc" id="L141">                keyFactory = SecretKeyFactory.getInstance( algorithm, this.getProviderName() );</span>
+            }
+<span class="fc" id="L143">            return keyFactory.generateSecret(keySpec);</span>
+            
+<span class="nc" id="L145">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L146">            throw new GeneralSecurityException(e);</span>
+        } finally {
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">            if (encodedTmp != null) {</span>
+<span class="nc" id="L149">                Arrays.fill(encodedTmp, (byte)0); </span>
+            }
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">            if (keySpec != null) {</span>
+<span class="fc" id="L152">                keySpec.clearPassword();</span>
+            }
+        }
+    }
+
+    /**
+     * Create a Cipher.
+     * 
+     * Find additional information here: {@link PBEParameterSpec}.
+     *
+     * @param mode the cipher mode
+     * @param password the password
+     * @return an instance of a cipher
+     * @throws GeneralSecurityException creating a cipher failed
+     * @throws IOException creating a cipher failed
+
+     */
+    @Override
+    protected byte[] createCipher(InputStream is, int mode, char[] password )
+        throws GeneralSecurityException, IOException
+    {
+        Cipher cipher;
+<span class="fc" id="L174">        PBEParameterSpec paramSpec = null; </span>
+        
+<span class="fc" id="L176">        ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);</span>
+<span class="fc" id="L177">        StreamUtil.copy(is, bos);</span>
+<span class="fc" id="L178">        byte[] input = bos.toByteArray();</span>
+        
+<span class="fc" id="L180">        byte[] ciphertext = null;</span>
+        
+<span class="fc" id="L182">        byte[] salt = null;</span>
+<span class="fc" id="L183">        byte[] iv = null;</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">        if (mode == Cipher.DECRYPT_MODE) {   </span>
+            
+<span class="fc" id="L186">            ByteBuffer byteBuffer = ByteBuffer.wrap(input);</span>
+<span class="fc" id="L187">            salt = new byte[SALT_SIZE ];</span>
+<span class="fc" id="L188">            byteBuffer.get(salt);</span>
+<span class="fc" id="L189">            iv = new byte[ IV_SIZE ];</span>
+<span class="fc" id="L190">            byteBuffer.get(iv);</span>
+<span class="fc" id="L191">            ciphertext = new byte[byteBuffer.remaining()];</span>
+<span class="fc" id="L192">            byteBuffer.get(ciphertext);</span>
+            
+//            salt = Arrays.copyOfRange(input, 0, SALT_SIZE );
+//            iv = Arrays.copyOfRange(input, salt.length, salt.length + 16 );
+//            ciphertext = Arrays.copyOfRange(input, salt.length + iv.length, input.length);// cut out salt and iv
+        }
+        
+<span class="fc" id="L199">        Key key = this.createKey( password, salt );</span>
+        
+<span class="pc bpc" id="L201" title="1 of 2 branches missed.">        if( this.getProviderName() == null )</span>
+        {
+<span class="fc" id="L203">            cipher = Cipher.getInstance( this.getAlgorithm() );</span>
+        }
+        else
+        {
+<span class="nc" id="L207">            cipher = Cipher.getInstance( this.getAlgorithm(), this.getProviderName() );</span>
+        }
+        
+        // save
+<span class="fc bfc" id="L211" title="All 2 branches covered.">        if (mode == Cipher.DECRYPT_MODE) {</span>
+           
+<span class="fc" id="L213">            paramSpec = new PBEParameterSpec( salt, this.getCount(), new IvParameterSpec(iv) );</span>
+     
+<span class="fc" id="L215">            cipher.init( mode, key, paramSpec );</span>
+            //cipher.init( mode, key, algorithmParameters );
+<span class="fc" id="L217">            ciphertext = cipher.doFinal(ciphertext); // actually the unencrypted bytes</span>
+        }
+        
+        // save
+<span class="fc bfc" id="L221" title="All 2 branches covered.">        if (mode == Cipher.ENCRYPT_MODE) {        </span>
+<span class="fc" id="L222">            paramSpec = new PBEParameterSpec( this.getSalt(), this.getCount() );</span>
+<span class="fc" id="L223">            salt = paramSpec.getSalt();</span>
+<span class="fc" id="L224">            cipher.init( mode, key, paramSpec );   </span>
+            //algorithmParameters = cipher.getParameters();
+ 
+<span class="fc" id="L227">            byte[] result = cipher.doFinal(input);</span>
+<span class="fc" id="L228">            iv = cipher.getIV(); // AES has 128bit block size, but iv is 16bit </span>
+           
+            // Salt and IV need to be stored with the result, otherwise we can't decrypt the message later.
+<span class="fc" id="L231">            ByteBuffer byteBuffer = ByteBuffer.allocate(salt.length + iv.length + result.length);</span>
+<span class="fc" id="L232">            ciphertext = byteBuffer.put(salt).put(iv).put(result).array();</span>
+            
+//            ciphertext = new byte[salt.length + iv.length + result.length];         
+//            System.arraycopy(salt, 0, ciphertext, 0, salt.length);
+//            System.arraycopy(iv, 0, ciphertext, salt.length, iv.length);
+//            System.arraycopy(result, 0, ciphertext, salt.length + iv.length, result.length);// push after salt and iv  
+        }
+<span class="fc" id="L239">        return ciphertext;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

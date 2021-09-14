@@ -1,0 +1,378 @@
+<!DOCTYPE HTML>
+<html lang="de">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<main role="main">
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span><a id="line.1">package org.apache.fulcrum.jce.crypto.extended;</a>
+<span class="sourceLineNo">002</span><a id="line.2"></a>
+<span class="sourceLineNo">003</span><a id="line.3">import static org.junit.Assert.assertTrue;</a>
+<span class="sourceLineNo">004</span><a id="line.4">import static org.junit.jupiter.api.Assertions.assertEquals;</a>
+<span class="sourceLineNo">005</span><a id="line.5">import static org.junit.jupiter.api.Assertions.fail;</a>
+<span class="sourceLineNo">006</span><a id="line.6"></a>
+<span class="sourceLineNo">007</span><a id="line.7">import java.io.File;</a>
+<span class="sourceLineNo">008</span><a id="line.8">import java.io.IOException;</a>
+<span class="sourceLineNo">009</span><a id="line.9">import java.nio.charset.StandardCharsets;</a>
+<span class="sourceLineNo">010</span><a id="line.10">import java.nio.file.Files;</a>
+<span class="sourceLineNo">011</span><a id="line.11">import java.nio.file.Paths;</a>
+<span class="sourceLineNo">012</span><a id="line.12">import java.security.GeneralSecurityException;</a>
+<span class="sourceLineNo">013</span><a id="line.13">import java.util.HashMap;</a>
+<span class="sourceLineNo">014</span><a id="line.14">import java.util.Map;</a>
+<span class="sourceLineNo">015</span><a id="line.15"></a>
+<span class="sourceLineNo">016</span><a id="line.16">import org.apache.commons.io.FileUtils;</a>
+<span class="sourceLineNo">017</span><a id="line.17">import org.apache.fulcrum.jce.crypto.cli.CLI2;</a>
+<span class="sourceLineNo">018</span><a id="line.18">import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;</a>
+<span class="sourceLineNo">019</span><a id="line.19">import org.apache.fulcrum.jce.junit5.extension.SupportedTypeArguments;</a>
+<span class="sourceLineNo">020</span><a id="line.20">import org.apache.logging.log4j.Level;</a>
+<span class="sourceLineNo">021</span><a id="line.21">import org.apache.logging.log4j.LogManager;</a>
+<span class="sourceLineNo">022</span><a id="line.22">import org.apache.logging.log4j.Logger;</a>
+<span class="sourceLineNo">023</span><a id="line.23">import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;</a>
+<span class="sourceLineNo">024</span><a id="line.24">import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilderFactory;</a>
+<span class="sourceLineNo">025</span><a id="line.25">import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;</a>
+<span class="sourceLineNo">026</span><a id="line.26">import org.junit.jupiter.api.BeforeAll;</a>
+<span class="sourceLineNo">027</span><a id="line.27">import org.junit.jupiter.api.Test;</a>
+<span class="sourceLineNo">028</span><a id="line.28">import org.junit.jupiter.params.ParameterizedTest;</a>
+<span class="sourceLineNo">029</span><a id="line.29">import org.junit.jupiter.params.provider.ArgumentsSource;</a>
+<span class="sourceLineNo">030</span><a id="line.30"></a>
+<span class="sourceLineNo">031</span><a id="line.31">/*</a>
+<span class="sourceLineNo">032</span><a id="line.32"> * Licensed to the Apache Software Foundation (ASF) under one</a>
+<span class="sourceLineNo">033</span><a id="line.33"> * or more contributor license agreements.  See the NOTICE file</a>
+<span class="sourceLineNo">034</span><a id="line.34"> * distributed with this work for additional information</a>
+<span class="sourceLineNo">035</span><a id="line.35"> * regarding copyright ownership.  The ASF licenses this file</a>
+<span class="sourceLineNo">036</span><a id="line.36"> * to you under the Apache License, Version 2.0 (the</a>
+<span class="sourceLineNo">037</span><a id="line.37"> * "License"); you may not use this file except in compliance</a>
+<span class="sourceLineNo">038</span><a id="line.38"> * with the License.  You may obtain a copy of the License at</a>
+<span class="sourceLineNo">039</span><a id="line.39"> *</a>
+<span class="sourceLineNo">040</span><a id="line.40"> *   http://www.apache.org/licenses/LICENSE-2.0</a>
+<span class="sourceLineNo">041</span><a id="line.41"> *</a>
+<span class="sourceLineNo">042</span><a id="line.42"> * Unless required by applicable law or agreed to in writing,</a>
+<span class="sourceLineNo">043</span><a id="line.43"> * software distributed under the License is distributed on an</a>
+<span class="sourceLineNo">044</span><a id="line.44"> * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</a>
+<span class="sourceLineNo">045</span><a id="line.45"> * KIND, either express or implied.  See the License for the</a>
+<span class="sourceLineNo">046</span><a id="line.46"> * specific language governing permissions and limitations</a>
+<span class="sourceLineNo">047</span><a id="line.47"> * under the License.</a>
+<span class="sourceLineNo">048</span><a id="line.48"> */</a>
+<span class="sourceLineNo">049</span><a id="line.49"></a>
+<span class="sourceLineNo">050</span><a id="line.50">/**</a>
+<span class="sourceLineNo">051</span><a id="line.51"> * Test suite for crypto functionality</a>
+<span class="sourceLineNo">052</span><a id="line.52"> *</a>
+<span class="sourceLineNo">053</span><a id="line.53"> * @author &lt;a href="mailto:siegfried.goeschl@it20one.at"&gt;Siegfried Goeschl&lt;/a&gt;</a>
+<span class="sourceLineNo">054</span><a id="line.54"> */</a>
+<span class="sourceLineNo">055</span><a id="line.55"></a>
+<span class="sourceLineNo">056</span><a id="line.56">public class Main8Test {</a>
+<span class="sourceLineNo">057</span><a id="line.57">        /** the password to be used */</a>
+<span class="sourceLineNo">058</span><a id="line.58">        private String password;</a>
+<span class="sourceLineNo">059</span><a id="line.59">        </a>
+<span class="sourceLineNo">060</span><a id="line.60">        /** the test data directory */</a>
+<span class="sourceLineNo">061</span><a id="line.61">        private File testDataDirectory;</a>
+<span class="sourceLineNo">062</span><a id="line.62"></a>
+<span class="sourceLineNo">063</span><a id="line.63">        /** the temp data director */</a>
+<span class="sourceLineNo">064</span><a id="line.64">        private File main8DataDirectory;</a>
+<span class="sourceLineNo">065</span><a id="line.65">        </a>
+<span class="sourceLineNo">066</span><a id="line.66">        private static Logger log = LogManager.getLogger(Main8Test.class);</a>
+<span class="sourceLineNo">067</span><a id="line.67"></a>
+<span class="sourceLineNo">068</span><a id="line.68">        /**</a>
+<span class="sourceLineNo">069</span><a id="line.69">         * Constructor</a>
+<span class="sourceLineNo">070</span><a id="line.70">         */</a>
+<span class="sourceLineNo">071</span><a id="line.71">        public Main8Test() {</a>
+<span class="sourceLineNo">072</span><a id="line.72">                this.password = "foobar";</a>
+<span class="sourceLineNo">073</span><a id="line.73">                ConfigurationBuilder&lt;BuiltConfiguration&gt; builder = ConfigurationBuilderFactory.newConfigurationBuilder();</a>
+<span class="sourceLineNo">074</span><a id="line.74">                builder.setStatusLevel(Level.DEBUG);</a>
+<span class="sourceLineNo">075</span><a id="line.75">                this.testDataDirectory = new File("./src/test/data");</a>
+<span class="sourceLineNo">076</span><a id="line.76">                this.main8DataDirectory = new File("./target/main8");</a>
+<span class="sourceLineNo">077</span><a id="line.77">        }</a>
+<span class="sourceLineNo">078</span><a id="line.78"></a>
+<span class="sourceLineNo">079</span><a id="line.79">        @BeforeAll</a>
+<span class="sourceLineNo">080</span><a id="line.80">        public static void setup() {</a>
+<span class="sourceLineNo">081</span><a id="line.81">                SupportedTypeArguments.init();</a>
+<span class="sourceLineNo">082</span><a id="line.82">        }</a>
+<span class="sourceLineNo">083</span><a id="line.83"></a>
+<span class="sourceLineNo">084</span><a id="line.84">        /**</a>
+<span class="sourceLineNo">085</span><a id="line.85">         * @return Returns the password.</a>
+<span class="sourceLineNo">086</span><a id="line.86">         */</a>
+<span class="sourceLineNo">087</span><a id="line.87">        protected char[] getPassword() {</a>
+<span class="sourceLineNo">088</span><a id="line.88">                return password.toCharArray();</a>
+<span class="sourceLineNo">089</span><a id="line.89">        }</a>
+<span class="sourceLineNo">090</span><a id="line.90"></a>
+<span class="sourceLineNo">091</span><a id="line.91">        /** Encrypt a string on the command line */</a>
+<span class="sourceLineNo">092</span><a id="line.92">        @Test</a>
+<span class="sourceLineNo">093</span><a id="line.93">        public void testStringEncryption() {</a>
+<span class="sourceLineNo">094</span><a id="line.94">                String[] encryptionArgs = { "string", "enc", this.password, "mysecretpassword" };</a>
+<span class="sourceLineNo">095</span><a id="line.95">                CLI2.main(encryptionArgs);</a>
+<span class="sourceLineNo">096</span><a id="line.96">                String[] decryptionArgs = { "string", "dec", this.password,</a>
+<span class="sourceLineNo">097</span><a id="line.97">                                "ce3bf02da8a57c94b4f42c084230d1bedcd856c49a3fd23ec59835ca46a3d37ee02d470394691353478c905e7b342316d1fcc3e1b98837bf0595ef50853922df" };</a>
+<span class="sourceLineNo">098</span><a id="line.98">                CLI2.main(decryptionArgs);</a>
+<span class="sourceLineNo">099</span><a id="line.99">        }</a>
+<span class="sourceLineNo">100</span><a id="line.100"></a>
+<span class="sourceLineNo">101</span><a id="line.101">        @Test</a>
+<span class="sourceLineNo">102</span><a id="line.102">        public void testAnotherStringEncryption() {</a>
+<span class="sourceLineNo">103</span><a id="line.103">                String[] encryptionArgs = { "string", "enc", this.password, "secret" };</a>
+<span class="sourceLineNo">104</span><a id="line.104">                CLI2.main(encryptionArgs);</a>
+<span class="sourceLineNo">105</span><a id="line.105">                String[] decryptionArgs = { "string", "dec", this.password,</a>
+<span class="sourceLineNo">106</span><a id="line.106">                                "8626904c9e64fddfa64add56472c4796429b0adb7c8039424adef7434be6bc255ce092011e8c560965814e806dd68117" };</a>
+<span class="sourceLineNo">107</span><a id="line.107">                CLI2.main(decryptionArgs);</a>
+<span class="sourceLineNo">108</span><a id="line.108">        }</a>
+<span class="sourceLineNo">109</span><a id="line.109"></a>
+<span class="sourceLineNo">110</span><a id="line.110">        @ParameterizedTest</a>
+<span class="sourceLineNo">111</span><a id="line.111">        @ArgumentsSource(SupportedTypeArguments.class)</a>
+<span class="sourceLineNo">112</span><a id="line.112">        /** Encrypt a text file on the command line */</a>
+<span class="sourceLineNo">113</span><a id="line.113">        public void testFileEncryption1(TYPES type) {</a>
+<span class="sourceLineNo">114</span><a id="line.114">                String[] encryptionArgs = { "file", "enc:"+ type, this.password, "./src/test/data/plain.txt",</a>
+<span class="sourceLineNo">115</span><a id="line.115">                                "./target/main8/plain.enc.txt" };</a>
+<span class="sourceLineNo">116</span><a id="line.116">                String[] decryptionArgs = { "file", "dec:"+ type, this.password, "./target/main8/plain.enc.txt",</a>
+<span class="sourceLineNo">117</span><a id="line.117">                                "./target/main8/plain.dec.txt" };</a>
+<span class="sourceLineNo">118</span><a id="line.118">                CLI2.main(encryptionArgs);</a>
+<span class="sourceLineNo">119</span><a id="line.119">                CLI2.main(decryptionArgs);</a>
+<span class="sourceLineNo">120</span><a id="line.120">                try {</a>
+<span class="sourceLineNo">121</span><a id="line.121">                        assertTrue(FileUtils.contentEquals(new File("./src/test/data/plain.txt"),</a>
+<span class="sourceLineNo">122</span><a id="line.122">                                        new File("./target/main8/plain.dec.txt")));</a>
+<span class="sourceLineNo">123</span><a id="line.123">                } catch (IOException e) {</a>
+<span class="sourceLineNo">124</span><a id="line.124">                        fail();</a>
+<span class="sourceLineNo">125</span><a id="line.125">                }</a>
+<span class="sourceLineNo">126</span><a id="line.126">        }</a>
+<span class="sourceLineNo">127</span><a id="line.127">        </a>
+<span class="sourceLineNo">128</span><a id="line.128"></a>
+<span class="sourceLineNo">129</span><a id="line.129">        @ParameterizedTest</a>
+<span class="sourceLineNo">130</span><a id="line.130">        @ArgumentsSource(SupportedTypeArguments.class)</a>
+<span class="sourceLineNo">131</span><a id="line.131">        /** Encrypt a text file in-place on the command line */</a>
+<span class="sourceLineNo">132</span><a id="line.132">        public void testFileEncryption2Explicit(TYPES type) {</a>
+<span class="sourceLineNo">133</span><a id="line.133">                //System.out.println("checking type: "+ type);</a>
+<span class="sourceLineNo">134</span><a id="line.134">                File sourceFile = new File(this.testDataDirectory, "plain.txt");</a>
+<span class="sourceLineNo">135</span><a id="line.135">                File targetFile = new File(this.main8DataDirectory, "plain.txt");</a>
+<span class="sourceLineNo">136</span><a id="line.136">                String[] encryptionArgs = { "file", "enc:"+ type, this.password, "./src/test/data/plain.txt",</a>
+<span class="sourceLineNo">137</span><a id="line.137">                                "./target/main8/plain.txt" };</a>
+<span class="sourceLineNo">138</span><a id="line.138">                // caution decrypting into source file!</a>
+<span class="sourceLineNo">139</span><a id="line.139">                String[] decryptionArgs = { "file", "dec:"+ type, this.password, "./target/main8/plain.txt" };</a>
+<span class="sourceLineNo">140</span><a id="line.140">                CLI2.main(encryptionArgs);</a>
+<span class="sourceLineNo">141</span><a id="line.141">                CLI2.main(decryptionArgs);</a>
+<span class="sourceLineNo">142</span><a id="line.142">                try {</a>
+<span class="sourceLineNo">143</span><a id="line.143">                        assertEquals(new String(Files.readAllBytes(Paths.get(sourceFile.toURI()))),</a>
+<span class="sourceLineNo">144</span><a id="line.144">                                        new String(Files.readAllBytes(Paths.get(targetFile.toURI()))));</a>
+<span class="sourceLineNo">145</span><a id="line.145">                } catch (IOException e) {</a>
+<span class="sourceLineNo">146</span><a id="line.146">                        e.printStackTrace();</a>
+<span class="sourceLineNo">147</span><a id="line.147">                        fail();</a>
+<span class="sourceLineNo">148</span><a id="line.148">                }</a>
+<span class="sourceLineNo">149</span><a id="line.149">        }</a>
+<span class="sourceLineNo">150</span><a id="line.150"></a>
+<span class="sourceLineNo">151</span><a id="line.151">        @Test</a>
+<span class="sourceLineNo">152</span><a id="line.152">        /** Encrypt a text file in-place on the command line */</a>
+<span class="sourceLineNo">153</span><a id="line.153">        public void testFileEncryption2() {</a>
+<span class="sourceLineNo">154</span><a id="line.154">                String[] encryptionArgs = { "file", "enc", this.password, "./src/test/data/plain.txt",</a>
+<span class="sourceLineNo">155</span><a id="line.155">                                "./target/main8/plain.txt" };</a>
+<span class="sourceLineNo">156</span><a id="line.156">                // caution decrypting into source file!</a>
+<span class="sourceLineNo">157</span><a id="line.157">                String[] decryptionArgs = { "file", "dec", this.password, "./target/main8/plain.txt" };</a>
+<span class="sourceLineNo">158</span><a id="line.158">                CLI2.main(encryptionArgs);</a>
+<span class="sourceLineNo">159</span><a id="line.159">                CLI2.main(decryptionArgs);</a>
+<span class="sourceLineNo">160</span><a id="line.160">        }</a>
+<span class="sourceLineNo">161</span><a id="line.161"></a>
+<span class="sourceLineNo">162</span><a id="line.162">        @Test</a>
+<span class="sourceLineNo">163</span><a id="line.163">        public void testYetAnotherStringEncryption() {</a>
+<span class="sourceLineNo">164</span><a id="line.164">                try {</a>
+<span class="sourceLineNo">165</span><a id="line.165">                        // assumptions</a>
+<span class="sourceLineNo">166</span><a id="line.166">                        String topSecret = "mysecretpassword";</a>
+<span class="sourceLineNo">167</span><a id="line.167">                        assertTrue(FileUtils.readFileToString(new File("./src/test/data/plain-simple.txt"), StandardCharsets.UTF_8)</a>
+<span class="sourceLineNo">168</span><a id="line.168">                                        .equals(topSecret));</a>
+<span class="sourceLineNo">169</span><a id="line.169"></a>
+<span class="sourceLineNo">170</span><a id="line.170">                        if (SupportedTypeArguments.SUPPORTED_TYPES.contains(TYPES.GCM.toString())) {</a>
+<span class="sourceLineNo">171</span><a id="line.171"></a>
+<span class="sourceLineNo">172</span><a id="line.172">                                // test</a>
+<span class="sourceLineNo">173</span><a id="line.173">                                // encode from string = hexdecimal file</a>
+<span class="sourceLineNo">174</span><a id="line.174">                                String[] encryptionArgs = { "string", "enc" + TYPES.GCM, this.password, topSecret,</a>
+<span class="sourceLineNo">175</span><a id="line.175">                                                "./target/main8/another-plain16chars.enc.txt" };</a>
+<span class="sourceLineNo">176</span><a id="line.176">                                CLI2.main(encryptionArgs);</a>
+<span class="sourceLineNo">177</span><a id="line.177">                                // shows hex dec in stderr + file</a>
+<span class="sourceLineNo">178</span><a id="line.178"></a>
+<span class="sourceLineNo">179</span><a id="line.179">                                String[] decryptionArgs = { "string", "dec" + TYPES.GCM, this.password,</a>
+<span class="sourceLineNo">180</span><a id="line.180">                                                "c9fa3e7d3c49d379ee8ff2dff6e6effbafee264794a03d0ffd895caac2b3c9b4558087f5b12e72a92475f1ed638b7911389234b443d4ebcf351c86cb",</a>
+<span class="sourceLineNo">181</span><a id="line.181">                                                "./target/main8/another-plain16chars.dec.txt" };</a>
+<span class="sourceLineNo">182</span><a id="line.182">                                CLI2.main(decryptionArgs);</a>
+<span class="sourceLineNo">183</span><a id="line.183">                                // shows clear password in stdout + file</a>
+<span class="sourceLineNo">184</span><a id="line.184"></a>
+<span class="sourceLineNo">185</span><a id="line.185">                                assertTrue(FileUtils.readFileToString(new File("./target/main8/another-plain16chars.dec.txt"),</a>
+<span class="sourceLineNo">186</span><a id="line.186">                                                StandardCharsets.UTF_8).equals(topSecret));</a>
+<span class="sourceLineNo">187</span><a id="line.187"></a>
+<span class="sourceLineNo">188</span><a id="line.188">                                String[] decryptionArgs2 = { "string", "dec" + TYPES.GCM, this.password,</a>
+<span class="sourceLineNo">189</span><a id="line.189">                                                "605efd3009a7242a9c9cab23aa712d6d116e8686732194d3306416cda2a416df1e63aeffcdc1910af1e1100b382b24fc628d9c413ebf7e1b2885c0ec" };</a>
+<span class="sourceLineNo">190</span><a id="line.190">                                CLI2.main(decryptionArgs2);</a>
+<span class="sourceLineNo">191</span><a id="line.191">                                // shows clear password in stdout (offline decoded)</a>
+<span class="sourceLineNo">192</span><a id="line.192"></a>
+<span class="sourceLineNo">193</span><a id="line.193">                                // file mode commands do show nothing on stdout, except Decrypting / Encrypting</a>
+<span class="sourceLineNo">194</span><a id="line.194"></a>
+<span class="sourceLineNo">195</span><a id="line.195">                                // should not fail, if converted from hex</a>
+<span class="sourceLineNo">196</span><a id="line.196">                                String[] decryptionArgs3 = { "file", "dec" + TYPES.GCM, this.password,</a>
+<span class="sourceLineNo">197</span><a id="line.197">                                                "./target/main8/another-plain16chars.enc.txt", "./target/main8/another-plain16chars2.dec.txt" };</a>
+<span class="sourceLineNo">198</span><a id="line.198">                                CLI2.main(decryptionArgs3);</a>
+<span class="sourceLineNo">199</span><a id="line.199">                                assertTrue(FileUtils.readFileToString(new File("./target/main8/another-plain16chars2.dec.txt"),</a>
+<span class="sourceLineNo">200</span><a id="line.200">                                                StandardCharsets.UTF_8).equals(topSecret));</a>
+<span class="sourceLineNo">201</span><a id="line.201"></a>
+<span class="sourceLineNo">202</span><a id="line.202">                                String[] encryptionArgs4 = { "file", "enc" + TYPES.GCM, this.password,</a>
+<span class="sourceLineNo">203</span><a id="line.203">                                                "./src/test/data/plain-simple.txt", "./target/main8/plain-simple.enc.txt" };</a>
+<span class="sourceLineNo">204</span><a id="line.204">                                CLI2.main(encryptionArgs4);</a>
+<span class="sourceLineNo">205</span><a id="line.205"></a>
+<span class="sourceLineNo">206</span><a id="line.206">                                String[] decryptionArgs4 = { "file", "dec" + TYPES.GCM, this.password,</a>
+<span class="sourceLineNo">207</span><a id="line.207">                                                "./target/main8/plain-simple.enc.txt", "./target/main8/plain-simple.dec.txt" };</a>
+<span class="sourceLineNo">208</span><a id="line.208">                                CLI2.main(decryptionArgs4);</a>
+<span class="sourceLineNo">209</span><a id="line.209"></a>
+<span class="sourceLineNo">210</span><a id="line.210">                                try {</a>
+<span class="sourceLineNo">211</span><a id="line.211">                                        assertTrue(FileUtils.contentEquals(new File("./src/test/data/plain-simple.txt"),</a>
+<span class="sourceLineNo">212</span><a id="line.212">                                                        new File("./target/main8/plain-simple.dec.txt")));</a>
+<span class="sourceLineNo">213</span><a id="line.213">                                } catch (IOException e) {</a>
+<span class="sourceLineNo">214</span><a id="line.214">                                        fail();</a>
+<span class="sourceLineNo">215</span><a id="line.215">                                }</a>
+<span class="sourceLineNo">216</span><a id="line.216"></a>
+<span class="sourceLineNo">217</span><a id="line.217">                        }</a>
+<span class="sourceLineNo">218</span><a id="line.218"></a>
+<span class="sourceLineNo">219</span><a id="line.219">                } catch (Exception e) {</a>
+<span class="sourceLineNo">220</span><a id="line.220">                        e.printStackTrace();</a>
+<span class="sourceLineNo">221</span><a id="line.221">                        fail();</a>
+<span class="sourceLineNo">222</span><a id="line.222">                }</a>
+<span class="sourceLineNo">223</span><a id="line.223">        }</a>
+<span class="sourceLineNo">224</span><a id="line.224"></a>
+<span class="sourceLineNo">225</span><a id="line.225">        @Test</a>
+<span class="sourceLineNo">226</span><a id="line.226">        public void testIntegratedStringEncryption() {</a>
+<span class="sourceLineNo">227</span><a id="line.227">                try {</a>
+<span class="sourceLineNo">228</span><a id="line.228">                        // assumptions</a>
+<span class="sourceLineNo">229</span><a id="line.229">                        String topSecret = "myX!_secretp@ssword?~,2";</a>
+<span class="sourceLineNo">230</span><a id="line.230"></a>
+<span class="sourceLineNo">231</span><a id="line.231">                        Map&lt;String, Object&gt; conf = new HashMap&lt;&gt;();</a>
+<span class="sourceLineNo">232</span><a id="line.232">                        conf.put("enc", TYPES.GCM);</a>
+<span class="sourceLineNo">233</span><a id="line.233"></a>
+<span class="sourceLineNo">234</span><a id="line.234">                        // encode as string to stderr and file in hexdecimal format</a>
+<span class="sourceLineNo">235</span><a id="line.235">                        String[] encryptionArgs = { "string", "enc" + conf.get("enc"), this.password, topSecret,</a>
+<span class="sourceLineNo">236</span><a id="line.236">                                        "./target/main8/integrated-plain16chars.enc.txt" };</a>
+<span class="sourceLineNo">237</span><a id="line.237">                        CLI2.main(encryptionArgs);</a>
+<span class="sourceLineNo">238</span><a id="line.238">                        // shows encoded hexdec in stdout + file</a>
+<span class="sourceLineNo">239</span><a id="line.239"></a>
+<span class="sourceLineNo">240</span><a id="line.240">                        String encodedEncrypted = FileUtils.readFileToString(</a>
+<span class="sourceLineNo">241</span><a id="line.241">                                        new File("./target/main8/integrated-plain16chars.enc.txt"), StandardCharsets.UTF_8);</a>
+<span class="sourceLineNo">242</span><a id="line.242"></a>
+<span class="sourceLineNo">243</span><a id="line.243">                        conf.put("pw", encodedEncrypted);</a>
+<span class="sourceLineNo">244</span><a id="line.244"></a>
+<span class="sourceLineNo">245</span><a id="line.245">                        // this should be done without output to console</a>
+<span class="sourceLineNo">246</span><a id="line.246">                        String result = CLI2.processString("dec" + conf.get("enc"), this.password.toCharArray(),</a>
+<span class="sourceLineNo">247</span><a id="line.247">                                        (String) conf.get("pw"));</a>
+<span class="sourceLineNo">248</span><a id="line.248"></a>
+<span class="sourceLineNo">249</span><a id="line.249">                        assertTrue(result.equals(topSecret));</a>
+<span class="sourceLineNo">250</span><a id="line.250"></a>
+<span class="sourceLineNo">251</span><a id="line.251">                } catch (Exception e) {</a>
+<span class="sourceLineNo">252</span><a id="line.252">                        e.printStackTrace();</a>
+<span class="sourceLineNo">253</span><a id="line.253">                        fail();</a>
+<span class="sourceLineNo">254</span><a id="line.254">                }</a>
+<span class="sourceLineNo">255</span><a id="line.255">        }</a>
+<span class="sourceLineNo">256</span><a id="line.256">        </a>
+<span class="sourceLineNo">257</span><a id="line.257">        @Test</a>
+<span class="sourceLineNo">258</span><a id="line.258">    public void testDefaultStringEncryption() {</a>
+<span class="sourceLineNo">259</span><a id="line.259">        char[] testVector = new char[513];</a>
+<span class="sourceLineNo">260</span><a id="line.260"></a>
+<span class="sourceLineNo">261</span><a id="line.261">        for (int i = 0; i &lt; testVector.length; i++) {</a>
+<span class="sourceLineNo">262</span><a id="line.262">            testVector[i] = (char) i;</a>
+<span class="sourceLineNo">263</span><a id="line.263">        }</a>
+<span class="sourceLineNo">264</span><a id="line.264">        String source = new String(testVector);</a>
+<span class="sourceLineNo">265</span><a id="line.265">       </a>
+<span class="sourceLineNo">266</span><a id="line.266">        CryptoUtilJ8.getInstances().clear();</a>
+<span class="sourceLineNo">267</span><a id="line.267">        CryptoUtilJ8 cuj8 = CryptoUtilJ8.getInstance();</a>
+<span class="sourceLineNo">268</span><a id="line.268">        String cipherText;</a>
+<span class="sourceLineNo">269</span><a id="line.269">        String plainText;</a>
+<span class="sourceLineNo">270</span><a id="line.270">        try {</a>
+<span class="sourceLineNo">271</span><a id="line.271">            cipherText = cuj8.encryptString(source, this.getPassword());</a>
+<span class="sourceLineNo">272</span><a id="line.272">            plainText = cuj8.decryptString(cipherText, this.getPassword());</a>
+<span class="sourceLineNo">273</span><a id="line.273">            assertEquals(source, plainText, source +" is not equal with " + plainText); </a>
+<span class="sourceLineNo">274</span><a id="line.274">        } catch (GeneralSecurityException | IOException e) {</a>
+<span class="sourceLineNo">275</span><a id="line.275">            e.printStackTrace();</a>
+<span class="sourceLineNo">276</span><a id="line.276">            fail();</a>
+<span class="sourceLineNo">277</span><a id="line.277">        }</a>
+<span class="sourceLineNo">278</span><a id="line.278">    }</a>
+<span class="sourceLineNo">279</span><a id="line.279">        </a>
+<span class="sourceLineNo">280</span><a id="line.280">        @ParameterizedTest</a>
+<span class="sourceLineNo">281</span><a id="line.281">        @ArgumentsSource(SupportedTypeArguments.class)</a>
+<span class="sourceLineNo">282</span><a id="line.282">    public void testAvailableStringEncryption(TYPES type) {</a>
+<span class="sourceLineNo">283</span><a id="line.283">        char[] testVector = new char[513];</a>
+<span class="sourceLineNo">284</span><a id="line.284"></a>
+<span class="sourceLineNo">285</span><a id="line.285">        for (int i = 0; i &lt; testVector.length; i++) {</a>
+<span class="sourceLineNo">286</span><a id="line.286">            testVector[i] = (char) i;</a>
+<span class="sourceLineNo">287</span><a id="line.287">        }</a>
+<span class="sourceLineNo">288</span><a id="line.288">        String source = new String(testVector);</a>
+<span class="sourceLineNo">289</span><a id="line.289">       </a>
+<span class="sourceLineNo">290</span><a id="line.290">        CryptoUtilJ8.getInstances().clear();</a>
+<span class="sourceLineNo">291</span><a id="line.291">        CryptoUtilJ8 cuj8 = CryptoUtilJ8.getInstance(type);</a>
+<span class="sourceLineNo">292</span><a id="line.292">        String cipherText;</a>
+<span class="sourceLineNo">293</span><a id="line.293">        String plainText;</a>
+<span class="sourceLineNo">294</span><a id="line.294">        try {</a>
+<span class="sourceLineNo">295</span><a id="line.295">            cipherText = cuj8.encryptString(source, this.getPassword());</a>
+<span class="sourceLineNo">296</span><a id="line.296">            plainText = cuj8.decryptString(cipherText, this.getPassword());</a>
+<span class="sourceLineNo">297</span><a id="line.297">            assertEquals(source, plainText, source +" is not equal with " + plainText); </a>
+<span class="sourceLineNo">298</span><a id="line.298">        } catch (GeneralSecurityException | IOException e) {</a>
+<span class="sourceLineNo">299</span><a id="line.299">            e.printStackTrace();</a>
+<span class="sourceLineNo">300</span><a id="line.300">            fail();</a>
+<span class="sourceLineNo">301</span><a id="line.301">        }</a>
+<span class="sourceLineNo">302</span><a id="line.302">    }</a>
+<span class="sourceLineNo">303</span><a id="line.303"></a>
+<span class="sourceLineNo">304</span><a id="line.304">}</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</main>
+</body>
+</html>

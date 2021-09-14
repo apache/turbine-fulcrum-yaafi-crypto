@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CryptoStreamFactoryJ8Template.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum YAAFI Crypto</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.jce.crypto.extended</a> &gt; <span class="el_source">CryptoStreamFactoryJ8Template.java</span></div><h1>CryptoStreamFactoryJ8Template.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.jce.crypto.extended;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.GeneralSecurityException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.crypto.Cipher;
+
+import org.apache.fulcrum.jce.crypto.PasswordFactory;
+import org.apache.fulcrum.jce.crypto.StreamUtil;
+import org.apache.fulcrum.jce.crypto.algo.CryptoStreamGCMImpl;
+import org.apache.fulcrum.jce.crypto.algo.CryptoStreamPBEImpl;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
+
+/**
+ * Concrete factory for creating encrypting/decrypting streams. 
+ * 
+ * 
+ **/
+public abstract class CryptoStreamFactoryJ8Template /*  extends CryptoStreamFactoryImpl*/ implements CryptoStreamFactoryJ8
+{
+	
+	/** the salt for the algorithm */
+    protected byte[] salt;
+
+    /** the count parameter for the algorithm, not used for GCM */
+    protected int count;
+
+    /** the name of the JCE provider */
+    protected String providerName;
+
+    /** the algorithm to use */
+    protected String algorithm;
+    
+    private TYPES type;
+    
+    public TYPES getType() {
+<span class="fc" id="L64">      return type;</span>
+    }
+    
+    public void setType(TYPES type) {
+<span class="fc" id="L68">    	this.type = type;</span>
+<span class="fc" id="L69">    }</span>
+    
+    /**
+     * The JCE provider name known to work. If the value
+     * is set to null an appropriate provider will be
+     * used.
+     */
+<span class="fc" id="L76">    protected static final String PROVIDERNAME = null;</span>
+
+    protected static final int SALT_SIZE = 16; //might increase cipher length
+
+    /** the default instances */
+<span class="fc" id="L81">    protected static final Map&lt;TYPES,CryptoStreamFactoryJ8Template&gt; instances = new ConcurrentHashMap&lt;&gt;();</span>
+    
+    //protected AlgorithmParameters algorithmParameters;// used only for debugging
+   
+<span class="fc" id="L85">    public CryptoStreamFactoryJ8Template() {</span>
+       
+<span class="fc" id="L87">    }</span>
+    
+    /**
+     * Factory method to get a default instance
+     * 
+     * creating instance of type {@link CryptoParametersJ8#DEFAULT_TYPE}.
+     * 
+     * @return an instance of the CryptoStreamFactory
+     */
+    public static CryptoStreamFactoryJ8 getInstance() 
+    {
+<span class="fc" id="L98">        synchronized (CryptoStreamFactoryJ8Template.class) {</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">            if( !instances.containsKey(CryptoParametersJ8.DEFAULT_TYPE) )</span>
+            {
+                try {
+<span class="fc" id="L102">                    instances.put(CryptoParametersJ8.DEFAULT_TYPE, </span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">                            (CryptoParametersJ8.DEFAULT_TYPE.equals(TYPES.PBE))? new CryptoStreamPBEImpl():</span>
+<span class="nc" id="L104">                                new CryptoStreamGCMImpl()</span>
+                            );
+<span class="nc" id="L106">                } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L107">                    e.printStackTrace();</span>
+<span class="nc" id="L108">                    throw new RuntimeException(e.getMessage());</span>
+<span class="fc" id="L109">                }</span>
+            }
+    
+<span class="fc" id="L112">            return instances.get(CryptoParametersJ8.DEFAULT_TYPE);</span>
+        }
+    }
+
+    /**
+     * Factory method to get a default instance
+     * 
+     * @param type the @see {@link TYPES} of the instance.
+     * @return an instance of the CryptoStreamFactory
+     */
+    public static CryptoStreamFactoryJ8 getInstance(TYPES type) 
+    {
+<span class="fc" id="L124">        synchronized (CryptoStreamFactoryJ8Template.class) {</span>
+<span class="fc bfc" id="L125" title="All 2 branches covered.">            if( !instances.containsKey(type) )</span>
+            {
+                try {
+<span class="fc" id="L128">                    instances.put(type, </span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">                            (type.equals(TYPES.PBE))? new CryptoStreamPBEImpl():</span>
+<span class="fc" id="L130">                                new CryptoStreamGCMImpl()</span>
+                            );
+<span class="nc" id="L132">                } catch (GeneralSecurityException e) {</span>
+<span class="nc" id="L133">                    e.printStackTrace();</span>
+<span class="nc" id="L134">                    throw new RuntimeException(e.getMessage());</span>
+<span class="fc" id="L135">                }</span>
+            }
+    
+<span class="fc" id="L138">            return instances.get(type);</span>
+        }
+    }
+    
+    /**
+     * Factory method to get a default instance
+     * 
+     * @param type the @see {@link TYPES} of the instance.
+     * @param salt provided salt
+     * @param count provided count, used only for {@link TYPES#PBE}.
+     * @return an instance of the CryptoStreamFactory
+     */
+    public static CryptoStreamFactoryJ8 getInstance(TYPES type, byte[] salt, int count) 
+    {
+<span class="fc" id="L152">        synchronized (CryptoStreamFactoryJ8Template.class) {</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">            if( !instances.containsKey(type) )</span>
+            {
+                try {
+<span class="fc" id="L156">                    instances.put(type, </span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">                            (type.equals(TYPES.PBE))? new CryptoStreamPBEImpl(salt, count):</span>
+<span class="fc" id="L158">                                new CryptoStreamGCMImpl(salt)</span>
+                            );
+<span class="nc" id="L160">                } catch (Exception e) {</span>
+<span class="nc" id="L161">                    e.printStackTrace();</span>
+<span class="nc" id="L162">                    throw new RuntimeException(e.getMessage());</span>
+<span class="fc" id="L163">                }</span>
+            }
+    
+<span class="fc" id="L166">            return instances.get(type);</span>
+        }
+    }
+
+
+    /**
+     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getSmartInputStream(java.io.InputStream)
+     */
+
+    public InputStream getSmartInputStream(InputStream is)
+        throws GeneralSecurityException, IOException
+    {
+<span class="nc" id="L178">        return this.getSmartInputStream(</span>
+            is,
+<span class="nc" id="L180">            PasswordFactory.getInstance(&quot;SHA-256&quot;).create()</span>
+            );
+    }
+
+    /**
+     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream,char[])
+     */
+    public InputStream getInputStream( InputStream is, char[] password )
+        throws GeneralSecurityException, IOException
+    {
+<span class="fc" id="L190">        byte[] decrypted =  this.createCipher( is, Cipher.DECRYPT_MODE, password.clone() );</span>
+<span class="fc" id="L191">        InputStream eis = new ByteArrayInputStream(decrypted);</span>
+<span class="fc" id="L192">        return eis;</span>
+    }
+
+    /**
+     * @see org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8#getOutputStream(InputStream, OutputStream, char[])
+     */
+    public OutputStream getOutputStream(InputStream is, OutputStream os, char[] password)
+            throws GeneralSecurityException, IOException {
+<span class="fc" id="L200">        byte[] encrypted =  this.createCipher( is, Cipher.ENCRYPT_MODE, password.clone() );</span>
+<span class="fc" id="L201">        InputStream eis = new ByteArrayInputStream(encrypted);</span>
+<span class="fc" id="L202">        StreamUtil.copy(eis, os);</span>
+<span class="fc" id="L203">        return os;</span>
+    }
+    
+    /**
+     * resets the default instances
+     */
+    public static void resetInstances()
+    {
+<span class="fc" id="L211">        CryptoStreamFactoryJ8Template.instances.clear();</span>
+<span class="fc" id="L212">    }</span>
+    
+//    /**
+//     * Set the default instances from an external application.
+//     * @param instances the new default instances map
+//     * @throws Exception if instances are null
+//     */
+//    public static void setInstances(Map&lt;TYPES,CryptoStreamFactoryJ8Template&gt; instances ) throws Exception
+//    {
+//    	if (instances == null) throw new Exception(&quot;setting instances to null not allowed!&quot;);
+//        CryptoStreamFactoryJ8Template.instances = instances;
+//    }
+    
+    /** not used / implemented methods **/
+    
+    @Override
+	public InputStream getInputStream(InputStream is, String decryptionMode)
+			throws GeneralSecurityException, IOException {
+<span class="nc" id="L230">		throw new UnsupportedOperationException(&quot;not implemented&quot;);</span>
+	}
+
+	@Override
+	public InputStream getInputStream(InputStream is, String decryptionMode, char[] password)
+			throws GeneralSecurityException, IOException {
+<span class="nc" id="L236">		throw new UnsupportedOperationException(&quot;not implemented&quot;);</span>
+	}
+
+	@Override
+	public InputStream getInputStream(InputStream is) throws GeneralSecurityException, IOException {
+<span class="nc" id="L241">		throw new UnsupportedOperationException(&quot;not implemented&quot;);</span>
+	}
+
+	@Override
+	public InputStream getSmartInputStream(InputStream is, char[] password)
+			throws GeneralSecurityException, IOException {
+<span class="nc" id="L247">		throw new UnsupportedOperationException(&quot;not implemented&quot;);</span>
+	}
+
+	@Override
+	public OutputStream getOutputStream(OutputStream os) throws GeneralSecurityException, IOException {
+<span class="nc" id="L252">		throw new UnsupportedOperationException(&quot;not implemented&quot;);</span>
+	}
+
+	@Override
+	public OutputStream getOutputStream(OutputStream os, char[] password) throws GeneralSecurityException, IOException {
+<span class="nc" id="L257">		throw new UnsupportedOperationException(&quot;not implemented&quot;);</span>
+	}
+    /** not used methods end **/
+
+    /**
+     * Create a PBE key.
+     *
+     * @param password the password to use.
+     * @param salt if provided this is used, otherweise {@link #getSalt()}.
+     * @return the key
+     * @throws GeneralSecurityException creating the key failed
+     */
+    protected abstract Key createKey( char[] password, byte[] salt ) 
+            throws GeneralSecurityException;
+
+    /**
+     * Create a Cipher.
+     *
+     * @param is the input stream
+     * @param mode the cipher mode
+     * @param password the password
+     * @return an instance of a cipher
+     * @return the cipher as byte array
+     * @throws GeneralSecurityException creating a cipher failed
+     * @throws IOException creating a cipher failed
+     */
+    protected abstract byte[] createCipher(InputStream is, int mode, char[] password )
+        throws GeneralSecurityException, IOException;
+    
+    /**
+     * creates salt from {@link SecureRandom#getInstance(String)} by default was algorithm SHA1PRNG
+     * 
+     * changed to {@link SecureRandom#getInstanceStrong()} and let the system decide, what PRNG to use for salt random.
+     * 
+     * salt size is by default @link {@value #SALT_SIZE}.
+     * 
+     * @return the generated salt as byte array
+     * @throws GeneralSecurityException if no algo could be found.
+     */
+    protected static byte[] generateSalt() throws GeneralSecurityException {
+        SecureRandom random;
+        try {
+<span class="fc" id="L299">            random = SecureRandom.getInstanceStrong();</span>
+<span class="fc" id="L300">            byte[] salt = new byte[SALT_SIZE ];</span>
+<span class="fc" id="L301">            random.nextBytes(salt);</span>
+<span class="fc" id="L302">            return salt;</span>
+<span class="nc" id="L303">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L304">            throw new GeneralSecurityException(e);  </span>
+        }
+    }
+
+	public byte[] getSalt() {
+<span class="fc" id="L309">		return salt.clone();</span>
+	}
+
+	protected void setSalt(byte[] salt) {
+<span class="fc" id="L313">		this.salt = salt.clone();</span>
+<span class="fc" id="L314">	}</span>
+
+	public int getCount() {
+<span class="fc" id="L317">		return count;</span>
+	}
+
+	public void setCount(int count) {
+<span class="nc" id="L321">		this.count = count;</span>
+<span class="nc" id="L322">	}</span>
+
+	public String getProviderName() {
+<span class="fc" id="L325">		return providerName;</span>
+	}
+
+	public void setProviderName(String providerName) {
+<span class="nc" id="L329">		this.providerName = providerName;</span>
+<span class="nc" id="L330">	}</span>
+
+	public String getAlgorithm() {
+<span class="fc" id="L333">		return algorithm;</span>
+	}
+
+	public void setAlgorithm(String algorithm) {
+<span class="nc" id="L337">		this.algorithm = algorithm;</span>
+<span class="nc" id="L338">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CryptoUtil.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum YAAFI Crypto</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.jce.crypto</a> &gt; <span class="el_source">CryptoUtil.java</span></div><h1>CryptoUtil.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.jce.crypto;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.GeneralSecurityException;
+
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
+import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
+import org.apache.fulcrum.jce.crypto.extended.CryptoUtilJ8;
+
+/**
+ * Helper class to provde generic functions to work with CryptoStreams.
+ *
+ * The code uses parts from Markus Hahn's Blowfish library found at
+ * http://blowfishj.sourceforge.net/
+ *
+ * @author &lt;a href=&quot;mailto:siegfried.goeschl@it20one.at&quot;&gt;Siegfried Goeschl &lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:maakus@earthlink.net&quot;&gt;Markus Hahn&lt;/a&gt;
+ */
+
+public class CryptoUtil {
+
+    /** the default instance */
+    private static CryptoUtil instance;
+    
+    
+    protected CryptoStreamFactory cryptoStreamFactory;
+    
+    /**
+     * Factory method to get a default instance
+     * 
+     * @return an instance of the CryptoUtil
+     */
+    public synchronized static CryptoUtil getInstance() {
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (CryptoUtil.instance == null) {</span>
+<span class="nc" id="L57">            CryptoUtil.instance = new CryptoUtil();</span>
+        }
+
+<span class="fc" id="L60">        return CryptoUtil.instance;</span>
+    }
+    
+    /**
+     * 
+     */
+<span class="fc" id="L66">    protected CryptoUtil() {</span>
+<span class="fc" id="L67">        cryptoStreamFactory = CryptoStreamFactoryImpl.getInstance();</span>
+<span class="fc" id="L68">    }</span>
+    
+    /**
+     * Factory method to get a default instance
+     * 
+     * @param salt the salt for the PBE algorithm
+     * @param count the iteration for PBEParameterSpec
+     * @return an instance of the CryptoUtil
+     */
+    public synchronized static CryptoUtil getInstance(byte[] salt, int count) {
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        if (CryptoUtil.instance == null) {</span>
+<span class="fc" id="L79">            CryptoUtil.instance = new CryptoUtil(salt, count);</span>
+        }
+
+<span class="fc" id="L82">        return CryptoUtil.instance;</span>
+    }
+    
+    /**
+     *  @param salt the salt for the PBE algorithm
+     *  @param count the iteration for PBEParameterSpec
+     */
+<span class="fc" id="L89">    protected CryptoUtil(byte[] salt, int count) {</span>
+<span class="fc" id="L90">        cryptoStreamFactory = CryptoStreamFactoryImpl.getInstance(salt, count);</span>
+<span class="fc" id="L91">    }</span>
+
+    /**
+     * Copies from a source to a target object using encryption
+     *
+     * @param source   the source object
+     * @param target   the target object
+     * @param password the password to use for encryption
+     * @throws GeneralSecurityException accessing JCE failed
+     * @throws IOException              accessing the souce failed
+     *
+     */
+    public void encrypt(Object source, Object target, char[] password) throws GeneralSecurityException, IOException {
+<span class="fc" id="L104">        encrypt(getCryptoStreamFactory(), source, target, password);</span>
+<span class="fc" id="L105">    }</span>
+
+    /**
+     * Copies from a source to a target object using encryption and a caller
+     * supplied CryptoStreamFactory.
+     *
+     * @param factory  the factory to create the crypto streams
+     * @param source   the source object
+     * @param target   the target object
+     * @param password the password to use for encryption
+     * @throws GeneralSecurityException accessing JCE failed
+     * @throws IOException              accessing the souce failed
+     */
+    public void encrypt(CryptoStreamFactory factory, Object source, Object target, char[] password)
+            throws GeneralSecurityException, IOException {
+<span class="fc" id="L120">        InputStream is = StreamUtil.createInputStream(source);</span>
+<span class="fc" id="L121">        OutputStream os = StreamUtil.createOutputStream(target);</span>
+<span class="fc" id="L122">        OutputStream eos = factory.getOutputStream(os, password);</span>
+<span class="fc" id="L123">        StreamUtil.copy(is, eos);</span>
+<span class="fc" id="L124">    }</span>
+
+    
+    /**
+     * Encrypts a string into a hex string using {@link CryptoParametersJ8#CLEAR_CODE_DEFAULT}
+     *
+     * @param plainText the plain text to be encrypted
+     * @param password  the password for encryption
+     * @return the encrypted string
+     * @throws GeneralSecurityException accessing JCE failed
+     * @throws IOException              accessing the souce failed
+     */
+    public String encryptStringWithClearCode(String plainText, char[] password) throws GeneralSecurityException, IOException {
+<span class="fc" id="L137">        return encryptString(getCryptoStreamFactory(), plainText, password, true);</span>
+    }
+
+    /**
+     * Encrypts a string into a hex string.
+     *
+     * @param plainText the plain text to be encrypted
+     * @param password  the password for encryption
+     * @return the encrypted string
+     * @throws GeneralSecurityException accessing JCE failed
+     * @throws IOException              accessing the souce failed
+     */
+    public String encryptString(String plainText, char[] password) throws GeneralSecurityException, IOException {
+<span class="fc" id="L150">        return encryptString(getCryptoStreamFactory(), plainText, password, false);</span>
+    }
+
+    /**
+     * Encrypts a string into a hex string.
+     *
+     * @param factory   the factory to create the crypto streams
+     * @param plainText the plain text to be encrypted
+     * @param password  the password for encryption
+     * @param withClearCode boolean to indicate, that a string containing how it was decoded is included
+     * @return the encrypted string
+     * @throws GeneralSecurityException accessing JCE failed
+     * @throws IOException              accessing the souce failed
+     */
+    public String encryptString(CryptoStreamFactory factory, String plainText, char[] password, boolean withClearCode)
+            throws GeneralSecurityException, IOException {
+<span class="fc" id="L166">        ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L167">        encrypt(factory, plainText, baos, password);</span>
+<span class="fc bfc" id="L168" title="All 4 branches covered.">        String prefix =  (withClearCode)? (this instanceof CryptoUtilJ8)?</span>
+<span class="fc" id="L169">        		((CryptoStreamFactoryJ8Template)((CryptoUtilJ8)this).getCryptoStreamFactory()).getType().getClearCode()</span>
+<span class="fc" id="L170">            	: CryptoParametersJ8.CLEAR_CODE_DEFAULT: &quot;&quot;;</span>
+<span class="fc" id="L171">        return prefix + HexConverter.toString(baos.toByteArray());</span>
+    }
+    
+    /**
+     * Copies from a source to a target object using decryption.
+     *
+     * @param source   the source object
+     * @param target   the target object
+     * @param password the password to use for decryption
+     * @throws GeneralSecurityException accessing JCE failed
+     * @throws IOException              accessing the souce failed
+     */
+    public void decrypt(Object source, Object target, char[] password) throws GeneralSecurityException, IOException {
+<span class="fc" id="L184">        decrypt(getCryptoStreamFactory(), source, target, password);</span>
+<span class="fc" id="L185">    }</span>
+    
+    /**
+     * Decrypts an encrypted string into the plain text. The encrypted string must
+     * be a hex string created by encryptString.
+     * 
+     * Decrypts encrypted text after {@link CryptoParametersJ8#CLEAR_CODE_DEFAULT}.
+     * 
+     * Removes ClearCode length of 10 bit, before decrpyting expected as prefix.
+     *
+     * @param cipherText the encrypted text to be decrypted
+     * @param password   the password for decryption
+     * @return the decrypted string
+     * @throws GeneralSecurityException accessing JCE failed
+     * @throws IOException              accessing the souce failed
+     */
+    public String decryptStringWithClearCode(String cipherText, char[] password) throws GeneralSecurityException, IOException {
+<span class="fc" id="L202">        return decryptString(getCryptoStreamFactory(), cipherText.substring(10), password);</span>
+    }
+
+    /**
+     * Decrypts an encrypted string into the plain text. The encrypted string must
+     * be a hex string created by encryptString.
+     *
+     * @param cipherText the encrypted text to be decrypted
+     * @param password   the password for decryption
+     * @return the decrypted string
+     * @throws GeneralSecurityException accessing JCE failed
+     * @throws IOException              accessing the souce failed
+     */
+    public String decryptString(String cipherText, char[] password) throws GeneralSecurityException, IOException {
+<span class="fc" id="L216">        return decryptString(getCryptoStreamFactory(), cipherText, password);</span>
+    }
+    
+    /**
+     * Decrypts an encrypted string into the plain text. The encrypted string must
+     * be a hex string created by encryptString.
+     *
+     * @param cipherText the encrypted text to be decrypted
+     * @param password   the password for decryption
+     * @param withClearCode boolean to indicate, that a string containing how it was decoded was included during encryption
+     * @return the decrypted string
+     * @throws GeneralSecurityException accessing JCE failed
+     * @throws IOException              accessing the souce failed
+     */
+    public String decryptString(String cipherText, char[] password, boolean withClearCode) throws GeneralSecurityException, IOException {
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        return decryptString(getCryptoStreamFactory(), withClearCode?</span>
+<span class="nc" id="L232">                cipherText.substring(CryptoParametersJ8.CLEAR_CODE_DEFAULT.length()):</span>
+<span class="nc" id="L233">                cipherText, password);</span>
+    }
+
+    /**
+     * Copies from a source to a target object using decryption and a caller-suppier
+     * CryptoStreamFactory.
+     *
+     * @param factory  the factory to create the crypto streams
+     * @param source   the source object
+     * @param target   the target object
+     * @param password the password to use for decryption
+     * @throws GeneralSecurityException accessing JCE failed
+     * @throws IOException              accessing the souce failed
+     */
+    protected void decrypt(CryptoStreamFactory factory, Object source, Object target, char[] password)
+            throws GeneralSecurityException, IOException {
+<span class="fc" id="L249">        InputStream is = StreamUtil.createInputStream(source);</span>
+<span class="fc" id="L250">        OutputStream os = StreamUtil.createOutputStream(target);</span>
+<span class="fc" id="L251">        InputStream dis = factory.getInputStream(is, password);</span>
+<span class="fc" id="L252">        StreamUtil.copy(dis, os);</span>
+<span class="fc" id="L253">    }</span>
+
+    /**
+     * Decrypts an encrypted string into the plain text. The encrypted string must
+     * be a hex string created by encryptString.
+     *
+     * @param factory    the factory to create the crypto streams
+     * @param cipherText the encrypted text to be decrypted
+     * @param password   the password for decryption
+     * @return the decrypted string
+     * @throws GeneralSecurityException accessing JCE failed
+     * @throws IOException              accessing the souce failed
+     */
+    public String decryptString(CryptoStreamFactory factory, String cipherText, char[] password)
+            throws GeneralSecurityException, IOException {
+<span class="fc" id="L268">        byte[] buffer = HexConverter.toBytes(cipherText);</span>
+<span class="fc" id="L269">        ByteArrayOutputStream bais = new ByteArrayOutputStream();</span>
+<span class="fc" id="L270">        decrypt(factory, buffer, bais, password);</span>
+<span class="fc" id="L271">        return new String(bais.toByteArray(), &quot;utf-8&quot;);</span>
+    }
+
+    /**
+     * Pumps the input stream to the output stream.
+     *
+     * @param is the source input stream
+     * @param os the target output stream
+     * @return the number of bytes copied
+     * @throws IOException the copying failed
+     * @deprecated use StreamUtil instead
+     */
+    public static long copy(InputStream is, OutputStream os) throws IOException {
+<span class="nc" id="L284">        return StreamUtil.copy(is, os);</span>
+    }
+
+    /**
+     * @return the CryptoStreamFactory to be used
+     */
+    public CryptoStreamFactory getCryptoStreamFactory() {
+<span class="fc" id="L291">        return cryptoStreamFactory;</span>
+    }
+    
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

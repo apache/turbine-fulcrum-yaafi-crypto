@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SmartDecryptingInputStream.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum YAAFI Crypto</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.jce.crypto</a> &gt; <span class="el_source">SmartDecryptingInputStream.java</span></div><h1>SmartDecryptingInputStream.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.jce.crypto;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.GeneralSecurityException;
+
+
+/**
+ * An input stream that determine if the originating input stream
+ * was encrypted or not. This magic only works for well-known file
+ * types though.
+ *
+ * @author &lt;a href=&quot;mailto:siegfried.goeschl@it20one.at&quot;&gt;Siegfried Goeschl&lt;/a&gt;
+ */
+public class SmartDecryptingInputStream extends ByteArrayInputStream
+{
+    /** The encodings to be checked for XML */
+<span class="nc" id="L40">    private static final  String[] ENCODINGS = { &quot;ISO-8859-1&quot;, &quot;UTF-8&quot;, &quot;UTF-16&quot; };</span>
+
+    /**
+     * Constructor
+     *
+     * @param cryptoStreamFactory the CryptoStreamFactory for creating a cipher stream
+     * @param is the input stream to be decrypted
+     * @throws IOException if file not found
+     * @throws GeneralSecurityException if security check fails
+     */
+    public SmartDecryptingInputStream(
+        CryptoStreamFactory cryptoStreamFactory,
+        InputStream is )
+        throws IOException, GeneralSecurityException
+    {
+<span class="nc" id="L55">        this( cryptoStreamFactory, is, null );</span>
+<span class="nc" id="L56">    }</span>
+
+    /**
+     * Constructor
+     *
+     * @param cryptoStreamFactory the CryptoStreamFactory for creating a cipher stream
+     * @param is the input stream to be decrypted
+     * @param password the password for decryption
+     * 
+     * @throws IOException if file not found
+     * @throws GeneralSecurityException if security check fails 
+     */
+    public SmartDecryptingInputStream(
+        CryptoStreamFactory cryptoStreamFactory,
+        InputStream is,
+        char[] password )
+        throws IOException, GeneralSecurityException
+    {
+<span class="nc" id="L74">        super( new byte[0] );</span>
+
+<span class="nc" id="L76">        byte[] content = null;</span>
+<span class="nc" id="L77">        byte[] plain = null;</span>
+
+        // store the data from the input stream
+
+<span class="nc" id="L81">        ByteArrayOutputStream baosCipher = new ByteArrayOutputStream();</span>
+<span class="nc" id="L82">        ByteArrayOutputStream baosPlain = new ByteArrayOutputStream();</span>
+<span class="nc" id="L83">        this.copy( is, baosCipher );</span>
+
+<span class="nc" id="L85">        content = baosCipher.toByteArray();</span>
+<span class="nc" id="L86">        plain = content;</span>
+
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if( this.isEncrypted(content) == true )</span>
+        {
+<span class="nc" id="L90">            InputStream cis = null;</span>
+<span class="nc" id="L91">            ByteArrayInputStream bais = new ByteArrayInputStream(content);</span>
+
+<span class="nc bnc" id="L93" title="All 4 branches missed.">            if( ( password != null ) &amp;&amp; ( password.length &gt; 0 ) )</span>
+            {
+<span class="nc" id="L95">                cis = cryptoStreamFactory.getInputStream( bais, password );</span>
+            }
+            else
+            {
+<span class="nc" id="L99">                cis = cryptoStreamFactory.getInputStream( bais );</span>
+            }
+
+<span class="nc" id="L102">            copy( cis, baosPlain );</span>
+<span class="nc" id="L103">            plain = baosPlain.toByteArray();</span>
+        }
+
+        // initialize the inherited instance
+
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if( plain != null )</span>
+        {
+<span class="nc" id="L110">            this.buf = plain;</span>
+<span class="nc" id="L111">            this.pos = 0;</span>
+<span class="nc" id="L112">            this.count = buf.length;</span>
+        }
+<span class="nc" id="L114">    }</span>
+
+    /**
+     * Determine if the content is encrypted. We are
+     * using our knowledge about block length, check
+     * for XML, ZIP and PDF files and at the end of
+     * the day we are just guessing.
+     *
+     * @param content the data to be examined
+     * @return true if this is an encrypted file
+     * @throws IOException unable to read the content
+     */
+    private boolean isEncrypted( byte[] content )
+        throws IOException
+    {
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if( content.length == 0 )</span>
+        {
+<span class="nc" id="L131">            return false;</span>
+        }
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        else if( ( content.length % 8 ) != 0 )</span>
+        {
+            // the block length is 8 bytes - if the length
+            // is not a multipe of 8 then the content was
+            // definitely not encrypted
+<span class="nc" id="L138">            return false;</span>
+        }
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        else if( this.isPDF(content) )</span>
+        {
+<span class="nc" id="L142">            return false;</span>
+        }
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        else if( this.isXML(content) )</span>
+        {
+<span class="nc" id="L146">            return false;</span>
+        }
+<span class="nc bnc" id="L148" title="All 2 branches missed.">        else if( this.isZip(content) )</span>
+        {
+<span class="nc" id="L150">            return false;</span>
+        }
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        else if( this.isUtf16Text(content) )</span>
+        {
+<span class="nc" id="L154">            return false;</span>
+        }
+        else
+        {
+<span class="nc bnc" id="L158" title="All 2 branches missed.">            for( int i=0; i&lt;content.length; i++ )</span>
+            {
+                // do we have control characters in it?
+
+<span class="nc" id="L162">                char ch = (char) content[i];</span>
+
+<span class="nc bnc" id="L164" title="All 2 branches missed.">                if( this.isAsciiControl(ch) )</span>
+                {
+<span class="nc" id="L166">                    return true;</span>
+                }
+            }
+
+<span class="nc" id="L170">            return false;</span>
+        }
+    }
+
+    /**
+     * Pumps the input stream to the output stream.
+     *
+     * @param is the source input stream
+     * @param os the target output stream
+     * @return the number of bytes copied
+     * @throws IOException the copying failed
+     */
+    public long copy( InputStream is, OutputStream os )
+        throws IOException
+    {
+<span class="nc" id="L185">        byte[] buf = new byte[1024];</span>
+<span class="nc" id="L186">        int n = 0;</span>
+<span class="nc" id="L187">        long total = 0;</span>
+
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        while ((n = is.read(buf)) &gt; 0)</span>
+        {
+<span class="nc" id="L191">            os.write(buf, 0, n);</span>
+<span class="nc" id="L192">            total += n;</span>
+        }
+
+<span class="nc" id="L195">        is.close();</span>
+<span class="nc" id="L196">        os.flush();</span>
+<span class="nc" id="L197">        os.close();</span>
+
+<span class="nc" id="L199">        return total;</span>
+    }
+
+    /**
+     * Count the number of occurences for the given value
+     * @param content the content to examine
+     * @param value the value to look fo
+     * @return the number of matches
+     */
+    private int count( byte[] content, byte value )
+    {
+<span class="nc" id="L210">        int result = 0;</span>
+
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        for( int i=0; i&lt;content.length; i++ )</span>
+        {
+<span class="nc bnc" id="L214" title="All 2 branches missed.">            if( content[i] == value )</span>
+            {
+<span class="nc" id="L216">                result++;</span>
+            }
+        }
+
+<span class="nc" id="L220">        return result;</span>
+    }
+
+    /**
+     * Detect the BOM of an UTF-16 (mandatory) or UTF-8 document (optional)
+     * @param content the content to examine
+     * @return true if the content contains a BOM
+     */
+    private boolean hasByteOrderMark( byte[] content )
+    {
+        // bytes ar always signed in java, ff is 255
+        // removes signed parts
+<span class="nc" id="L232">        int firstUnsigned = content[0] &amp; 0xFF;</span>
+<span class="nc" id="L233">        int second = content[1] &amp; 0xFF;</span>
+<span class="nc bnc" id="L234" title="All 8 branches missed.">        if( ((firstUnsigned == 0xFF) &amp;&amp; (second == 0xFE)) ||</span>
+                ((firstUnsigned == 0xFE) &amp;&amp; (second == 0xFF)))
+        {
+<span class="nc" id="L237">            return true;</span>
+        }
+        else
+        {
+<span class="nc" id="L241">            return false;</span>
+        }
+    }
+
+    /**
+     * Check this is a UTF-16 text document.
+     *
+     * @param content the content to examine
+     * @return true if it is a XML document
+     * @throws IOException unable to read the content
+     */
+    private boolean isUtf16Text( byte[] content ) throws IOException
+    {
+<span class="nc bnc" id="L254" title="All 2 branches missed.">        if( content.length &lt; 2 )</span>
+        {
+<span class="nc" id="L256">            return false;</span>
+        }
+
+<span class="nc bnc" id="L259" title="All 2 branches missed.">        if( this.hasByteOrderMark( content ) )</span>
+        {
+            // we should have plenty of 0x00 in a text file
+
+<span class="nc" id="L263">            int estimate = (content.length-2)/3;</span>
+
+<span class="nc bnc" id="L265" title="All 2 branches missed.">            if( this.count(content,(byte)0) &gt; estimate )</span>
+            {
+<span class="nc" id="L267">                return true;</span>
+            }
+        }
+
+<span class="nc" id="L271">        return false;</span>
+    }
+
+    /**
+     * Check various encondings to determine if &quot;&lt;?xml&quot;
+     * and &quot;?&gt;&quot; appears in the data.
+     *
+     * @param content the content to examine
+     * @return true if it is a XML document
+     * @throws IOException unable to read the content
+     */
+    private boolean isXML( byte[] content ) throws IOException
+    {
+<span class="nc bnc" id="L284" title="All 2 branches missed.">        if( content.length &lt; 3 )</span>
+        {
+<span class="nc" id="L286">            return false;</span>
+        }
+
+<span class="nc bnc" id="L289" title="All 2 branches missed.">        for( int i=0; i&lt;ENCODINGS.length; i++ )</span>
+        {
+<span class="nc" id="L291">            String currEncoding = ENCODINGS[i];</span>
+
+<span class="nc" id="L293">            String temp = new String( content, currEncoding );</span>
+
+<span class="nc bnc" id="L295" title="All 4 branches missed.">            if( ( temp.indexOf(&quot;&lt;?xml&quot;) &gt;= 0 ) &amp;&amp; ( temp.indexOf(&quot;?&gt;&quot;) &gt; 0 ) )</span>
+            {
+<span class="nc" id="L297">                return true;</span>
+            }
+        }
+
+<span class="nc" id="L301">        return false;</span>
+    }
+
+    /**
+     * Check if this is a ZIP document
+     *
+     * @param content the content to examine
+     * @return true if it is a PDF document
+     */
+
+    private boolean isZip( byte[] content )
+    {
+<span class="nc bnc" id="L313" title="All 2 branches missed.">        if( content.length &lt; 64 )</span>
+        {
+<span class="nc" id="L315">            return false;</span>
+        }
+        else
+        {
+            // A ZIP starts with Hex: &quot;50 4B 03 04&quot;
+
+<span class="nc bnc" id="L321" title="All 8 branches missed.">            if( ( content[0] == (byte) 0x50 ) &amp;&amp;</span>
+                ( content[1] == (byte) 0x4B ) &amp;&amp;
+                ( content[2] == (byte) 0x03 ) &amp;&amp;
+                ( content[3] == (byte) 0x04 )  )
+            {
+<span class="nc" id="L326">                return true;</span>
+            }
+            else
+            {
+<span class="nc" id="L330">                return false;</span>
+            }
+        }
+    }
+
+    /**
+     * Check if this is a PDF document
+     *
+     * @param content the content to examine
+     * @return true if it is a PDF document
+     * @throws IOException unable to read the content
+     */
+    private boolean isPDF(byte[] content) throws IOException
+    {
+<span class="nc bnc" id="L344" title="All 2 branches missed.">        if( content.length &lt; 64 )</span>
+        {
+<span class="nc" id="L346">            return false;</span>
+        }
+        else
+        {
+            // A PDF starts with HEX &quot;25 50 44 46 2D 31 2E&quot;
+
+<span class="nc bnc" id="L352" title="All 14 branches missed.">            if( ( content[0] == (byte) 0x25 ) &amp;&amp;</span>
+                ( content[1] == (byte) 0x50 ) &amp;&amp;
+                ( content[2] == (byte) 0x44 ) &amp;&amp;
+                ( content[3] == (byte) 0x46 ) &amp;&amp;
+                ( content[4] == (byte) 0x2D ) &amp;&amp;
+                ( content[5] == (byte) 0x31 ) &amp;&amp;
+                ( content[6] == (byte) 0x2E )  )
+            {
+<span class="nc" id="L360">                return true;</span>
+            }
+            else
+            {
+<span class="nc" id="L364">                return false;</span>
+            }
+        }
+    }
+
+    /**
+     * Is this an ASCII control character?
+     * @param ch the charcter
+     * @return true is this in an ASCII character
+     */
+    private boolean isAsciiControl(char ch)
+    {
+<span class="nc bnc" id="L376" title="All 4 branches missed.">        if( ( ch &gt;= 0x0000 ) &amp;&amp; ( ch &lt;= 0x001F) )</span>
+        {
+<span class="nc" id="L378">            return true;</span>
+        }
+        else
+        {
+<span class="nc" id="L382">            return true;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

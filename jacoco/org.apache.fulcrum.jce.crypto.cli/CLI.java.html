@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CLI.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum YAAFI Crypto</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.jce.crypto.cli</a> &gt; <span class="el_source">CLI.java</span></div><h1>CLI.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.jce.crypto.cli;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+
+import org.apache.fulcrum.jce.crypto.CryptoUtil;
+import org.apache.fulcrum.jce.crypto.StreamUtil;
+
+/**
+ * Command line tool for encrypting/decrypting files
+ *
+ * file [enc|dec] passwd [file]*
+ * string [enc|dec] passwd plaintext
+ *
+ * @author &lt;a href=&quot;mailto:siegfried.goeschl@it20one.at&quot;&gt;Siegfried Goeschl&lt;/a&gt;
+ */
+
+<span class="nc" id="L40">public class CLI</span>
+{
+    /**
+     * Allows testing on the command line.
+     * 
+     * @param args the command line parameters
+     */
+    public static void main( String[] args )
+    {
+        try
+        {
+<span class="nc bnc" id="L51" title="All 2 branches missed.">            if( args.length &lt; 3 )</span>
+            {
+<span class="nc" id="L53">                printHelp();</span>
+<span class="nc" id="L54">                throw new IllegalArgumentException(&quot;Invalid command line&quot;);</span>
+            }
+
+<span class="nc" id="L57">            String operationMode = args[0];</span>
+
+<span class="nc bnc" id="L59" title="All 2 branches missed.">            if( operationMode.equals(&quot;file&quot;) )</span>
+            {
+<span class="nc" id="L61">                processFiles(args);</span>
+            }
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            else if( operationMode.equals(&quot;string&quot;) )</span>
+            {
+<span class="nc" id="L65">                processString(args);</span>
+            }
+        }
+<span class="nc" id="L68">        catch (Exception e)</span>
+        {
+<span class="nc" id="L70">            System.out.println(&quot;Error : &quot; + e.getMessage());</span>
+<span class="nc" id="L71">        }</span>
+<span class="nc" id="L72">    }</span>
+
+    /**
+     * Prints usage information.
+     */
+    public static void printHelp()
+    {
+<span class="nc" id="L79">        System.out.println(&quot;Main file [enc|dec] passwd source [target]&quot;);</span>
+<span class="nc" id="L80">        System.out.println(&quot;Main string [enc|dec] passwd source&quot;);</span>
+<span class="nc" id="L81">    }</span>
+
+    /**
+     * Decrypt/encrypt a list of files
+     * @param args the command line
+     * @throws Exception the operation failed
+     */
+    public static void processFiles(String[] args)
+        throws Exception
+    {
+<span class="nc" id="L91">        String cipherMode = args[1];</span>
+<span class="nc" id="L92">        char[] password = args[2].toCharArray();</span>
+<span class="nc" id="L93">        File sourceFile = new File(args[3]);</span>
+<span class="nc" id="L94">        File targetFile = null;</span>
+
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if( args.length == 4 )</span>
+        {
+<span class="nc" id="L98">            targetFile = sourceFile;</span>
+        }
+        else
+        {
+<span class="nc" id="L102">            targetFile = new File(args[4]);</span>
+<span class="nc" id="L103">            File parentFile = targetFile.getParentFile(); </span>
+
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            if (parentFile != null)</span>
+            {
+<span class="nc" id="L107">                boolean success = parentFile.mkdirs();</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                if ( !success )</span>
+                {
+<span class="nc" id="L110">                	System.err.println(&quot;Failed to create directory&quot;);</span>
+                }
+            }
+        }
+
+<span class="nc" id="L115">        processFile(cipherMode,password,sourceFile,targetFile);</span>
+<span class="nc" id="L116">    }</span>
+
+    /**
+     * Decrypt and encrypt a single file
+     * @param cipherMode the mode
+     * @param password the password
+     * @param sourceFile the file to process
+     * @param targetFile the target file
+     * @throws Exception the operation failed
+     */
+    public static void processFile(String cipherMode, char[] password, File sourceFile, File targetFile)
+        throws Exception
+    {
+<span class="nc" id="L129">        try (FileInputStream fis = new FileInputStream(sourceFile)) {</span>
+<span class="nc" id="L130">            ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+    
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            if( cipherMode.equals(&quot;dec&quot;) )</span>
+            {
+<span class="nc" id="L134">                System.out.println(&quot;Decrypting &quot; + sourceFile.getAbsolutePath() );</span>
+<span class="nc" id="L135">                CryptoUtil.getInstance().decrypt( fis, baos, password );</span>
+<span class="nc" id="L136">                fis.close();</span>
+    
+<span class="nc" id="L138">                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());</span>
+<span class="nc" id="L139">                FileOutputStream fos = new FileOutputStream(targetFile);</span>
+<span class="nc" id="L140">                StreamUtil.copy(bais,fos);</span>
+<span class="nc" id="L141">                bais.close();</span>
+<span class="nc" id="L142">                fos.close();</span>
+<span class="nc" id="L143">            }</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            else if( cipherMode.equals(&quot;enc&quot;) )</span>
+            {
+<span class="nc" id="L146">                System.out.println(&quot;Encrypting &quot; + sourceFile.getAbsolutePath() );</span>
+<span class="nc" id="L147">                CryptoUtil.getInstance().encrypt( fis, baos, password );</span>
+<span class="nc" id="L148">                fis.close();</span>
+    
+<span class="nc" id="L150">                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());</span>
+<span class="nc" id="L151">                FileOutputStream fos = new FileOutputStream(targetFile);</span>
+<span class="nc" id="L152">                StreamUtil.copy(bais,fos);</span>
+<span class="nc" id="L153">                bais.close();</span>
+<span class="nc" id="L154">                fos.close();</span>
+<span class="nc" id="L155">            }</span>
+            else
+            {
+<span class="nc" id="L158">                String msg = &quot;Don't know what to do with : &quot; + cipherMode;</span>
+<span class="nc" id="L159">                throw new IllegalArgumentException(msg);</span>
+            }
+        }
+<span class="nc" id="L162">    }</span>
+
+    /**
+     * Decrypt/encrypt a string.
+     * 
+     * @param args the command line
+     * @throws Exception the operation failed
+     */
+    public static void processString(String[] args)
+        throws Exception
+    {
+<span class="nc" id="L173">        String cipherMode = args[1];</span>
+<span class="nc" id="L174">        char[] password = args[2].toCharArray();</span>
+<span class="nc" id="L175">        String value = args[3];</span>
+<span class="nc" id="L176">        String result = null;</span>
+
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        if( cipherMode.equals(&quot;dec&quot;) )</span>
+        {
+<span class="nc" id="L180">            result = CryptoUtil.getInstance().decryptString(value,password);</span>
+        }
+        else
+        {
+<span class="nc" id="L184">            result = CryptoUtil.getInstance().encryptString(value,password);</span>
+        }
+
+<span class="nc" id="L187">        System.out.println( result );</span>
+<span class="nc" id="L188">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

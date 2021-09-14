@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HexConverter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum YAAFI Crypto</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.jce.crypto</a> &gt; <span class="el_source">HexConverter.java</span></div><h1>HexConverter.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.jce.crypto;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+/**
+ * Helper class to for HEX conversion.
+ *
+ * @author &lt;a href=&quot;mailto:painter@apache.org&quot;&gt;Jeffery Painter&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:siegfried.goeschl@it20one.at&quot;&gt;Siegfried Goeschl&lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:maakus@earthlink.net&quot;&gt;Markus Hahn&lt;/a&gt;
+ */
+
+<span class="nc" id="L30">public final class HexConverter</span>
+{
+    /**
+     * Converts a byte array to a hex string.
+     *
+     * @param data the byte array
+     * @return the hex string
+     */
+    public static String toString( byte[] data )
+    {
+<span class="fc" id="L40">        return bytesToHexStr(data);</span>
+    }
+
+    /**
+     * Converts a hex string into a byte[]
+     *
+     * @param sHex the hex string
+     * @return the byte[]
+     */
+    public static byte[] toBytes(String sHex) {
+<span class="fc" id="L50">        int len = sHex.length();</span>
+<span class="fc" id="L51">        byte[] data = new byte[len / 2];</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        for (int i = 0; i &lt; len; i += 2) {</span>
+<span class="fc" id="L53">            data[i / 2] = (byte) ((Character.digit(sHex.charAt(i), 16) &lt;&lt; 4)</span>
+<span class="fc" id="L54">                                 + Character.digit(sHex.charAt(i+1), 16));</span>
+        }
+<span class="fc" id="L56">        return data;</span>
+    }    
+    
+    /**
+     * Converts a byte array to a hex string.
+     * @param data the byte array
+     * @return the hex string
+     */
+    private static String bytesToHexStr( byte[] data )
+    {
+<span class="fc" id="L66">        StringBuilder sbuf = new StringBuilder();</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        for ( byte b : data )</span>
+<span class="fc" id="L68">        	sbuf.append( String.format(&quot;%02x&quot;, b ) );</span>
+<span class="fc" id="L69">        return sbuf.toString();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

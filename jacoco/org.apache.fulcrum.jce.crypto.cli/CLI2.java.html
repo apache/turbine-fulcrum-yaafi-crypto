@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CLI2.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum YAAFI Crypto</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.jce.crypto.cli</a> &gt; <span class="el_source">CLI2.java</span></div><h1>CLI2.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.jce.crypto.cli;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import org.apache.fulcrum.jce.crypto.HexConverter;
+import org.apache.fulcrum.jce.crypto.StreamUtil;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
+import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
+import org.apache.fulcrum.jce.crypto.extended.CryptoUtilJ8;
+
+/**
+ * &lt;b&gt;Manifest main class&lt;/b&gt;.
+ * 
+ * Command line tool for encrypting/decrypting a file or string
+ *
+ * file [enc|dec] passwd [file]* string [enc|dec] passwd plaintext
+ * 
+ * Example :
+ * 
+ * &lt;pre&gt;
+ * java -classpath target/classes org.apache.fulcrum.jce.crypto.cli.CLI2 string enc changeit mysecretgeheim
+ * &lt;/pre&gt;
+ * 
+ * &lt;pre&gt;
+ * java -jar target/fulcrum-yaafi-crypto-1.0.8.jar string enc changeit mysecretgeheim
+ * &lt;/pre&gt;
+ * 
+ * ...
+ * 
+ * &lt;pre&gt;
+ * java java -jar target/fulcrum-yaafi-crypto-1.0.8.jar string dec changeit anothersecret
+ * &lt;/pre&gt;
+ * 
+ *  @author gk@apache.org
+ *
+ */
+<span class="nc" id="L71">public class CLI2 {</span>
+	
+	
+<span class="fc" id="L74">	static boolean debug = false;</span>
+	/**
+	 * Allows usage on the command line.
+	 * 
+	 * @param args the command line parameters
+	 */
+	public static void main(String[] args) {
+		try {
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">			if (args.length == 0) {</span>
+<span class="nc" id="L83">				printHelp();</span>
+<span class="nc" id="L84">				return;</span>
+			}
+<span class="fc" id="L86">			String operationMode = args[0];</span>
+
+<span class="fc" id="L88">			String msg = &quot;No operationMode&quot;;</span>
+<span class="pc bpc" id="L89" title="2 of 4 branches missed.">			if (operationMode == null || operationMode.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L90">				throw new IllegalArgumentException(msg);</span>
+			}
+
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">			if (operationMode.equals(&quot;info&quot;)) {</span>
+<span class="nc" id="L94">				printInfo();</span>
+<span class="nc" id="L95">				return;</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">			} else if (operationMode.equals(&quot;help&quot;)) {</span>
+<span class="nc" id="L97">				printHelp();</span>
+<span class="nc" id="L98">				return;</span>
+			}
+
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">			if (args.length &lt; 3) {</span>
+<span class="nc" id="L102">				printHelp();</span>
+<span class="nc" id="L103">				throw new IllegalArgumentException(&quot;Invalid command line&quot;);</span>
+			}
+
+<span class="fc bfc" id="L106" title="All 2 branches covered.">			if (operationMode.equals(&quot;file&quot;)) {</span>
+<span class="fc" id="L107">				processFiles(args);</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">			} else if (operationMode.equals(&quot;string&quot;)) {</span>
+<span class="fc" id="L109">				processString(args);</span>
+			}
+<span class="nc" id="L111">		} catch (Exception e) {</span>
+<span class="nc" id="L112">			System.out.println(&quot;Error: &quot; + e.getMessage());</span>
+<span class="nc" id="L113">			e.printStackTrace();</span>
+<span class="fc" id="L114">		}</span>
+<span class="fc" id="L115">	}</span>
+
+	private static void printInfo() {
+<span class="nc" id="L118">		CryptoUtilJ8 cryptoUtilJ8 = CryptoUtilJ8.getInstance();</span>
+<span class="nc" id="L119">		System.out.println(&quot;&quot;);</span>
+<span class="nc" id="L120">		System.out.println(&quot;\t| Default Crypto factory class: \t&quot; + cryptoUtilJ8.getCryptoStreamFactory().getClass());</span>
+<span class="nc" id="L121">		System.out.println(&quot;\t|_Default Algorithm used: \t&quot; + cryptoUtilJ8.getCryptoStreamFactory().getAlgorithm());</span>
+		
+<span class="nc bnc" id="L123" title="All 2 branches missed.">		for (int i = 0; i &lt; CryptoParametersJ8.LISTS.length; i++) {</span>
+<span class="nc" id="L124">			List&lt;String&gt; list =  CryptoParametersJ8.LISTS[i];</span>
+<span class="nc" id="L125">			String type =  CryptoParametersJ8.PROVIDER_TYPES[i];</span>
+<span class="nc" id="L126">			System.out.println(&quot;\t|Algorithms (unchecked) supported: \t&quot; + list);	</span>
+<span class="nc" id="L127">			List&lt;String&gt; result = CryptoParametersJ8.getSupportedAlgos(list, type, true);</span>
+<span class="nc" id="L128">			Set&lt;String&gt; resultSet = new LinkedHashSet&lt;String&gt;(result);</span>
+<span class="nc" id="L129">			resultSet.addAll( CryptoParametersJ8.getSupportedAlgos(list, type, false) );</span>
+<span class="nc" id="L130">			System.out.println(</span>
+<span class="nc" id="L131">					String.format(&quot;\t|_Matched supported %2$s:\t%1$s&quot;, </span>
+							(resultSet), type));
+		}
+
+<span class="nc" id="L135">		List&lt;String&gt; supportedAlgos = CryptoParametersJ8.init();</span>
+<span class="nc" id="L136">		System.out.println(</span>
+<span class="nc" id="L137">				String.format(&quot;\t|Effectively supported from %2$ss:\t*** %1$s ***&quot;, </span>
+<span class="nc" id="L138">						supportedAlgos, Arrays.toString( CryptoParametersJ8.PROVIDER_TYPES) ));		</span>
+		
+<span class="nc bnc" id="L140" title="All 2 branches missed.">		if (debug) {</span>
+<span class="nc" id="L141">			Arrays.stream(CryptoParametersJ8.TYPES.values()).forEach(t -&gt; {</span>
+<span class="nc" id="L142">				CryptoUtilJ8 testcu = CryptoUtilJ8.getInstance(t);</span>
+<span class="nc" id="L143">				System.out.println(&quot;\t| Crypto factory class: \t&quot; + testcu.getCryptoStreamFactory().getClass());</span>
+<span class="nc" id="L144">				System.out.println(&quot;\t|_Algorithm used: \t&quot; + testcu.getCryptoStreamFactory().getAlgorithm());</span>
+
+<span class="nc" id="L146">			});</span>
+		}
+<span class="nc" id="L148">		System.out.println(</span>
+				&quot;\t|_ More Info: https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html\r\n&quot;);
+<span class="nc" id="L150">	}</span>
+	
+
+	/**
+	 * Prints usage information.
+	 */
+	public static void printHelp() {
+<span class="nc" id="L157">		System.out.println(</span>
+				&quot;\r\n\t*** Command line tool for encrypting/decrypting strings/files ***\r\n\t*** algorithm based on &quot;
+						+ CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_PBE + &quot;***\r\n&quot;);
+<span class="nc" id="L160">		System.out.println(&quot;\tjava -cp target\\classes &quot; + CLI2.class.getName()</span>
+				+ &quot; &lt;operation mode&gt; &lt;coding mode&gt; &lt;password&gt; &lt;path|string&gt; [target]\r\n&quot;);
+<span class="nc" id="L162">		System.out.println(</span>
+				&quot;\tjava -jar target/fulcrum-yaafi-crypto-1.0.8-SNAPSHOT.jar &lt;operation mode&gt; &lt;coding mode&gt; &lt;password&gt; &lt;path|string&gt; [target]\r\n&quot;);
+<span class="nc" id="L164">		System.out.println(&quot;\t-------------------&quot;);</span>
+<span class="nc" id="L165">		System.out.println(&quot;\toperation mode: file|string|info&quot;);</span>
+<span class="nc" id="L166">		System.out.println(&quot;\tcoding mode: enc|dec|enc:GCM. Default algorithm is &quot; + CryptoParametersJ8.DEFAULT_TYPE);</span>
+<span class="nc" id="L167">		System.out.println(&quot;\t&lt;password: string or empty:''&quot;);</span>
+<span class="nc" id="L168">		System.out.println(&quot;\tcode|coderef: path|string&quot;);</span>
+<span class="nc" id="L169">		System.out.println(&quot;\ttarget: optional\r\n&quot;);</span>
+<span class="nc" id="L170">		System.out.println(&quot;\t-------------------&quot;);</span>
+<span class="nc" id="L171">		System.out.println(&quot;\t*** Usage: ***\r\n&quot;);</span>
+<span class="nc" id="L172">		System.out.println(&quot;\t&quot; + CLI2.class.getSimpleName() + &quot; file [enc|dec] passwd source [target]&quot;);</span>
+<span class="nc" id="L173">		System.out.println(&quot;\t&quot; + CLI2.class.getSimpleName() + &quot; string [enc|dec] passwd source&quot;);</span>
+<span class="nc" id="L174">		System.out.println(&quot;\t&quot; + CLI2.class.getSimpleName() + &quot; info&quot;);</span>
+<span class="nc" id="L175">	}</span>
+
+	/**
+	 * Decrypt/encrypt a list of files
+	 * 
+	 * @param args the command line
+	 * @throws Exception the operation failed
+	 */
+	public static void processFiles(String[] args) throws Exception {
+<span class="fc" id="L184">		String cipherMode = args[1];</span>
+<span class="fc" id="L185">		char[] password = args[2].toCharArray();</span>
+<span class="fc" id="L186">		File sourceFile = new File(args[3]);</span>
+<span class="fc" id="L187">		File targetFile = null;</span>
+
+<span class="fc bfc" id="L189" title="All 2 branches covered.">		if (args.length == 4) {</span>
+<span class="fc" id="L190">			targetFile = sourceFile;</span>
+		} else {
+<span class="fc" id="L192">			targetFile = new File(args[4]);</span>
+<span class="fc" id="L193">			File parentFile = targetFile.getParentFile();</span>
+
+<span class="pc bpc" id="L195" title="2 of 6 branches missed.">			if (parentFile != null &amp;&amp; (!parentFile.exists() || !parentFile.isDirectory())) {</span>
+<span class="fc" id="L196">				boolean success = parentFile.mkdirs();</span>
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">				if (!success) {</span>
+<span class="nc" id="L198">					System.err.println(&quot;Error, could not create directory to write parent file&quot;);</span>
+				}
+			}
+		}
+
+<span class="fc" id="L203">		processFile(cipherMode, password, sourceFile, targetFile);</span>
+<span class="fc" id="L204">	}</span>
+
+	/**
+	 * Decrypt/encrypt a single file
+	 * 
+	 * @param cipherMode the mode
+	 * @param password   the password
+	 * @param sourceFile the file to process
+	 * @param targetFile the target file
+	 * @throws Exception the operation failed
+	 */
+	public static void processFile(String cipherMode, char[] password, File sourceFile, File targetFile)
+			throws Exception {
+
+<span class="fc" id="L218">		try (FileInputStream fis = new FileInputStream(sourceFile)) {</span>
+<span class="fc" id="L219">			ByteArrayOutputStream baos = new ByteArrayOutputStream();</span>
+<span class="fc" id="L220">			CryptoUtilJ8 cryptoUtilJ8 = createCryptoUtil(cipherMode);</span>
+			
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">			if (cryptoUtilJ8 == null) {</span>
+<span class="nc" id="L223">				System.out.println(&quot;Canceling &quot;);</span>
+<span class="nc" id="L224">				return;</span>
+			}
+
+<span class="fc bfc" id="L227" title="All 2 branches covered.">			if (cipherMode.startsWith(&quot;dec&quot;)) {</span>
+<span class="fc" id="L228">				System.out.println(&quot;Decrypting &quot; + sourceFile.getAbsolutePath());</span>
+
+				// String value = new String(Files.readAllBytes(Paths.get(sourceFile.toURI())));
+<span class="fc" id="L231">				StringBuffer stringBuffer = new StringBuffer();</span>
+				int i;
+<span class="fc bfc" id="L233" title="All 2 branches covered.">				while ((i = fis.read()) != -1) {</span>
+<span class="fc" id="L234">					stringBuffer.append((char) i);</span>
+				}
+
+<span class="fc" id="L237">				String value = stringBuffer.toString();</span>
+<span class="fc bfc" id="L238" title="All 2 branches covered.">				if (isHexadecimal(value)) {</span>
+<span class="fc" id="L239">					byte[] buffer = HexConverter.toBytes(value);</span>
+<span class="fc" id="L240">					cryptoUtilJ8.decrypt(buffer, baos, password);</span>
+<span class="fc" id="L241">				} else {</span>
+<span class="fc" id="L242">					try (FileInputStream fis2 = new FileInputStream(sourceFile)) {</span>
+<span class="fc" id="L243">						cryptoUtilJ8.decrypt(fis2, baos, password);</span>
+					}
+				}
+
+<span class="fc" id="L247">				ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());</span>
+<span class="fc" id="L248">				FileOutputStream fos = new FileOutputStream(targetFile);</span>
+<span class="fc" id="L249">				StreamUtil.copy(bais, fos);</span>
+<span class="fc" id="L250">				bais.close();</span>
+<span class="fc" id="L251">				fos.close();</span>
+<span class="pc bpc" id="L252" title="1 of 2 branches missed.">			} else if (cipherMode.startsWith(&quot;enc&quot;)) {</span>
+<span class="fc" id="L253">				System.out.println(&quot;Encrypting &quot; + sourceFile.getAbsolutePath());</span>
+<span class="fc" id="L254">				cryptoUtilJ8.encrypt(fis, baos, password);</span>
+<span class="fc" id="L255">				fis.close();</span>
+
+<span class="fc" id="L257">				ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());</span>
+<span class="fc" id="L258">				FileOutputStream fos = new FileOutputStream(targetFile);</span>
+<span class="fc" id="L259">				StreamUtil.copy(bais, fos);</span>
+<span class="fc" id="L260">				bais.close();</span>
+<span class="fc" id="L261">				fos.close();</span>
+<span class="fc" id="L262">			} else {</span>
+<span class="nc" id="L263">				String msg = &quot;Don't know what to do with : &quot; + cipherMode;</span>
+<span class="nc" id="L264">				throw new IllegalArgumentException(msg);</span>
+			}
+<span class="nc" id="L266">		}</span>
+<span class="fc" id="L267">	}</span>
+
+	private static CryptoUtilJ8 createCryptoUtil(String cipherMode) throws Exception {
+<span class="fc" id="L270">		CryptoUtilJ8 cryptoUtilJ8 = null;</span>
+<span class="fc" id="L271">		List&lt;String&gt; supportedTypes = CryptoParametersJ8.init();</span>
+		// no extension like enc:GCM
+<span class="fc bfc" id="L273" title="All 2 branches covered.">		if (cipherMode.substring(&quot;enc&quot;.length()).equals(&quot;&quot;)) {</span>
+<span class="pc bpc" id="L274" title="1 of 2 branches missed.">			if (supportedTypes.stream().anyMatch(x-&gt; x.equals(CryptoParametersJ8.DEFAULT_TYPE.toString()) )) {</span>
+<span class="fc" id="L275">				System.err.println(&quot;using default type:&quot;+ CryptoParametersJ8.DEFAULT_TYPE);</span>
+<span class="fc" id="L276">				cryptoUtilJ8 = CryptoUtilJ8.getInstance();</span>
+			} else {
+<span class="nc" id="L278">				System.err.println(&quot;Could not use default type:&quot;+ TYPES.PBE + &quot;.You have to set explicit type, e.g. enc:&quot;+supportedTypes.get(0) );</span>
+			}
+		} else {
+<span class="fc" id="L281">			System.err.println(&quot;checking supported types:&quot;+ supportedTypes);</span>
+<span class="fc" id="L282">			List&lt;String&gt; matchedType = supportedTypes.stream().filter(x-&gt; cipherMode.endsWith(x) ).collect(Collectors.toList());</span>
+<span class="fc" id="L283">			System.err.println(&quot;matched type:&quot;+ matchedType);</span>
+<span class="fc" id="L284">			Optional&lt;TYPES&gt; algoShortcut = Arrays.stream(CryptoParametersJ8.TYPES.values())</span>
+<span class="fc" id="L285">					.filter(a -&gt; matchedType.get(0).equals(a.toString())).findFirst();</span>
+<span class="pc bpc" id="L286" title="1 of 2 branches missed.">			if (algoShortcut.isPresent()) {</span>
+<span class="fc" id="L287">				System.err.println(&quot;initializing type:&quot;+ algoShortcut);</span>
+<span class="fc" id="L288">				cryptoUtilJ8 = CryptoUtilJ8.getInstance(algoShortcut.get());</span>
+			}
+		}
+
+<span class="pc bpc" id="L292" title="1 of 2 branches missed.">		if (cryptoUtilJ8 == null) {</span>
+<span class="nc" id="L293">			throw new Exception(&quot;Could not use algorithm. Check debug output and JDK provided algo shortcuts with CLI2 info!&quot;);</span>
+		}
+		
+<span class="pc bpc" id="L296" title="1 of 2 branches missed.">		if (debug) {</span>
+<span class="nc" id="L297">			CryptoStreamFactoryJ8Template crt = ((CryptoStreamFactoryJ8Template)cryptoUtilJ8.getCryptoStreamFactory());</span>
+<span class="nc" id="L298">			System.err.println(String.format(&quot;using crypto factory instance %s for algo %s and type %s with salt length: %s and count %s&quot;, </span>
+<span class="nc" id="L299">	           		crt.getClass().getSimpleName(), crt.getType(),</span>
+<span class="nc" id="L300">	           		crt.getAlgorithm(), crt.getSalt().length, crt.getCount()));</span>
+		}
+<span class="fc" id="L302">		return cryptoUtilJ8;</span>
+	}
+
+	/**
+	 * Decrypt and encrypt a string.
+	 * 
+	 * @param args the command line
+	 * @throws Exception the operation failed
+	 */
+	public static void processString(String[] args) throws Exception {
+		final String cipherMode;
+		final char[] password;
+		final String value;
+<span class="fc" id="L315">		File targetFile = null;</span>
+<span class="pc bpc" id="L316" title="1 of 2 branches missed.">		if (args.length &gt; 3) {</span>
+<span class="fc" id="L317">			cipherMode = args[1];</span>
+<span class="fc" id="L318">			password = args[2].toCharArray();</span>
+<span class="fc" id="L319">			value = args[3];</span>
+		} else {
+<span class="nc" id="L321">			value = null;</span>
+<span class="nc" id="L322">			cipherMode = null;</span>
+<span class="nc" id="L323">			password = null;</span>
+		}
+<span class="fc bfc" id="L325" title="All 2 branches covered.">		if (args.length == 5) {</span>
+<span class="fc" id="L326">			targetFile = new File(args[4]);</span>
+<span class="fc" id="L327">			File parentFile = targetFile.getParentFile();</span>
+
+<span class="pc bpc" id="L329" title="3 of 6 branches missed.">			if (parentFile != null &amp;&amp; (!parentFile.exists() || !parentFile.isDirectory())) {</span>
+<span class="nc" id="L330">				boolean success = parentFile.mkdirs();</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">				if (!success) {</span>
+<span class="nc" id="L332">					System.err.println(&quot;Error, could not create directory to write parent file&quot;);</span>
+				}
+			}
+		}
+
+<span class="pc bpc" id="L337" title="2 of 4 branches missed.">		if (value != null &amp;&amp; !value.equals(&quot;&quot;)) {</span>
+
+<span class="fc" id="L339">			String result = processString(cipherMode, password, value);</span>
+
+<span class="fc bfc" id="L341" title="All 2 branches covered.">			if (targetFile != null) {</span>
+
+<span class="fc" id="L343">				try (OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(targetFile),</span>
+<span class="fc" id="L344">						Charset.forName(&quot;UTF-8&quot;).newEncoder())) {</span>
+<span class="fc" id="L345">					osw.write(result);</span>
+				}
+			} else {
+<span class="fc" id="L348">				System.out.println(result);</span>
+			}
+		}
+<span class="fc" id="L351">	}</span>
+
+	/**
+	 * Decrypt and encrypt a string.
+	 * 
+	 * @param cipherMode \&quot;dec|enc\&quot; + @link{TYPES}
+	 * @param password   as char array
+	 * @param value      String to be en/decrypted
+	 * @throws Exception the operation failed
+	 * 
+	 * @return the result - either the encrypted or decrypted string depending on
+	 *         cipherMode
+	 */
+	public static String processString(String cipherMode, char[] password, String value) throws Exception {
+<span class="pc bpc" id="L365" title="2 of 4 branches missed.">		if (value != null &amp;&amp; !value.equals(&quot;&quot;)) {</span>
+<span class="fc" id="L366">			CryptoUtilJ8 cryptoUtilJ8 = createCryptoUtil(cipherMode);</span>
+
+<span class="fc" id="L368">			String result = null;</span>
+<span class="fc bfc" id="L369" title="All 2 branches covered.">			if (cipherMode.startsWith(&quot;dec&quot;)) {</span>
+<span class="fc" id="L370">				result = cryptoUtilJ8.decryptString(value, password);</span>
+<span class="pc bpc" id="L371" title="1 of 2 branches missed.">			} else if (cipherMode.startsWith(&quot;enc&quot;)) {</span>
+<span class="fc" id="L372">				result = cryptoUtilJ8.encryptString(value, password);</span>
+			}
+<span class="fc" id="L374">			return result;</span>
+		} else {
+<span class="nc" id="L376">			return null;</span>
+		}
+	}
+
+<span class="fc" id="L380">	private static final Pattern HEXADECIMAL_PATTERN = Pattern.compile(&quot;\\p{XDigit}+&quot;);</span>
+
+	public static boolean isHexadecimal(String input) {
+<span class="fc" id="L383">		final Matcher matcher = HEXADECIMAL_PATTERN.matcher(input);</span>
+<span class="fc" id="L384">		return matcher.matches();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CryptoStreamGCMImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum YAAFI Crypto</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.jce.crypto.algo</a> &gt; <span class="el_source">CryptoStreamGCMImpl.java</span></div><h1>CryptoStreamGCMImpl.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.jce.crypto.algo;
+
+import java.io.ByteArrayOutputStream;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ *  * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.security.GeneralSecurityException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.fulcrum.jce.crypto.StreamUtil;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8;
+import org.apache.fulcrum.jce.crypto.extended.CryptoStreamFactoryJ8Template;
+import org.apache.fulcrum.jce.crypto.extended.CryptoParametersJ8.TYPES;
+
+/**
+ * Concrete implementation for creating encrypting/decrypting streams. The
+ * implementation uses the JCA (Java Crypto Extension) supplied
+ * by SUN (using SunJCE 1.42).
+ *
+ * The implementation uses @see {@link CryptoParametersJ8.TYPES_IMPL#ALGORITHM_J8_GCM} for encryption which
+ * should be sufficent for most applications.
+ *
+ * The implementation also supplies a default password in the case that
+ * the programmer don't want to have additional hassles. It is easy to
+ * reengineer the password being used but much better than a hard-coded
+ * password in the application.
+ *
+ *
+ * @author &lt;a href=&quot;mailto:gk@apache.org&quot;&gt;Georg Kallidis&lt;/a&gt;
+ * 
+ * The Implementation for {@link TYPES} GCM.
+ */
+
+public final class CryptoStreamGCMImpl extends CryptoStreamFactoryJ8Template
+{  
+
+    protected static final int IV_SIZE = 12;
+    
+    /**
+     * Constructor
+     * @throws GeneralSecurityException  - wraps {@link NoSuchAlgorithmException}
+     */
+    public CryptoStreamGCMImpl() throws GeneralSecurityException
+    {
+<span class="fc" id="L72">        this(generateSalt());</span>
+<span class="fc" id="L73">    }</span>
+
+
+    /**
+     * Constructor
+     *
+     * @param salt the salt for the GCM algorithm
+
+     */
+    public CryptoStreamGCMImpl( byte[] salt) 
+<span class="fc" id="L83">    {</span>
+<span class="fc" id="L84">        setSalt(salt);</span>
+<span class="fc" id="L85">        this.providerName = PROVIDERNAME;</span>
+<span class="fc" id="L86">        setType(TYPES.GCM);</span>
+<span class="fc" id="L87">        this.algorithm = CryptoParametersJ8.TYPES_IMPL.ALGORITHM_J8_GCM.getAlgorithm();</span>
+<span class="fc" id="L88">    }</span>
+
+    /**
+     * Create a AES/GCM key.
+     *
+     * @param password the password to use.
+     * @param salt if provided this is used, otherweise {@link #getSalt()}.
+     * @return the key
+     * @throws GeneralSecurityException if creating the key failed
+     */
+    @Override
+    protected Key createKey( char[] password, byte[] salt ) 
+            throws GeneralSecurityException
+    {
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        SecretKey key = new SecretKeySpec(((salt == null)? this.getSalt(): salt.clone()), &quot;AES&quot;);</span>
+<span class="fc" id="L103">        return key;</span>
+    }
+
+    /**
+     * Create a Cipher.
+     * 
+     * Find additional information here: {@link GCMParameterSpec}
+     *
+     * @param mode the cipher mode
+     * @param password the password
+     * @return an instance of a cipher
+     * @throws GeneralSecurityException if creating a cipher failed
+     * @throws IOException creating a cipher failed
+     * 
+     */
+    @Override
+    protected byte[] createCipher(InputStream is, int mode, char[] password )
+        throws GeneralSecurityException, IOException
+    {
+        Cipher cipher;
+        
+<span class="fc" id="L124">        ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);</span>
+<span class="fc" id="L125">        StreamUtil.copy(is, bos);</span>
+<span class="fc" id="L126">        byte[] input = bos.toByteArray();</span>
+        
+<span class="fc" id="L128">        byte[] ciphertext = null;  </span>
+<span class="fc" id="L129">        byte[] salt = null;</span>
+<span class="fc" id="L130">        byte[] iv = null;</span>
+        
+<span class="fc bfc" id="L132" title="All 2 branches covered.">        if (mode == Cipher.DECRYPT_MODE) {   </span>
+            
+<span class="fc" id="L134">            ByteBuffer byteBuffer = ByteBuffer.wrap(input);</span>
+<span class="fc" id="L135">            salt = new byte[ SALT_SIZE ];</span>
+<span class="fc" id="L136">            byteBuffer.get(salt);</span>
+<span class="fc" id="L137">            iv = new byte[ IV_SIZE ];</span>
+<span class="fc" id="L138">            byteBuffer.get(iv);</span>
+<span class="fc" id="L139">            ciphertext = new byte[byteBuffer.remaining()];</span>
+<span class="fc" id="L140">            byteBuffer.get(ciphertext);</span>
+            
+//            salt = Arrays.copyOfRange(input, 0, SALT_SIZE );
+//            iv = Arrays.copyOfRange(input, salt.length, salt.length + 16 );
+//            ciphertext = Arrays.copyOfRange(input, salt.length + iv.length, input.length);// cut out salt and iv
+        }
+        
+<span class="fc" id="L147">        Key key = this.createKey( password, salt );</span>
+        
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">        if( this.getProviderName() == null )</span>
+        {
+<span class="fc" id="L151">            cipher = Cipher.getInstance( this.getAlgorithm() );</span>
+        }
+        else
+        {
+<span class="nc" id="L155">            cipher = Cipher.getInstance( this.getAlgorithm(), this.getProviderName() );</span>
+        }
+        
+        // save
+<span class="fc bfc" id="L159" title="All 2 branches covered.">        if (mode == Cipher.DECRYPT_MODE) {</span>
+            
+<span class="fc" id="L161">            GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);</span>
+<span class="fc" id="L162">            cipher.init( mode, key, gcmParamSpec );</span>
+            
+            //cipher.init( mode, key, algorithmParameters );
+<span class="fc" id="L165">            ciphertext = cipher.doFinal(ciphertext); // actually the unencrypted bytes</span>
+        }
+        
+        // save
+<span class="fc bfc" id="L169" title="All 2 branches covered.">        if (mode == Cipher.ENCRYPT_MODE) {        </span>
+<span class="fc" id="L170">            iv = generateIV();</span>
+<span class="fc" id="L171">            GCMParameterSpec gcmParamSpec = new GCMParameterSpec(128, iv);</span>
+            
+<span class="fc" id="L173">            salt = this.getSalt();</span>
+<span class="fc" id="L174">            cipher.init( mode, key, gcmParamSpec );</span>
+
+            //algorithmParameters = cipher.getParameters();
+            // might update with associated Data
+            // cipher.updateAAD(associatedData );// not supported PBEWithHmacSHA256AndAES_256
+            
+<span class="fc" id="L180">            byte[] result = cipher.doFinal(input);</span>
+            //iv = cipher.getIV(); // AES has 128bit block size, but iv is 16bit 
+           
+            // Salt and IV need to be stored with the result, otherwise we can't decrypt the message later.
+<span class="fc" id="L184">            ByteBuffer byteBuffer = ByteBuffer.allocate(salt.length + iv.length + result.length);</span>
+<span class="fc" id="L185">            ciphertext = byteBuffer.put(salt).put(iv).put(result).array();</span>
+            
+//            ciphertext = new byte[salt.length + iv.length + result.length];
+//            
+//            System.arraycopy(salt, 0, ciphertext, 0, salt.length);
+//            System.arraycopy(iv, 0, ciphertext, salt.length, iv.length);
+//            System.arraycopy(result, 0, ciphertext, salt.length + iv.length, result.length);// push after salt and iv  
+        }
+<span class="fc" id="L193">        return ciphertext;</span>
+    }
+    
+    /**
+     * 
+     * @return the random byte array from {@link SecureRandom} SHA1PRNG (as default)
+     * @throws GeneralSecurityException - if creating the key failed
+     */
+    private byte[] generateIV( ) throws GeneralSecurityException {
+        SecureRandom random;
+        try {
+<span class="fc" id="L204">            random = SecureRandom.getInstance(&quot;SHA1PRNG&quot;);</span>
+<span class="fc" id="L205">            byte[] iv = new byte[ IV_SIZE ];</span>
+<span class="fc" id="L206">            random.nextBytes(iv);</span>
+<span class="fc" id="L207">            return iv;</span>
+<span class="nc" id="L208">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L209">            throw new GeneralSecurityException(e);  </span>
+        }
+    }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

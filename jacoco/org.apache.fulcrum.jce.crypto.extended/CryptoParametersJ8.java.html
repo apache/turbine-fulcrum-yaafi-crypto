@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CryptoParametersJ8.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum YAAFI Crypto</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.jce.crypto.extended</a> &gt; <span class="el_source">CryptoParametersJ8.java</span></div><h1>CryptoParametersJ8.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.jce.crypto.extended;
+
+import java.security.Provider;
+import java.security.Security;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+/**
+ * CryptoParameters used for encryption/decryption.
+ *
+ * @author &lt;a href=&quot;mailto:gk@apache.org&quot;&gt;Georg Kallidis&lt;/a&gt;
+ */
+
+public interface CryptoParametersJ8 {
+	
+	/**
+	 * 
+	 * Implementing classes are either using
+	 * 
+	 * &lt;ul&gt;
+	 * &lt;li&gt;PBEWith &amp;lt;digest&amp;gt;And&amp;lt;encryption&amp;gt; - the password-based encryption algorithm defined in PKCS #5: PBEWithHmacSHA256AndAES_256/CBC/PKCS5Padding in {@link #ALGORITHM_J8_PBE}&lt;/li&gt;
+	 * &lt;/ul&gt;
+	 * 
+	 * or
+	 * 
+	 * &lt;ul&gt;
+	 * &lt;li&gt;AES/GCM/NoPadding in {@link #ALGORITHM_J8_GCM} (Cipher Algorithm Names/Cipher Algorithm Modes/Cipher Algorithm Padding). Cipher is Galois/Counter Mode, as defined in NIST Special Publication SP 800-38D: &lt;/li&gt;
+	 * &lt;/ul&gt;
+	 * 
+	 * 
+	 * &lt;a href=&quot;https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJCEProvider&quot;&gt;The Oracle Security SunJCE Provider&lt;/a&gt;
+	 * 
+	 * Algo/mode/padding for cipher transformation:
+	 * 
+	 * Java 8: &lt;a href=&quot;https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Cipher&quot;&gt;The Oracle Security Standard Names Cipher Algorithms&lt;/a&gt;
+	 * 
+	 * Java 14: &lt;a href=&quot;https://docs.oracle.com/en/java/javase/14/docs/specs/security/standard-names.html#security-algorithm-implementation-requirements&quot;&gt;Security Algorithm Implementation Requirements&lt;/a&gt;
+	 * 
+	 */
+<span class="fc" id="L64">	public enum TYPES_IMPL {</span>
+		
+		// key size 256
+<span class="fc" id="L67">		ALGORITHM_J8_PBE(&quot;PBEWithHmacSHA256AndAES_256&quot;), </span>
+		// key size 128
+<span class="fc" id="L69">		ALGORITHM_J8_GCM(&quot;AES_128/GCM/NoPadding&quot;);</span>
+
+		private final String algorithm;
+
+<span class="fc" id="L73">		private TYPES_IMPL(String algo) {</span>
+<span class="fc" id="L74">			algorithm = algo;</span>
+<span class="fc" id="L75">		}</span>
+
+		@Override
+		public String toString() {
+<span class="fc" id="L79">			return this.algorithm;</span>
+		}
+
+		public String getAlgorithm() {
+<span class="fc" id="L83">			return algorithm;</span>
+		}
+		
+		/**
+		 * clear code depending on algorithm AES size return &lt;pre&gt;J8AESAES_&amp;lt;size&amp;gt;;&lt;/pre&gt;.
+		 * {@link CryptoParametersJ8#CLEAR_CODE_DEFAULT}
+		 *  
+		 * @return clear code J8AES_&amp;lt;size&amp;gt;; with three digit size.
+		 */
+		public String getClearCode() {
+			
+<span class="fc" id="L94">			return String.format(&quot;J8%1$s;&quot;, </span>
+<span class="fc" id="L95">					algorithm.subSequence(algorithm.indexOf(&quot;AES_&quot;),algorithm.indexOf(&quot;AES_&quot;)+7));</span>
+		}
+	}
+
+	/**
+	 * 
+	 * short names, exact names @see {@link TYPES_IMPL}.
+	 *
+	 */
+<span class="fc" id="L104">	public enum TYPES {</span>
+		
+		/**
+		 *  PBE algorithm is kind of meta algorithm, uses AES, see above. 
+		 */
+<span class="fc" id="L109">		PBE, </span>
+		/**
+		 *  AES algorithm, but GCM is is actually the algorithm mode, but nevertheless used as a short name.
+		 */
+<span class="fc" id="L113">		GCM;</span>
+
+		/**
+		 * Clear code should be always 10 bytes.
+		 * 
+		 * {@link CryptoParametersJ8#CLEAR_CODE_DEFAULT}
+		 * 
+		 * @return clear code
+		 * 
+		 */
+		public String getClearCode() {
+<span class="fc bfc" id="L124" title="All 2 branches covered.">			return this.equals(TYPES.PBE)? </span>
+<span class="fc" id="L125">					TYPES_IMPL.ALGORITHM_J8_PBE.getClearCode():</span>
+<span class="fc" id="L126">				TYPES_IMPL.ALGORITHM_J8_GCM.getClearCode();</span>
+		}
+	}
+
+	/**
+	 * Prefix to decrypted hex hash to get a clue, what to use and what it is; should be always 10 bytes.
+	 */
+	public String CLEAR_CODE_DEFAULT = &quot;J8_AES064;&quot;;
+	
+<span class="fc" id="L135">	public TYPES DEFAULT_TYPE = TYPES.PBE;</span>
+
+	
+	/**
+	 * Checks Java provider with &lt;b&gt;type&lt;/b&gt; has exact type or contains any of the strings in algoList.
+	 * &lt;pre&gt;Types&lt;/pre&gt; may be Cipher, AlgorithmParameters, KeyGenerator, Alg, Mac, SecretKeyFactory.
+	 * 
+	 * @param algoList the types to be checked
+	 * @param type the type is ignored if not exact, instead uses the two types: &quot;AlgorithmParameters&quot;, &quot;Cipher&quot;.
+	 * @param exact if exact does a exact match 
+	 * @return the matched results as a list or emtpy list
+	 */
+	public static List&lt;String&gt; getSupportedAlgos(List&lt;String&gt; algoList, String type, boolean exact) {
+<span class="fc" id="L148">		List&lt;String&gt; result = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L149">		Provider p[] = Security.getProviders();</span>
+<span class="fc" id="L150">		List&lt;Provider&gt; providerList = Arrays.asList(p);</span>
+
+<span class="fc bfc" id="L152" title="All 2 branches covered.">		for (Provider provider : providerList) {</span>
+			//System.out.println(provider);
+<span class="fc" id="L154">			result.addAll(Collections.list(provider.keys()).stream().map(t -&gt; t.toString())</span>
+<span class="fc" id="L155">					.filter(x-&gt;</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">							(exact)? </span>
+<span class="fc bfc" id="L157" title="All 4 branches covered.">							(x.startsWith(type) &amp;&amp; algoList.contains(x.replaceAll(type + &quot;.&quot;, &quot;&quot;))):</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">							(x.matches(&quot;(&quot; +String.join(&quot;|&quot;, PROVIDER_TYPES) + &quot;).*$&quot;) &amp;&amp; </span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">									algoList.stream().anyMatch(y -&gt; y.contains(x.replaceAll(type + &quot;.&quot;, &quot;&quot;)))</span>
+							)
+					)
+<span class="fc" id="L162">					.map( x -&gt;</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">					(exact)? </span>
+<span class="fc" id="L164">					   x.replaceAll(type + &quot;.&quot;, &quot;&quot;):</span>
+<span class="fc" id="L165">						   x.replaceAll(&quot;(&quot; +String.join(&quot;|&quot;, PROVIDER_TYPES) + &quot;)&quot; + &quot;.&quot;, &quot;&quot;)</span>
+					)
+<span class="fc" id="L167">					.collect(Collectors.toList()));</span>
+<span class="fc" id="L168">		}</span>
+<span class="fc" id="L169">		return result;</span>
+	}
+	
+<span class="fc" id="L172">	public static List[] LISTS = {  Arrays.stream(CryptoParametersJ8.TYPES.values()).map(t -&gt; t.toString())</span>
+<span class="fc" id="L173">			.collect(Collectors.toList()), </span>
+<span class="fc" id="L174">					Arrays.stream(CryptoParametersJ8.TYPES_IMPL.values()).map(t -&gt; t.toString())</span>
+<span class="fc" id="L175">					.collect(Collectors.toList()) };</span>
+	
+<span class="fc" id="L177">	public static String[] PROVIDER_TYPES = { &quot;AlgorithmParameters&quot;, &quot;Cipher&quot; };</span>
+
+	/**
+	 * initializes supported parameters by filtering {@link TYPES} against &lt;i&gt;AlgorithmParameters&lt;/i&gt; in system supported cipher suites:
+	 * first by an exact match with type &lt;i&gt;AlgorithmParameters&lt;/i&gt;, then by inexact matching.
+	 * 
+	 * {@link #getSupportedAlgos(List, String, boolean)}
+	 * @return list of supported algo short codes, if nothing is found, the list is empty.
+	 */
+	static List&lt;String&gt; init() {
+<span class="fc" id="L187">		List&lt;String&gt; result = new ArrayList&lt;String&gt;();</span>
+<span class="fc" id="L188">		List&lt;String&gt; defaultSupportedTypes = LISTS[0];</span>
+<span class="fc" id="L189">		String providerType = PROVIDER_TYPES[0];</span>
+<span class="fc" id="L190">		result = getSupportedAlgos(defaultSupportedTypes, providerType, true);</span>
+		// no duplicates
+<span class="fc" id="L192">		Set&lt;String&gt; resultSet = new LinkedHashSet&lt;String&gt;(result);</span>
+<span class="fc" id="L193">		resultSet.addAll( getSupportedAlgos(defaultSupportedTypes, providerType, false));</span>
+
+<span class="fc" id="L195">		List&lt;String&gt; algoList = LISTS[1];</span>
+<span class="fc" id="L196">		String type = PROVIDER_TYPES[1];</span>
+<span class="fc" id="L197">		List&lt;String&gt; result3 = CryptoParametersJ8.getSupportedAlgos(algoList, type, true);</span>
+<span class="fc" id="L198">		defaultSupportedTypes.stream().forEach(c-&gt; {</span>
+<span class="pc bpc" id="L199" title="1 of 2 branches missed.">			if (result3.stream().anyMatch(x -&gt; x.contains(c))) {</span>
+				//System.out.println(&quot;adding &quot; + c);
+<span class="fc" id="L201">				resultSet.add(c);</span>
+			}
+<span class="fc" id="L203">		});</span>
+<span class="fc" id="L204">		return new ArrayList&lt;&gt;(resultSet);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

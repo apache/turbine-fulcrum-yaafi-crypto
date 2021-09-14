@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CryptoStreamFactoryTemplate.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum YAAFI Crypto</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.jce.crypto</a> &gt; <span class="el_source">CryptoStreamFactoryTemplate.java</span></div><h1>CryptoStreamFactoryTemplate.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.jce.crypto;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.GeneralSecurityException;
+
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+
+/**
+ * Concrete factory for creating encrypting/decrypting streams. The
+ * implementation uses the JCA (Java Crypto Extension) supplied
+ * by SUN (using SunJCE 1.42).
+ *
+ * The implementation uses as PBEWithMD5AndDES for encryption which
+ * should be sufficent for most applications.
+ *
+ * The implementation also supplies a default password in the case that
+ * the programmer don't want to have additional hassles. It is easy to
+ * reengineer the password being used but much better than a hard-coded
+ * password in the application.
+ *
+ * The code uses parts from Markus Hahn's Blowfish library found at
+ * http://blowfishj.sourceforge.net/
+ *
+ * @author &lt;a href=&quot;mailto:siegfried.goeschl@it20one.at&quot;&gt;Siegfried Goeschl &lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:maakus@earthlink.net&quot;&gt;Markus Hahn&lt;/a&gt;
+ */
+
+<span class="fc" id="L51">public abstract class CryptoStreamFactoryTemplate implements CryptoStreamFactory</span>
+{
+
+    /** the default instance */
+    protected static CryptoStreamFactory instance;
+    
+    public static CryptoStreamFactory getInstance() 
+    {
+<span class="nc" id="L59">        return instance;</span>
+    }
+
+    public static void setInstance(CryptoStreamFactory instance) 
+    {
+<span class="nc" id="L64">        CryptoStreamFactoryTemplate.instance = instance;</span>
+<span class="nc" id="L65">    }</span>
+
+    /**
+     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream, String)
+     */
+    public InputStream getInputStream(InputStream is, String decryptionMode) throws GeneralSecurityException, IOException 
+    {
+
+<span class="nc" id="L73">        InputStream result = null;</span>
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        if( &quot;auto&quot;.equalsIgnoreCase(decryptionMode) )</span>
+        {
+<span class="nc" id="L77">            result = getSmartInputStream(is);</span>
+        }
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        else if( &quot;true&quot;.equalsIgnoreCase(decryptionMode) )</span>
+        {
+<span class="nc" id="L81">            result = getInputStream(is);</span>
+        }
+        else
+        {
+<span class="nc" id="L85">            result = is;</span>
+        }
+<span class="nc" id="L87">        return result;</span>
+    }
+
+    /**
+     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream, String, char[])
+     */
+    public InputStream getInputStream(InputStream is, String decryptionMode, char[] password) throws GeneralSecurityException, IOException 
+    {
+
+<span class="nc" id="L96">        InputStream result = null;</span>
+
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if( &quot;auto&quot;.equalsIgnoreCase(decryptionMode) )</span>
+        {
+<span class="nc" id="L100">            result = getSmartInputStream(is, password);</span>
+        }
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        else if( &quot;true&quot;.equalsIgnoreCase(decryptionMode) )</span>
+        {
+<span class="nc" id="L104">            result = getInputStream(is, password);</span>
+        }
+        else
+        {
+<span class="nc" id="L108">            result = is;</span>
+        }
+<span class="nc" id="L110">        return result;</span>
+    }
+
+    /**
+     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream)
+     */
+    public InputStream getInputStream( InputStream is )
+        throws GeneralSecurityException, IOException
+    {
+<span class="nc" id="L119">        Cipher cipher = this.createCipher( Cipher.DECRYPT_MODE, PasswordFactory.getInstance().create() );</span>
+<span class="nc" id="L120">        return new CipherInputStream( is, cipher );</span>
+    }
+
+    /**
+     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getInputStream(java.io.InputStream,char[])
+     */
+    public InputStream getInputStream( InputStream is, char[] password )
+        throws GeneralSecurityException, IOException
+    {
+<span class="fc" id="L129">        Cipher cipher = this.createCipher( Cipher.DECRYPT_MODE, password );</span>
+<span class="fc" id="L130">        return new CipherInputStream( is, cipher );</span>
+    }
+
+    /**
+     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getSmartInputStream(java.io.InputStream)
+     */
+    public InputStream getSmartInputStream(InputStream is)
+        throws GeneralSecurityException, IOException
+    {
+<span class="nc" id="L139">        return this.getSmartInputStream(</span>
+            is,
+<span class="nc" id="L141">            PasswordFactory.getInstance().create()</span>
+            );
+    }
+
+    /**
+     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getSmartInputStream(java.io.InputStream,char[])
+     */
+    public abstract InputStream getSmartInputStream(InputStream is, char[] password )
+        throws GeneralSecurityException, IOException;
+
+    /**
+     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getOutputStream(java.io.OutputStream)
+     */
+    public OutputStream getOutputStream( OutputStream os )
+        throws GeneralSecurityException, IOException
+    {
+<span class="nc" id="L157">        Cipher cipher = this.createCipher( Cipher.ENCRYPT_MODE, PasswordFactory.getInstance().create() );</span>
+<span class="nc" id="L158">        return new CipherOutputStream( os, cipher );    }</span>
+
+    /**
+     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getOutputStream(java.io.OutputStream, char[])
+     */
+    public OutputStream getOutputStream( OutputStream os, char[] password )
+        throws GeneralSecurityException, IOException
+    {
+<span class="fc" id="L166">        Cipher cipher = this.createCipher( Cipher.ENCRYPT_MODE, password );</span>
+<span class="fc" id="L167">        return new CipherOutputStream( os, cipher );</span>
+    }
+    protected abstract Cipher createCipher(int encryptMode, char[] password) throws GeneralSecurityException, IOException;
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CryptoStreamFactoryImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fulcrum YAAFI Crypto</a> &gt; <a href="index.source.html" class="el_package">org.apache.fulcrum.jce.crypto</a> &gt; <span class="el_source">CryptoStreamFactoryImpl.java</span></div><h1>CryptoStreamFactoryImpl.java</h1><pre class="source lang-java linenums">package org.apache.fulcrum.jce.crypto;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * &quot;License&quot;); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.security.Key;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
+
+/**
+ * Concrete factory for creating encrypting/decrypting streams. The
+ * implementation uses the JCA (Java Crypto Extension) supplied
+ * by SUN (using SunJCE 1.42).
+ *
+ * The implementation uses as PBEWithMD5AndDES for encryption which
+ * should be sufficent for most applications.
+ *
+ * The implementation also supplies a default password in the case that
+ * the programmer don't want to have additional hassles. It is easy to
+ * reengineer the password being used but much better than a hard-coded
+ * password in the application.
+ *
+ * The code uses parts from Markus Hahn's Blowfish library found at
+ * http://blowfishj.sourceforge.net/
+ *
+ * @author &lt;a href=&quot;mailto:siegfried.goeschl@it20one.at&quot;&gt;Siegfried Goeschl &lt;/a&gt;
+ * @author &lt;a href=&quot;mailto:maakus@earthlink.net&quot;&gt;Markus Hahn&lt;/a&gt;
+ */
+
+public class CryptoStreamFactoryImpl extends CryptoStreamFactoryTemplate implements CryptoStreamFactory
+{
+    /** the salt for the PBE algorithm */
+    protected final byte[] salt;
+
+    /** the count paramter for the PBE algorithm */
+    protected int count;
+
+    /** the name of the JCE provider */
+    protected String providerName;
+
+    /** the algorithm to use */
+    protected String algorithm;
+
+    /** the default instance */
+    private static CryptoStreamFactory instance;
+
+    /**
+     * The JCE provider name known to work. If the value
+     * is set to null an appropriate provider will be
+     * used.
+     */
+<span class="fc" id="L74">    protected static final String PROVIDERNAME = null;</span>
+
+    /**
+     * Factory method to get a default instance
+     * @return an instance of the CryptoStreamFactory
+     */
+    public static CryptoStreamFactory getInstance()
+    {
+<span class="fc" id="L82">        synchronized(CryptoStreamFactoryImpl.class ) {</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            if( CryptoStreamFactoryImpl.instance == null )</span>
+            {
+<span class="nc" id="L85">                CryptoStreamFactoryImpl.instance = new CryptoStreamFactoryImpl();</span>
+            }
+    
+<span class="fc" id="L88">            return CryptoStreamFactoryImpl.instance;</span>
+        }
+    }
+
+    /**
+     * Set the default instance from an external application.
+     * @param instance the new default instance
+     */
+    public static void setInstance( CryptoStreamFactory instance )
+    {
+<span class="fc" id="L98">        CryptoStreamFactoryImpl.instance = instance;</span>
+<span class="fc" id="L99">    }</span>
+
+    /**
+     * Constructor
+     */
+    public CryptoStreamFactoryImpl()
+<span class="nc" id="L105">    {</span>
+<span class="nc" id="L106">        this.salt = CryptoParameters.Salt();</span>
+<span class="nc" id="L107">        this.count = CryptoParameters.COUNT;</span>
+<span class="nc" id="L108">        this.providerName = PROVIDERNAME;</span>
+<span class="nc" id="L109">        this.algorithm = CryptoParameters.ALGORITHM;</span>
+<span class="nc" id="L110">    }</span>
+
+    /**
+     * Constructor
+     *
+     * @param salt the salt for the PBE algorithm
+     * @param count the iteration for PBEParameterSpec
+     */
+    public CryptoStreamFactoryImpl( byte[] salt, int count)
+<span class="fc" id="L119">    {</span>
+<span class="fc" id="L120">        this.salt = salt.clone();</span>
+<span class="fc" id="L121">        this.count = count;</span>
+<span class="fc" id="L122">        this.providerName = PROVIDERNAME;</span>
+<span class="fc" id="L123">        this.algorithm = CryptoParameters.ALGORITHM;</span>
+<span class="fc" id="L124">    }</span>
+    
+
+    /**
+     * Factory method to get a default instance
+     * 
+     * @param salt the salt for the PBE algorithm
+     * @param count the iteration for PBEParameterSpec
+     * @return an instance of the CryptoStreamFactory
+     * 
+     */
+    public static CryptoStreamFactory getInstance( byte[] salt, int count)
+    {
+<span class="fc" id="L137">        synchronized(CryptoStreamFactoryImpl.class ) {</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">            if( CryptoStreamFactoryImpl.instance == null )</span>
+            {
+<span class="fc" id="L140">                CryptoStreamFactoryImpl.instance = new CryptoStreamFactoryImpl(salt, count);</span>
+            }
+    
+<span class="fc" id="L143">            return CryptoStreamFactoryImpl.instance;</span>
+        }
+    }
+
+    /**
+     * @see org.apache.fulcrum.jce.crypto.CryptoStreamFactory#getSmartInputStream(java.io.InputStream,char[])
+     * 
+     * 
+     */
+    public InputStream getSmartInputStream(InputStream is, char[] password )
+        throws GeneralSecurityException, IOException
+    {
+        SmartDecryptingInputStream result;
+
+<span class="nc" id="L157">        result = new SmartDecryptingInputStream(</span>
+<span class="nc" id="L158">            getInstance(),</span>
+            is,
+            password
+            );
+
+<span class="nc" id="L163">        return result;</span>
+    }
+
+    /**
+     * @return Returns the algorithm.
+     */
+    @Override
+    public String getAlgorithm()
+    {
+<span class="fc" id="L172">        return algorithm;</span>
+    }
+
+    /**
+     * @return Returns the count.
+     */
+    protected int getCount()
+    {
+<span class="fc" id="L180">        return count;</span>
+    }
+
+    /**
+     * @return Returns the providerName.
+     */
+    protected String getProviderName()
+    {
+<span class="fc" id="L188">        return providerName;</span>
+    }
+
+    /**
+     * @return Returns the salt.
+     */
+    protected byte [] getSalt()
+    {
+<span class="fc" id="L196">        return salt;</span>
+    }
+
+    /**
+     * Create a PBE key.
+     *
+     * @param password the password to use.
+     * @return the key
+     * @throws GeneralSecurityException creating the key failed
+     */
+    protected Key createKey( char[] password )
+        throws GeneralSecurityException
+    {
+        SecretKeyFactory keyFactory;
+<span class="fc" id="L210">        String algorithm = this.getAlgorithm();</span>
+<span class="fc" id="L211">        PBEKeySpec keySpec =  new PBEKeySpec(password);</span>
+
+<span class="pc bpc" id="L213" title="1 of 2 branches missed.">        if( this.getProviderName() == null )</span>
+        {
+<span class="fc" id="L215">            keyFactory = SecretKeyFactory.getInstance( algorithm );</span>
+        }
+        else
+        {
+<span class="nc" id="L219">            keyFactory = SecretKeyFactory.getInstance( algorithm, this.getProviderName() );</span>
+        }
+
+<span class="fc" id="L222">        return keyFactory.generateSecret(keySpec);</span>
+    }
+
+    /**
+     * Create a Cipher.
+     *
+     * @param mode the cipher mode
+     * @param password the password
+     * @return an instance of a cipher
+     * @throws GeneralSecurityException creating a cipher failed
+     * @throws IOException creating a cipher failed
+     */
+    protected Cipher createCipher( int mode, char[] password )
+        throws GeneralSecurityException, IOException
+    {
+        Cipher cipher;
+<span class="fc" id="L238">        PBEParameterSpec paramSpec = new PBEParameterSpec( this.getSalt(), this.getCount() );</span>
+<span class="fc" id="L239">        Key key = this.createKey( password );</span>
+
+<span class="pc bpc" id="L241" title="1 of 2 branches missed.">        if( this.getProviderName() == null )</span>
+        {
+<span class="fc" id="L243">            cipher = Cipher.getInstance( this.getAlgorithm() );</span>
+        }
+        else
+        {
+<span class="nc" id="L247">            cipher = Cipher.getInstance( this.getAlgorithm(), this.getProviderName() );</span>
+        }
+
+<span class="fc" id="L250">        cipher.init( mode, key, paramSpec );</span>
+<span class="fc" id="L251">        return cipher;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
