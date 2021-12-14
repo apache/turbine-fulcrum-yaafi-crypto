@@ -145,31 +145,29 @@ public interface CryptoParametersJ8 {
 	 * @return the matched results as a list or emtpy list
 	 */
 	public static List<String> getSupportedAlgos(List<String> algoList, String type, boolean exact) {
-		List<String> result = new ArrayList<String>();
 		Provider p[] = Security.getProviders();
 		List<Provider> providerList = Arrays.asList(p);
 
-		for (Provider provider : providerList) {
-			//System.out.println(provider);
-			result.addAll(Collections.list(provider.keys()).stream().map(t -> t.toString())
-					.filter(x->
-							(exact)? 
-							(x.startsWith(type) && algoList.contains(x.replaceAll(type + ".", ""))):
-							(x.matches("(" +String.join("|", PROVIDER_TYPES) + ").*$") && 
-									algoList.stream().anyMatch(y -> y.contains(x.replaceAll(type + ".", "")))
-							)
-					)
-					.map( x ->
-					(exact)? 
-					   x.replaceAll(type + ".", ""):
-						   x.replaceAll("(" +String.join("|", PROVIDER_TYPES) + ")" + ".", "")
-					)
-					.collect(Collectors.toList()));
-		}
+		List<String> result =
+				providerList.stream().flatMap(provider -> Collections.list(provider.keys()).stream().map(Object::toString)
+				.filter(x ->
+						(exact) ?
+								(x.startsWith(type) && algoList.contains(x.replaceAll(type + ".", ""))) :
+								(x.matches("(" + String.join("|", PROVIDER_TYPES) + ").*$") &&
+										algoList.stream().anyMatch(y -> y.contains(x.replaceAll(type + ".", "")))
+								)
+				)
+				.map(x ->
+						(exact) ?
+								x.replaceAll(type + ".", "") :
+								x.replaceAll("(" + String.join("|", PROVIDER_TYPES) + ")" + ".", "")
+				)
+				.collect(Collectors.toList()).stream()).collect(Collectors.toList());
 		return result;
 	}
 	
-	public static List[] LISTS = {  Arrays.stream(CryptoParametersJ8.TYPES.values()).map(t -> t.toString())
+	public static List[] LISTS = {
+			Arrays.stream(CryptoParametersJ8.TYPES.values()).map(Enum::toString)
 			.collect(Collectors.toList()), 
 					Arrays.stream(CryptoParametersJ8.TYPES_IMPL.values()).map(t -> t.toString())
 					.collect(Collectors.toList()) };
