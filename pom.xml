@@ -21,7 +21,7 @@
   <parent>
     <artifactId>turbine-parent</artifactId>
     <groupId>org.apache.turbine</groupId>
-    <version>11</version>
+    <version>12</version>
     <relativePath />
   </parent>
 
@@ -68,19 +68,19 @@
     <dependency>
          <groupId>org.apache.fulcrum</groupId>
          <artifactId>fulcrum-testcontainer</artifactId>
-         <version>1.0.9</version>
+         <version>2.0.0</version>
          <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
       <version>${turbine.log4j2.version}</version>
-      <scope>test</scope><!-- change to provided ? -->
+      <scope>test</scope>
     </dependency>
     <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.6</version>
+        <version>2.15.0</version>
         <scope>test</scope>
     </dependency>    
   </dependencies>
